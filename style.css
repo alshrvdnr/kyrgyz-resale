@@ -22,7 +22,7 @@ body {
   display: none !important;
 }
 
-/* Header & Grid */
+/* Header */
 .main-header {
   padding: 10px 15px;
   position: sticky;
@@ -60,117 +60,7 @@ body {
   font-weight: bold;
 }
 
-.listings-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  padding: 15px 15px 100px;
-}
-.card {
-  background: var(--card);
-  border-radius: var(--radius);
-  overflow: hidden;
-  border: 1px solid #222;
-}
-.card img {
-  width: 100%;
-  height: 130px;
-  object-fit: cover;
-}
-.card-body {
-  padding: 10px;
-}
-
-/* ТИТУЛ ПОД ЦЕНОЙ */
-.card-price {
-  color: var(--pink);
-  font-weight: bold;
-  font-size: 16px;
-  display: block;
-}
-.card-title {
-  font-size: 13px;
-  color: #ddd;
-  margin-top: 4px;
-  display: block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.card-city {
-  font-size: 10px;
-  color: var(--gray);
-  margin-top: 4px;
-  display: block;
-}
-
-/* УПРАВЛЕНИЕ В ПРОФИЛЕ */
-.management-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding: 15px 15px 100px;
-}
-.manage-card {
-  background: var(--card);
-  border-radius: 12px;
-  padding: 15px;
-  border: 1px solid #333;
-}
-.manage-info {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 15px;
-}
-.manage-info img {
-  width: 80px;
-  height: 80px;
-  border-radius: 8px;
-  object-fit: cover;
-}
-.manage-text {
-  flex: 1;
-}
-.manage-btns {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-/* БОЛЬШАЯ КНОПКА ИЗМЕНИТЬ */
-.btn-edit-main {
-  background: var(--pink);
-  color: #000;
-  border: none;
-  padding: 14px;
-  border-radius: 10px;
-  font-weight: bold;
-  width: 100%;
-  font-size: 16px;
-}
-.btn-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-.btn-sold {
-  background: #2c2c2e;
-  color: #fff;
-  border: 1px solid #444;
-  padding: 10px;
-  border-radius: 10px;
-  font-size: 14px;
-}
-.btn-del {
-  background: #3a1c1c;
-  color: #ff5e5e;
-  border: 1px solid #552222;
-  padding: 10px;
-  border-radius: 10px;
-  font-size: 14px;
-}
-
-/* Остальное */
+/* Избранное по скриншоту */
 .favs-header-custom {
   padding: 15px 15px 0;
   background: var(--bg);
@@ -180,6 +70,16 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 25px;
+}
+.favs-top-line h2 {
+  margin: 0;
+  font-size: 18px;
+}
+.favs-clear-link {
+  background: none;
+  border: none;
+  color: var(--pink);
+  font-size: 17px;
 }
 .favs-tabs-nav {
   display: flex;
@@ -206,6 +106,104 @@ body {
   background: var(--pink);
 }
 
+/* Экран Поисков */
+.empty-searches-view {
+  text-align: center;
+  padding: 60px 20px;
+}
+.mockup-container {
+  width: 160px;
+  height: 115px;
+  background: #2c2c2e;
+  border-radius: 15px;
+  margin: 0 auto 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.mockup-line {
+  width: 100px;
+  height: 10px;
+  background: #3d3d3f;
+  border-radius: 5px;
+  margin-bottom: 15px;
+}
+.mockup-btn {
+  width: 80px;
+  height: 24px;
+  background: var(--pink);
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.mockup-btn i {
+  color: white;
+  font-size: 10px;
+}
+
+.empty-searches-view h3 {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+.empty-searches-view p {
+  color: var(--gray);
+  font-size: 14px;
+  margin-bottom: 30px;
+}
+.fav-action-btn {
+  background: var(--pink);
+  color: white;
+  border: none;
+  padding: 14px 45px;
+  border-radius: 25px;
+  font-weight: bold;
+}
+
+/* Grid */
+.listings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 15px 15px 100px;
+}
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  overflow: hidden;
+  position: relative;
+  border: 1px solid #222;
+}
+.card img {
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+  background: #222;
+}
+.card-body {
+  padding: 10px;
+}
+.card-price {
+  color: var(--pink);
+  font-weight: bold;
+  font-size: 16px;
+}
+.card-title {
+  font-size: 12px;
+  color: #ddd;
+  height: 32px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+.card-city {
+  font-size: 10px;
+  color: var(--gray);
+  margin-top: 4px;
+  display: block;
+}
+
+/* Полноэкранная модалка */
 .full-view {
   position: fixed;
   top: 0;
@@ -229,6 +227,7 @@ body {
 }
 .pv-back {
   background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(5px);
   border: none;
   color: white;
   width: 36px;
@@ -238,9 +237,20 @@ body {
   align-items: center;
   justify-content: center;
 }
+.pv-top-icons {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+.pv-top-icons i {
+  font-size: 22px;
+  color: white;
+  cursor: pointer;
+}
 .pv-scroll-area {
   flex: 1;
   overflow-y: auto;
+  padding-bottom: 40px;
 }
 .pd-body {
   padding: 20px;
@@ -249,6 +259,13 @@ body {
   color: var(--pink);
   font-size: 28px;
   font-weight: 900;
+  margin-bottom: 5px;
+}
+.pd-title {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #fff;
 }
 .pd-btn-write {
   display: block;
@@ -260,8 +277,147 @@ body {
   font-weight: bold;
   text-decoration: none;
   margin-bottom: 25px;
+  font-size: 16px;
+}
+.contact-info-block {
+  background: #1c1c1e;
+  padding: 15px;
+  border-radius: 12px;
+  margin-top: 10px;
+  border: 1px solid #333;
+}
+.contact-label {
+  color: var(--gray);
+  font-size: 12px;
+  margin-bottom: 5px;
+}
+.contact-value {
+  font-size: 18px;
+  font-weight: bold;
+  color: #fff;
 }
 
+/* Остальные стили */
+.capsule-container {
+  padding: 10px 15px;
+}
+.capsule-tabs {
+  background: #232325;
+  border-radius: 10px;
+  display: flex;
+  padding: 4px;
+}
+.cap-tab {
+  flex: 1;
+  text-align: center;
+  padding: 10px;
+  font-size: 14px;
+  color: var(--text);
+  border-radius: 8px;
+}
+.cap-tab.active {
+  background: #424245;
+  font-weight: bold;
+}
+.category-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 15px 0 5px;
+  scrollbar-width: none;
+}
+.cat-chip {
+  background: var(--card);
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-size: 14px;
+  white-space: nowrap;
+  color: var(--gray);
+  border: 1px solid #333;
+}
+.cat-chip.active {
+  background: var(--pink);
+  color: white;
+  border-color: var(--pink);
+}
+.profile-hero {
+  text-align: center;
+  padding: 40px 20px;
+  background: var(--card);
+}
+.avatar-circle {
+  width: 80px;
+  height: 80px;
+  background: var(--pink);
+  border-radius: 50%;
+  margin: 0 auto 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  font-weight: bold;
+}
+.profile-tabs-nav {
+  display: flex;
+  justify-content: space-around;
+  border-bottom: 1px solid #222;
+}
+.p-tab {
+  padding: 15px;
+  font-size: 13px;
+  color: var(--gray);
+  flex: 1;
+  text-align: center;
+}
+.p-tab.active {
+  color: var(--pink);
+  border-bottom: 2px solid var(--pink);
+}
+.form-scroll {
+  padding: 20px 20px 120px;
+}
+.f-group {
+  margin-bottom: 15px;
+}
+.f-group label {
+  display: block;
+  font-size: 12px;
+  color: var(--gray);
+  margin-bottom: 6px;
+}
+.main-input {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid #333;
+  padding: 14px;
+  border-radius: 10px;
+  color: white;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+.upload-zone {
+  background: var(--card);
+  border: 2px dashed #444;
+  padding: 30px;
+  text-align: center;
+  color: var(--gray);
+  border-radius: 12px;
+}
+#img-preview {
+  width: 100%;
+  border-radius: 10px;
+  margin-top: 15px;
+}
+.pink-btn-full {
+  background: var(--pink);
+  color: white;
+  border: none;
+  padding: 16px;
+  border-radius: 10px;
+  width: 100%;
+  font-weight: bold;
+  font-size: 16px;
+}
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -282,10 +438,16 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 4px;
   font-size: 10px;
 }
 .nav-item.active {
   color: var(--pink);
+}
+.nav-center {
+  position: relative;
+  top: -18px;
+  text-align: center;
 }
 .pink-plus {
   width: 56px;
@@ -295,16 +457,4 @@ body {
   border: 4px solid var(--bg);
   color: white;
   font-size: 30px;
-}
-.form-scroll {
-  padding: 20px 20px 120px;
-}
-.main-input {
-  width: 100%;
-  background: var(--card);
-  border: 1px solid #333;
-  padding: 14px;
-  border-radius: 10px;
-  color: white;
-  margin-bottom: 10px;
 }
