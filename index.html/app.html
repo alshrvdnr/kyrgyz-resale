@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Кыргызстан Перепродажа</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Шапка -->
+        <header>
+            <div class="header-top">
+                <h1 id="txt-logo">Кыргызстан Перепродажа</h1>
+                <button id="lang-toggle" onclick="toggleLang()">KG</button>
+            </div>
+            <div class="search-bar">
+                <i class="fa fa-search"></i>
+                <input type="text" id="search-input" placeholder="Поиск товаров...">
+                <button id="filter-btn" onclick="openFilter()"><i class="fa fa-sliders"></i></button>
+            </div>
+            <div class="categories" id="category-list">
+                <!-- Категории будут здесь -->
+            </div>
+        </header>
+
+        <!-- Основной контент -->
+        <main id="main-content">
+            <div class="listings-grid" id="listings-grid">
+                <!-- Объявления появятся здесь -->
+            </div>
+        </main>
+
+        <!-- Виджет подробностей товара (Hidden by default) -->
+        <div id="product-view" class="view hidden">
+            <button class="back-btn" onclick="closeProduct()"><i class="fa fa-arrow-left"></i></button>
+            <div id="product-details"></div>
+        </div>
+
+        <!-- Форма добавления -->
+        <div id="add-view" class="view hidden">
+            <h2 id="txt-add-title">Подать объявление</h2>
+            <form id="add-form">
+                <div class="form-group">
+                    <label>Фотографии</label>
+                    <input type="file" id="item-photos" accept="image/*" multiple>
+                    <div id="photo-previews"></div>
+                </div>
+                <input type="text" id="item-title" placeholder="Название" required>
+                <textarea id="item-desc" placeholder="Описание" required></textarea>
+                <input type="number" id="item-price" placeholder="Цена (сом)" required>
+                <select id="item-category" required></select>
+                <select id="item-city" required></select>
+                <input type="text" id="item-phone" placeholder="Телефон (+996...)" required>
+                <input type="text" id="item-tg" placeholder="Telegram Username (без @)" required>
+                <button type="submit" class="submit-btn" id="txt-publish">Опубликовать</button>
+                <button type="button" class="cancel-btn" onclick="showPage('home')" id="txt-cancel">Отмена</button>
+            </form>
+        </div>
+
+        <!-- Мои объявления -->
+        <div id="profile-view" class="view hidden">
+            <h2 id="txt-my-ads">Мои объявления</h2>
+            <div id="my-listings-grid" class="listings-grid"></div>
+            <hr>
+            <button onclick="showPage('rules')" class="secondary-btn" id="txt-btn-rules">Правила платформы</button>
+        </header>
+
+        <!-- Правила -->
+        <div id="rules-view" class="view hidden">
+            <h2 id="txt-rules-title">Правила платформы</h2>
+            <div class="rules-content" id="txt-rules-body">
+                <p>• Запрещено мошенничество</p>
+                <p>• Запрещены фейковые объявления</p>
+                <p>• Запрещены запрещенные товары</p>
+                <p>• Администрация может удалить объявление</p>
+            </div>
+            <button onclick="showPage('profile')" class="submit-btn">Назад</button>
+        </div>
+
+        <!-- Нижнее меню -->
+        <nav class="bottom-nav">
+            <button onclick="showPage('home')"><i class="fa fa-home"></i><span id="nav-home">Главная</span></button>
+            <button onclick="showPage('add')" class="add-nav-btn"><i class="fa fa-plus-circle"></i></button>
+            <button onclick="showPage('profile')"><i class="fa fa-user"></i><span id="nav-profile">Профиль</span></button>
+        </nav>
+
+        <!-- Фильтр (Bottom Sheet) -->
+        <div id="filter-sheet" class="bottom-sheet hidden">
+            <div class="sheet-content">
+                <div class="sheet-header">
+                    <h3 id="txt-filter-title">Фильтры</h3>
+                    <button onclick="closeFilter()">×</button>
+                </div>
+                <div class="form-group">
+                    <label id="txt-f-city">Город</label>
+                    <select id="filter-city"></select>
+                </div>
+                <div class="form-group">
+                    <label id="txt-f-sort">Сортировка</label>
+                    <select id="filter-sort">
+                        <option value="new">Сначала новые</option>
+                        <option value="cheap">Сначала дешевые</option>
+                        <option value="expensive">Сначала дорогие</option>
+                    </select>
+                </div>
+                <button class="submit-btn" onclick="applyFilters()" id="txt-f-apply">Применить</button>
+            </div>
+            <div class="sheet-overlay" onclick="closeFilter()"></div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
