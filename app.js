@@ -1,14 +1,12 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-// ДАННЫЕ БОТА (Вставь свои!)
 const BOT_TOKEN = "8399814024:AAEla8xBVk_9deHydJV0hrc5QYDyXAFpZ8k";
 const ADMIN_ID = "1615492914";
 
 let ads = JSON.parse(localStorage.getItem("gifts_final_v12")) || [];
 let favs = JSON.parse(localStorage.getItem("favs_final_v12")) || [];
 let curCat = "Все";
-let currentFavTab = "ads";
 let uploadedBase64 = "";
 let currentProfileTab = "active";
 
@@ -29,47 +27,46 @@ function handleSearch(e) {
   if (e.key === "Enter") {
     const query = e.target.value.toLowerCase();
     const results = ads.filter((a) => a.title.toLowerCase().includes(query));
-    const tabs = document.getElementById("home-tabs-wrapper");
-    const error = document.getElementById("search-error");
-    if (results.length === 0 && query !== "") {
-      tabs.classList.add("hidden");
-      error.classList.remove("hidden");
-      renderFeed([]);
-    } else {
-      tabs.classList.remove("hidden");
-      error.classList.add("hidden");
-      renderFeed(query === "" ? ads : results);
-    }
+    renderFeed(query === "" ? ads : results);
     e.target.blur();
   }
 }
 
-// ГЛАВНЫЙ ФИД (Цена над Названием)
+// ГЛАВНЫЙ ЭКРАН
 function renderFeed(data = ads) {
   const grid = document.getElementById("home-grid");
   if (!grid) return;
   grid.innerHTML = "";
   let filtered = curCat === "Все" ? data : data.filter((a) => a.cat === curCat);
+
   filtered.forEach((ad) => {
+    const isSold = ad.status === "sold";
     const card = document.createElement("div");
     card.className = "card";
     card.onclick = () => openProduct(ad);
+
+    // В ленте: если продано, убираем город и описание (оно и так в модалке)
     card.innerHTML = `
         <img src="${ad.img}">
         <div class="card-body">
             <span class="card-price">${ad.price} KGS</span>
             <span class="card-title">${ad.title}</span>
-            <span class="card-city">${ad.city}</span>
+            ${
+              isSold
+                ? '<span style="color:var(--pink); font-size:10px; font-weight:bold;">ПРОДАНО</span>'
+                : `<span class="card-city">${ad.city}</span>`
+            }
         </div>`;
     grid.appendChild(card);
   });
 }
 
-// ПРОФИЛЬ: УПРАВЛЕНИЕ ОБЪЯВЛЕНИЯМИ
+// ПРОФИЛЬ: УПРАВЛЕНИЕ
 function renderProfileAds() {
   const grid = document.getElementById("my-ads-grid");
   const myId = tg.initDataUnsafe?.user?.id || 0;
-  // Фильтруем: активные или проданные
+
+  // Показываем: активные во вкладке "Активно", проданные во вкладке "Проданные"
   const myAds = ads.filter(
     (a) =>
       a.userId === myId &&
@@ -85,30 +82,33 @@ function renderProfileAds() {
   myAds.forEach((ad) => {
     const isSold = ad.status === "sold";
     const card = document.createElement("div");
-    card.className = "manage-card";
+    card.className = "m-card";
 
     card.innerHTML = `
-        <div class="manage-top">
+        <div class="m-top">
             <img src="${ad.img}">
-            <div class="manage-info-text">
+            <div class="m-info">
                 <div class="card-price">${ad.price} KGS</div>
                 <div class="card-title">${ad.title}</div>
                 ${
                   !isSold
-                    ? `<div style="font-size:10px; color:gray; margin-top:5px;">${ad.city}</div>`
-                    : '<b style="color:var(--pink); font-size:12px;">ПРОДАНО</b>'
+                    ? `<div style="color:gray; font-size:10px; margin-top:5px;">${ad.desc.substring(
+                        0,
+                        30
+                      )}...</div>`
+                    : '<b style="color:var(--pink)">ПРОДАНО</b>'
                 }
             </div>
         </div>
-        <div class="manage-btns-group">
-            <button class="btn-edit-main" onclick="openEditPage(${
+        <div class="manage-btns">
+            <button class="btn-edit-big" onclick="openEdit(${
               ad.id
             })">Изменить</button>
-            <div class="btn-secondary-row">
-                <button class="btn-small-action" onclick="toggleSoldStatus(${
-                  ad.id
-                })">${isSold ? "В активные" : "Продано"}</button>
-                <button class="btn-small-del" onclick="deleteAdForever(${
+            <div class="btn-small-row">
+                <button class="btn-s-action" onclick="toggleSold(${ad.id})">${
+      isSold ? "В активные" : "Продано"
+    }</button>
+                <button class="btn-s-del" onclick="deleteAd(${
                   ad.id
                 })">Удалить</button>
             </div>
@@ -118,8 +118,8 @@ function renderProfileAds() {
   });
 }
 
-// ФУНКЦИИ УПРАВЛЕНИЯ
-function openEditPage(id) {
+// ЛОГИКА ИЗМЕНЕНИЙ (Твоя просьба)
+function openEdit(id) {
   const ad = ads.find((a) => a.id === id);
   if (!ad) return;
   document.getElementById("edit-id").value = ad.id;
@@ -129,7 +129,7 @@ function openEditPage(id) {
   showPage("edit-ad");
 }
 
-function saveAdChanges() {
+function saveMyEdit() {
   const id = parseInt(document.getElementById("edit-id").value);
   const ad = ads.find((a) => a.id === id);
   if (ad) {
@@ -137,12 +137,12 @@ function saveAdChanges() {
     ad.price = document.getElementById("edit-price").value;
     ad.address = document.getElementById("edit-address").value;
     localStorage.setItem("gifts_final_v12", JSON.stringify(ads));
-    tg.showAlert("Данные успешно изменены!");
+    tg.showAlert("Обновлено!");
     showPage("profile");
   }
 }
 
-function toggleSoldStatus(id) {
+function toggleSold(id) {
   const ad = ads.find((a) => a.id === id);
   if (ad) {
     ad.status = ad.status === "sold" ? "active" : "sold";
@@ -151,15 +151,41 @@ function toggleSoldStatus(id) {
   }
 }
 
-function deleteAdForever(id) {
-  if (confirm("Удалить объявление навсегда?")) {
+function deleteAd(id) {
+  if (confirm("Удалить объявление?")) {
     ads = ads.filter((a) => a.id !== id);
     localStorage.setItem("gifts_final_v12", JSON.stringify(ads));
     renderProfileAds();
   }
 }
 
-// ОРИГИНАЛЬНАЯ ЛОГИКА (без сокращений)
+// ОРИГИНАЛЬНАЯ ЛОГИКА ПОДАЧИ
+async function sendToBot(ad) {
+  const text = `🚀 НОВАЯ ЗАЯВКА\n📦: ${ad.title}\n💰: ${ad.price} KGS\n📍: ${ad.city}\n👤: @${ad.tgNick}\n📱: ${ad.phone}`;
+  try {
+    const blob = await (await fetch(ad.img)).blob();
+    const formData = new FormData();
+    formData.append("chat_id", ADMIN_ID);
+    formData.append("photo", blob, "photo.jpg");
+    formData.append("caption", text);
+    formData.append(
+      "reply_markup",
+      JSON.stringify({
+        inline_keyboard: [
+          [
+            { text: "Одобрить ✅", callback_data: `ok_${ad.id}` },
+            { text: "Удалить ❌", callback_data: `no_${ad.id}` },
+          ],
+        ],
+      })
+    );
+    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+      method: "POST",
+      body: formData,
+    });
+  } catch (e) {}
+}
+
 function publishAndSend() {
   const title = document.getElementById("in-title").value;
   const price = document.getElementById("in-price").value;
@@ -171,7 +197,7 @@ function publishAndSend() {
   const desc = document.getElementById("in-desc").value;
 
   if (!title || !price || !uploadedBase64)
-    return tg.showAlert("Заполните все поля и фото!");
+    return tg.showAlert("Заполните поля!");
 
   const ad = {
     id: Date.now(),
@@ -188,6 +214,7 @@ function publishAndSend() {
     userId: tg.initDataUnsafe?.user?.id || 0,
   };
 
+  sendToBot(ad);
   ads.unshift(ad);
   localStorage.setItem("gifts_final_v12", JSON.stringify(ads));
   tg.showAlert("Опубликовано!");
@@ -204,12 +231,12 @@ function openProduct(ad) {
         <a href="https://t.me/${ad.tgNick.replace(
           "@",
           ""
-        )}" target="_blank" class="pd-btn-write">Написать</a>
-        <p style="color:#eee; line-height:1.6;">${ad.desc}</p>
-        <div style="background:#1c1c1e; padding:15px; border-radius:10px; margin-top:10px; font-size:14px;">
-            <div style="color:gray;">📍 АДРЕС</div>
-            <div>${ad.city}, ${ad.address || "Уточняйте у продавца"}</div>
-            <div style="color:gray; margin-top:10px;">📱 ТЕЛЕФОН</div>
+        )}" class="pd-btn-write">Написать</a>
+        <p style="color:#eee; line-height:1.4;">${ad.desc}</p>
+        <div style="background:#1c1c1e; padding:15px; border-radius:10px; margin-top:10px;">
+            <div style="color:gray; font-size:12px;">📍 АДРЕС</div>
+            <div>${ad.city}, ${ad.address || ""}</div>
+            <div style="color:gray; font-size:12px; margin-top:10px;">📱 ТЕЛЕФОН</div>
             <div>${ad.phone}</div>
         </div>
     </div>`;
@@ -238,14 +265,9 @@ function showPage(p) {
   const navBtn = document.getElementById(`n-${p}`);
   if (navBtn) navBtn.classList.add("active");
   if (p === "home") renderFeed();
-  if (p === "favs") renderFavs();
   if (p === "profile") renderProfileAds();
 }
 
-function switchFavTab(tab) {
-  currentFavTab = tab;
-  renderFavs();
-}
 function switchProfileTab(tab) {
   currentProfileTab = tab;
   renderProfileAds();
@@ -255,9 +277,14 @@ function closeProduct() {
 }
 function clearFavs() {
   favs = [];
+  localStorage.setItem("favs_final_v12", JSON.stringify(favs));
   renderFavs();
 }
 function filterByCat(c, el) {
   curCat = c;
+  document
+    .querySelectorAll(".cat-chip")
+    .forEach((i) => i.classList.remove("active"));
+  el.classList.add("active");
   renderFeed();
 }

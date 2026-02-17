@@ -73,29 +73,10 @@
 
       <!-- ИЗБРАННОЕ -->
       <section id="page-favs" class="page hidden">
-        <header class="favs-header-custom">
-          <div class="favs-top-line">
-            <span style="width: 60px"></span>
+        <header class="page-header-simple">
+          <div class="header-line">
             <h2>Избранное</h2>
-            <button class="favs-clear-link" onclick="clearFavs()">
-              Удалить всё
-            </button>
-          </div>
-          <div class="favs-tabs-nav">
-            <div
-              class="f-tab active"
-              id="f-tab-ads"
-              onclick="switchFavTab('ads')"
-            >
-              Объявления
-            </div>
-            <div
-              class="f-tab"
-              id="f-tab-searches"
-              onclick="switchFavTab('searches')"
-            >
-              Поиски
-            </div>
+            <button class="clear-btn" onclick="clearFavs()">Удалить всё</button>
           </div>
         </header>
         <main id="favs-content-area"></main>
@@ -119,8 +100,7 @@
             Проданные / Удаленные
           </div>
         </div>
-        <!-- В профиле теперь management-list для кнопок управления -->
-        <main class="management-list" id="my-ads-grid"></main>
+        <main class="profile-manage-list" id="my-ads-grid"></main>
       </section>
 
       <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ -->
@@ -151,6 +131,7 @@
               <img id="img-preview" src="" />
             </div>
           </div>
+
           <div class="f-group">
             <label>📍 ГОРОД</label>
             <select id="in-city" class="main-input">
@@ -161,6 +142,7 @@
               <option value="Каракол">Каракол</option>
             </select>
           </div>
+
           <div class="f-group">
             <label>Адрес (улица, дом)</label>
             <input
@@ -170,9 +152,10 @@
               placeholder="Введите адрес"
             />
           </div>
+
           <div class="f-group">
-            <label>Telegram ник (без @)</label>
-            <input
+            <label>Telegram ник (без @)</label
+            ><input
               type="text"
               id="in-tg"
               class="main-input"
@@ -180,8 +163,8 @@
             />
           </div>
           <div class="f-group">
-            <label>Номер телефона</label>
-            <input
+            <label>Номер телефона</label
+            ><input
               type="tel"
               id="in-wa"
               class="main-input"
@@ -189,8 +172,8 @@
             />
           </div>
           <div class="f-group">
-            <label>Название</label>
-            <input
+            <label>Название</label
+            ><input
               type="text"
               id="in-title"
               class="main-input"
@@ -198,8 +181,8 @@
             />
           </div>
           <div class="f-group">
-            <label>Цена (KGS)</label>
-            <input
+            <label>Цена (KGS)</label
+            ><input
               type="number"
               id="in-price"
               class="main-input"
@@ -216,24 +199,25 @@
             </select>
           </div>
           <div class="f-group">
-            <label>Описание</label>
-            <textarea
+            <label>Описание</label
+            ><textarea
               id="in-desc"
               class="main-input"
               placeholder="Описание..."
             ></textarea>
           </div>
+
           <button class="pink-btn-full" onclick="publishAndSend()">
             Опубликовать
           </button>
         </div>
       </section>
 
-      <!-- СТРАНИЦА РЕДАКТИРОВАНИЯ -->
+      <!-- РЕДАКТИРОВАНИЕ (НОВОЕ) -->
       <section id="page-edit-ad" class="page hidden">
         <header class="page-header-simple">
           <button onclick="showPage('profile')" class="icon-btn">✕</button>
-          <h2>Изменить данные</h2>
+          <h2>Изменить объявление</h2>
           <span></span>
         </header>
         <div class="form-scroll">
@@ -250,8 +234,8 @@
             <label>Адрес</label>
             <input type="text" id="edit-address" class="main-input" />
           </div>
-          <button class="pink-btn-full" onclick="saveAdChanges()">
-            Сохранить изменения
+          <button class="pink-btn-full" onclick="saveMyEdit()">
+            Сохранить
           </button>
         </div>
       </section>
@@ -286,9 +270,11 @@
           <button class="pv-back" onclick="closeProduct()">
             <i class="fa fa-chevron-left"></i>
           </button>
-          <div class="pv-top-icons" id="modal-fav-icon"></div>
+          <div class="pv-top-icons">
+            <i class="far fa-heart" id="pv-fav-icon"></i>
+          </div>
         </div>
-        <div id="pv-content" class="pv-scroll-area"></div>
+        <div id="pv-content"></div>
       </div>
 
       <!-- НАВИГАЦИЯ -->
