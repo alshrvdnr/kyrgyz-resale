@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>Lalafo Clone KG</title>
+    <title>Lalafo Kyrgyzstan Clone</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link
       rel="stylesheet"
@@ -16,182 +16,234 @@
   </head>
   <body>
     <div id="app">
-      <!-- ГЛАВНАЯ СТРАНИЦА -->
+      <!-- ГЛАВНАЯ -->
       <section id="page-home" class="page">
-        <header class="header">
-          <div class="search-bar">
-            <i class="fa fa-search"></i>
-            <input type="text" id="search-input" placeholder="Я ищу..." />
-            <button class="filter-icon-btn" onclick="showPage('filter')">
+        <header class="main-header">
+          <div class="search-container">
+            <div class="search-input-wrap">
+              <i class="fa fa-search"></i>
+              <input type="text" id="main-search" placeholder="Я ищу..." />
+            </div>
+            <button class="filter-trigger" onclick="showPage('filter')">
               <i class="fa fa-sliders"></i>
             </button>
           </div>
           <div class="category-scroll">
-            <div class="cat-pill active" onclick="filterByCat('Все')">Все</div>
-            <div class="cat-pill" onclick="filterByCat('Электроника')">
+            <div class="cat-chip active" onclick="filterByCat('Все')">Все</div>
+            <div class="cat-chip" onclick="filterByCat('Электроника')">
               Электроника
             </div>
-            <div class="cat-pill" onclick="filterByCat('Транспорт')">
+            <div class="cat-chip" onclick="filterByCat('Транспорт')">
               Транспорт
             </div>
-            <div class="cat-pill" onclick="filterByCat('Работа')">Работа</div>
-            <div class="cat-pill" onclick="filterByCat('Услуги')">Услуги</div>
+            <div class="cat-chip" onclick="filterByCat('Работа')">Работа</div>
+            <div class="cat-chip" onclick="filterByCat('Дом и сад')">
+              Дом и сад
+            </div>
+            <div class="cat-chip" onclick="filterByCat('Услуги')">Услуги</div>
           </div>
         </header>
-        <main class="listings-grid" id="main-grid"></main>
-      </section>
 
-      <!-- СТРАНИЦА ИЗБРАННОЕ -->
-      <section id="page-favs" class="page hidden">
-        <header class="sub-header">
-          <h2>Избранное</h2>
-          <button class="txt-btn" onclick="clearFavs()">Удалить всё</button>
-        </header>
-        <div class="tabs-line">
-          <span class="active">Объявления</span>
-          <span>Поиски</span>
+        <div class="feed-tabs">
+          <span class="active">Рекомендуемые</span>
+          <span>Новые</span>
         </div>
-        <main class="listings-grid" id="favs-grid"></main>
+
+        <main class="listings-grid" id="home-grid">
+          <!-- Сюда рендерятся товары -->
+        </main>
       </section>
 
-      <!-- СТРАНИЦА ПОДАТЬ ОБЪЯВЛЕНИЕ -->
-      <section id="page-add" class="page hidden">
-        <header class="sub-header">
-          <h2>Новое объявление</h2>
-          <button class="close-btn" onclick="showPage('home')">✕</button>
+      <!-- ИЗБРАННОЕ -->
+      <section id="page-favs" class="page hidden">
+        <header class="header-simple">
+          <div class="header-row">
+            <h2>Избранное</h2>
+            <button class="header-action" onclick="clearFavs()">
+              Удалить всё
+            </button>
+          </div>
+          <div class="tab-switcher">
+            <div class="tab-item active">Объявления</div>
+            <div class="tab-item">Поиски</div>
+          </div>
         </header>
-        <div class="form-body">
-          <div class="form-group">
+        <main class="listings-grid" id="favs-grid">
+          <!-- Избранные товары -->
+        </main>
+      </section>
+
+      <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ (ФОРМА) -->
+      <section id="page-add" class="page hidden">
+        <header class="header-simple">
+          <div class="header-row">
+            <button onclick="showPage('home')" class="icon-btn">✕</button>
+            <h2>Новое объявление</h2>
+            <span></span>
+          </div>
+        </header>
+        <div class="form-container">
+          <div class="input-block">
             <label>Название товара</label>
             <input
               type="text"
-              id="add-title"
-              placeholder="Напр. iPhone 15 Pro"
+              id="in-title"
+              placeholder="Напр. Sony PlayStation 4 Slim"
             />
           </div>
-          <div class="form-group">
+          <div class="input-block">
             <label>Цена (KGS)</label>
-            <input type="number" id="add-price" placeholder="0" />
+            <input type="number" id="in-price" placeholder="Введите цену" />
           </div>
-          <div class="form-group">
+          <div class="input-block">
             <label>Категория</label>
-            <select id="add-cat">
+            <select id="in-cat">
               <option value="Электроника">Электроника</option>
               <option value="Транспорт">Транспорт</option>
+              <option value="Дом и сад">Дом и сад</option>
               <option value="Услуги">Услуги</option>
+              <option value="Прочее">Прочее</option>
             </select>
           </div>
-          <div class="form-group">
+          <div class="input-block">
             <label>Описание</label>
             <textarea
-              id="add-desc"
-              placeholder="Расскажите подробнее..."
+              id="in-desc"
+              placeholder="Опишите состояние, комплект..."
+              rows="5"
             ></textarea>
           </div>
-          <div class="form-group">
+          <div class="input-block">
             <label>Ссылка на фото</label>
-            <input type="text" id="add-img" placeholder="https://..." />
+            <input
+              type="text"
+              id="in-img"
+              placeholder="Вставьте URL картинки"
+            />
           </div>
-          <button class="btn-primary" onclick="publishAd()">
+          <button class="green-submit-btn" onclick="addNewAd()">
             Опубликовать
           </button>
         </div>
       </section>
 
-      <!-- СТРАНИЦА ЧАТЫ -->
+      <!-- ЧАТЫ -->
       <section id="page-chats" class="page hidden">
-        <header class="sub-header">
-          <h2>Чаты</h2>
+        <header class="header-simple">
+          <div class="tab-switcher" style="padding-top: 10px">
+            <div class="tab-item active">Чаты</div>
+            <div class="tab-item">Уведомления</div>
+          </div>
         </header>
-        <div class="chats-list">
-          <div class="empty-state">У вас пока нет активных диалогов</div>
+        <div class="chats-container" id="chats-list">
+          <div class="empty-state">
+            <i class="fa fa-comments"></i>
+            <p>У вас пока нет активных чатов</p>
+          </div>
         </div>
       </section>
 
-      <!-- СТРАНИЦА ПРОФИЛЬ -->
+      <!-- ПРОФИЛЬ -->
       <section id="page-profile" class="page hidden">
-        <div class="profile-header-card">
-          <div class="profile-info">
-            <div class="user-avatar" id="user-avatar">?</div>
-            <div>
-              <h3 id="user-name">Загрузка...</h3>
-              <p class="edit-link">Редактировать профиль</p>
+        <div class="profile-card">
+          <div class="profile-header">
+            <div class="profile-avatar" id="p-avatar">?</div>
+            <div class="profile-meta">
+              <h3 id="p-name">Загрузка...</h3>
+              <p>Редактировать профиль</p>
             </div>
           </div>
-        </div>
-        <div class="profile-menu">
-          <div class="menu-item">
-            <i class="fa fa-wallet"></i> Кошелек <span>0.00 KGS</span>
-          </div>
-          <div class="menu-item">
-            <i class="fa fa-chart-line"></i> Эффективность
+          <div class="profile-stats">
+            <span>Отвечает на 100% сообщений</span>
           </div>
         </div>
-        <div class="section-title">Мои объявления</div>
-        <div id="my-ads-grid" class="listings-grid"></div>
+
+        <div class="lalafo-club">
+          <div class="club-icon">la</div>
+          <div class="club-text">Программа lalafoClub</div>
+          <i class="fa fa-chevron-right"></i>
+        </div>
+
+        <div class="wallet-section">
+          <div class="wallet-card">
+            <div class="w-info">
+              <i class="fa fa-wallet"></i>
+              <div>
+                <b>Кошелек</b>
+                <p>0.55 KGS</p>
+              </div>
+            </div>
+            <button class="topup-btn">Пополнить</button>
+          </div>
+          <div class="efficiency-card">
+            <i class="fa fa-chart-line"></i>
+            <b>Эффективность</b>
+            <i class="fa fa-chevron-right" style="margin-left: auto"></i>
+          </div>
+        </div>
+
+        <div class="profile-tabs">
+          <div class="p-tab active">Активно (0)</div>
+          <div class="p-tab">Ожидает</div>
+          <div class="p-tab">Деактивировано</div>
+        </div>
+
+        <div id="my-listings-container" class="listings-grid">
+          <!-- Мои объявления -->
+          <div class="empty-box">
+            <p>У вас нет активных объявлений</p>
+            <button class="green-btn-outline" onclick="showPage('add')">
+              Подать объявление
+            </button>
+          </div>
+        </div>
       </section>
 
-      <!-- СТРАНИЦА ФИЛЬТРОВ -->
+      <!-- ФИЛЬТРЫ -->
       <section id="page-filter" class="page hidden">
-        <header class="sub-header">
+        <header class="header-row-simple">
           <button onclick="showPage('home')">✕</button>
           <h2>Фильтр</h2>
-          <button class="txt-btn" onclick="resetFilters()">Очистить</button>
+          <button class="text-green" onclick="resetFilter()">Очистить</button>
         </header>
-        <div class="filter-body">
-          <div class="filter-item">
+        <div class="filter-content">
+          <div class="f-item">
             <label>Категория</label>
-            <select id="f-cat">
-              <option value="Все">Выбрать</option>
+            <select id="f-cat-select">
+              <option value="Все">Выбрать все</option>
               <option value="Электроника">Электроника</option>
               <option value="Транспорт">Транспорт</option>
             </select>
           </div>
-          <div class="filter-item">
-            <label>Сортировать</label>
-            <div class="radio-group">
-              <label
-                ><input type="radio" name="sort" value="new" checked /> Сначала
-                новые</label
-              >
-              <label
-                ><input type="radio" name="sort" value="cheap" /> Сначала
-                дешевле</label
-              >
-              <label
-                ><input type="radio" name="sort" value="expensive" /> Сначала
-                дороже</label
-              >
+          <div class="f-item">
+            <label>Цена</label>
+            <div class="price-inputs">
+              <input type="number" id="f-min" placeholder="От 0" />
+              <input type="number" id="f-max" placeholder="До..." />
             </div>
           </div>
-          <button class="btn-primary apply-btn" onclick="applyFilters()">
+          <button class="green-submit-btn sticky-btn" onclick="applyFilters()">
             Показать результаты
           </button>
         </div>
       </section>
 
-      <!-- ТАБ-БАР (НАВИГАЦИЯ) -->
-      <nav class="tab-bar">
-        <button
-          class="tab-item active"
-          onclick="showPage('home')"
-          id="nav-home"
-        >
+      <!-- НИЖНЯЯ ПАНЕЛЬ -->
+      <nav class="bottom-nav">
+        <button class="nav-item active" onclick="showPage('home')" id="n-home">
           <i class="fa fa-home"></i><span>Главная</span>
         </button>
-        <button class="tab-item" onclick="showPage('favs')" id="nav-favs">
+        <button class="nav-item" onclick="showPage('favs')" id="n-favs">
           <i class="fa fa-heart"></i><span>Избранное</span>
         </button>
-        <div class="center-btn-wrap">
-          <button class="add-btn-main" onclick="showPage('add')">
-            <i class="fa fa-plus"></i>
-          </button>
-          <span class="add-label">Подать с ИИ</span>
+        <div class="nav-center">
+          <button class="main-add-btn" onclick="showPage('add')">+</button>
+          <p>Подать</p>
         </div>
-        <button class="tab-item" onclick="showPage('chats')" id="nav-chats">
+        <button class="nav-item" onclick="showPage('chats')" id="n-chats">
           <i class="fa fa-envelope"></i><span>Чаты</span>
         </button>
-        <button class="tab-item" onclick="showPage('profile')" id="nav-profile">
+        <button class="nav-item" onclick="showPage('profile')" id="n-profile">
           <i class="fa fa-user"></i><span>Профиль</span>
         </button>
       </nav>
