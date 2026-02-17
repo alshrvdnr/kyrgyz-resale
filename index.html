@@ -1,182 +1,254 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
     <title>Кыргызстан Подарки</title>
-    <!-- Подключение Telegram WebApp API -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Иконки -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
     <div id="app">
-        <!-- ГЛАВНАЯ СТРАНИЦА -->
-        <section id="page-home" class="page">
-            <header class="main-header">
-                <div class="search-row">
-                    <div class="search-bar">
-                        <i class="fa fa-search"></i>
-                        <input type="text" id="main-search" placeholder="Я ищу..." onkeypress="handleSearch(event)">
-                    </div>
-                    <button class="filter-green-btn" onclick="tg.showAlert('Фильтры будут в следующей версии')">Фильтр</button>
-                </div>
-                
-                <!-- Категории: идеально округлые и розовые -->
-                <div class="category-row">
-                    <div class="cat-chip active" onclick="filterByCat('Все', this)">Все</div>
-                    <div class="cat-chip" onclick="filterByCat('flowers', this)">Цветы</div>
-                    <div class="cat-chip" onclick="filterByCat('jewelry', this)">Ювелирка</div>
-                    <div class="cat-chip" onclick="filterByCat('gifts', this)">Подарки</div>
-                    <div class="cat-chip" onclick="filterByCat('certs', this)">Сертификаты</div>
-                </div>
-            </header>
-
-            <!-- Контейнер для вкладок (Скрывается при ошибке поиска) -->
-            <div id="home-tabs-block">
-                <div class="feed-tabs-container">
-                    <div class="feed-tabs">
-                        <div class="feed-tab active" onclick="switchFeed('rec', this)">Рекомендуемые</div>
-                        <div class="feed-tab" onclick="switchFeed('new', this)">Новые</div>
-                    </div>
-                </div>
-                <main class="listings-grid" id="home-grid"></main>
+      <!-- ГЛАВНАЯ СТРАНИЦА -->
+      <section id="page-home" class="page">
+        <header class="main-header">
+          <div class="search-row">
+            <div class="search-bar">
+              <i class="fa fa-search"></i>
+              <input
+                type="text"
+                id="main-search"
+                placeholder="Я ищу..."
+                onkeypress="handleSearch(event)"
+              />
             </div>
+            <!-- Цвет фильтра теперь розовый, как и всё остальное -->
+            <button class="filter-pink-btn" onclick="showPage('filter')">
+              Фильтр
+            </button>
+          </div>
 
-            <!-- Блок ошибки поиска -->
-            <div id="search-error" class="search-error-box hidden">
-                <p>По такому запросу ничего не найдено</p>
+          <div class="category-row">
+            <div class="cat-chip active" onclick="filterByCat('Все', this)">
+              Все
             </div>
-        </section>
-
-        <!-- ИЗБРАННОЕ -->
-        <section id="page-favs" class="page hidden">
-            <header class="page-header-simple">
-                <div class="header-top-line">
-                    <h2>Избранное</h2>
-                    <button class="clear-favs-btn" onclick="clearFavs()">Удалить всё</button>
-                </div>
-                <div class="fav-sub-tabs">
-                    <div class="f-tab active">Объявления</div>
-                    <div class="f-tab">Поиски</div>
-                </div>
-            </header>
-            <main class="listings-grid" id="favs-grid"></main>
-            <div id="favs-empty" class="empty-favs-design hidden">
-                <div class="fav-card-mock">
-                    <i class="fa fa-heart"></i>
-                    <h3>У вас пока нет избранных объявлений</h3>
-                    <p>Нажмите на сердечко, и объявление появится здесь.</p>
-                    <button class="select-cat-btn" onclick="showPage('home')">Выберите категорию</button>
-                </div>
+            <div class="cat-chip" onclick="filterByCat('flowers', this)">
+              Цветы
             </div>
-        </section>
-
-        <!-- ПРОФИЛЬ (УПРОЩЕННЫЙ) -->
-        <section id="page-profile" class="page hidden">
-            <div class="profile-main-card">
-                <div class="avatar-large" id="u-avatar">?</div>
-                <h2 id="u-name">Загрузка...</h2>
+            <div class="cat-chip" onclick="filterByCat('jewelry', this)">
+              Ювелирка
             </div>
-            
-            <div class="profile-nav-tabs">
-                <div class="p-tab active" onclick="switchProfileTab('active', this)">Активно</div>
-                <div class="p-tab" onclick="switchProfileTab('sold', this)">Проданные / Удаленные</div>
+            <div class="cat-chip" onclick="filterByCat('gifts', this)">
+              Подарки
             </div>
-
-            <main class="listings-grid" id="my-ads-grid"></main>
-        </section>
-
-        <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ (ПОЛНАЯ ФОРМА) -->
-        <section id="page-add" class="page hidden">
-            <header class="page-header-simple">
-                <button onclick="showPage('home')" class="icon-btn-close">✕</button>
-                <h2>Новое объявление</h2>
-                <span></span>
-            </header>
-            <div class="form-scroll-area">
-                <!-- Загрузка фото -->
-                <div class="form-group">
-                    <div class="photo-upload-box" onclick="document.getElementById('file-input').click()">
-                        <i class="fa fa-camera"></i>
-                        <span id="upload-text">Загрузить фото</span>
-                        <input type="file" id="file-input" accept="image/*" hidden onchange="handleFile(this)">
-                    </div>
-                    <div id="preview-container" class="hidden">
-                        <img id="image-preview" src="">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Telegram (никнейм канала/профиля без @)</label>
-                    <input type="text" id="in-tg" class="custom-input" placeholder="username">
-                </div>
-
-                <div class="form-group">
-                    <label>Номер телефона</label>
-                    <input type="tel" id="in-phone" class="custom-input" placeholder="996...">
-                </div>
-
-                <div class="form-group">
-                    <label>Название товара</label>
-                    <input type="text" id="in-title" class="custom-input" placeholder="Напр: Sony PS5">
-                </div>
-
-                <div class="form-group">
-                    <label>Цена (KGS)</label>
-                    <input type="number" id="in-price" class="custom-input" placeholder="0">
-                </div>
-
-                <div class="form-group">
-                    <label>Категория</label>
-                    <select id="in-cat" class="custom-input">
-                        <option value="flowers">Цветы</option>
-                        <option value="jewelry">Ювелирка</option>
-                        <option value="gifts">Подарки</option>
-                        <option value="certs">Сертификаты</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Описание</label>
-                    <textarea id="in-desc" class="custom-input" rows="5" placeholder="Опишите ваш товар..."></textarea>
-                </div>
-
-                <button class="publish-pink-btn" onclick="submitToModeration()">Опубликовать</button>
+            <div class="cat-chip" onclick="filterByCat('certs', this)">
+              Сертификаты
             </div>
-        </section>
+          </div>
+        </header>
 
-        <!-- ПОДРОБНОСТИ (ДИЗАЙН ИЗ СКРИНШОТА) -->
-        <div id="product-modal" class="full-view-modal hidden">
-            <div class="modal-nav-overlay">
-                <button class="back-btn-circle" onclick="closeProduct()"><i class="fa fa-chevron-left"></i></button>
-                <div class="modal-top-icons">
-                    <i class="fa fa-share-alt"></i>
-                    <i class="far fa-heart" id="heart-detail"></i>
-                    <i class="fa fa-ellipsis-v"></i>
-                </div>
+        <!-- КАПСУЛЬНЫЕ ТАБЫ (КАК НА ТВОЕМ СКРИНШОТЕ) -->
+        <div id="home-tabs-wrapper">
+          <div class="capsule-container">
+            <div class="capsule-tabs">
+              <div class="cap-tab active" onclick="switchMainTab('rec', this)">
+                Рекомендуемые
+              </div>
+              <div class="cap-tab" onclick="switchMainTab('new', this)">
+                Новые
+              </div>
             </div>
-            <div id="product-full-content"></div>
+          </div>
         </div>
 
-        <!-- НИЖНЕЕ МЕНЮ (3 ВКЛАДКИ) -->
-        <nav class="bottom-tab-bar">
-            <button class="tab-item active" onclick="showPage('home')" id="n-home">
-                <i class="fa fa-home"></i><span>Главная</span>
-            </button>
-            <div class="nav-center-plus">
-                <button class="pink-plus-btn" onclick="showPage('add')">+</button>
-                <p>Подать</p>
+        <div id="search-error" class="error-container hidden">
+          <p>По такому запросу ничего не найдено</p>
+        </div>
+
+        <main class="listings-grid" id="home-grid"></main>
+      </section>
+
+      <!-- ИЗБРАННОЕ -->
+      <section id="page-favs" class="page hidden">
+        <header class="page-header-simple">
+          <div class="header-line">
+            <h2>Избранное</h2>
+            <button class="clear-btn" onclick="clearFavs()">Удалить всё</button>
+          </div>
+        </header>
+
+        <main id="favs-content-area">
+          <!-- Сюда вставится либо сетка, либо пустой дизайн -->
+        </main>
+      </section>
+
+      <!-- ПРОФИЛЬ -->
+      <section id="page-profile" class="page hidden">
+        <div class="profile-hero">
+          <div class="avatar-circle" id="u-avatar">?</div>
+          <h2 id="u-name">Загрузка...</h2>
+        </div>
+        <div class="profile-tabs-nav">
+          <div class="p-tab active" onclick="switchProfileTab('active', this)">
+            Активно
+          </div>
+          <div class="p-tab" onclick="switchProfileTab('sold', this)">
+            Проданные / Удаленные
+          </div>
+        </div>
+        <main class="listings-grid" id="my-ads-grid"></main>
+      </section>
+
+      <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ -->
+      <section id="page-add" class="page hidden">
+        <header class="page-header-simple">
+          <button onclick="showPage('home')" class="icon-btn">✕</button>
+          <h2>Новое объявление</h2>
+          <span></span>
+        </header>
+        <div class="form-scroll">
+          <div class="f-group">
+            <label>Фотография товара</label>
+            <div
+              class="upload-zone"
+              onclick="document.getElementById('file-input').click()"
+            >
+              <i class="fa fa-camera"></i>
+              <span id="file-label">Нажмите для выбора фото</span>
+              <input
+                type="file"
+                id="file-input"
+                accept="image/*"
+                hidden
+                onchange="handleFileSelect(this)"
+              />
             </div>
-            <button class="tab-item" onclick="showPage('favs')" id="n-favs">
-                <i class="fa fa-heart"></i><span>Избранное</span>
-            </button>
-            <button class="tab-item" onclick="showPage('profile')" id="n-profile">
-                <i class="fa fa-user"></i><span>Профиль</span>
-            </button>
-        </nav>
+            <div id="preview-box" class="hidden">
+              <img id="img-preview" src="" />
+            </div>
+          </div>
+
+          <div class="f-group">
+            <label>Telegram ник (без @)</label
+            ><input
+              type="text"
+              id="in-tg"
+              class="main-input"
+              placeholder="username"
+            />
+          </div>
+          <div class="f-group">
+            <label>Номер телефона</label
+            ><input
+              type="tel"
+              id="in-phone"
+              class="main-input"
+              placeholder="996..."
+            />
+          </div>
+          <div class="f-group">
+            <label>Название</label
+            ><input
+              type="text"
+              id="in-title"
+              class="main-input"
+              placeholder="Напр: Sony PS5"
+            />
+          </div>
+          <div class="f-group">
+            <label>Цена (KGS)</label
+            ><input
+              type="number"
+              id="in-price"
+              class="main-input"
+              placeholder="0"
+            />
+          </div>
+          <div class="f-group">
+            <label>Категория</label>
+            <select id="in-cat" class="main-input">
+              <option value="flowers">Цветы</option>
+              <option value="jewelry">Ювелирка</option>
+              <option value="gifts">Подарки</option>
+              <option value="certs">Сертификаты</option>
+            </select>
+          </div>
+          <div class="f-group">
+            <label>Описание</label
+            ><textarea
+              id="in-desc"
+              class="main-input"
+              placeholder="Описание..."
+            ></textarea>
+          </div>
+
+          <button class="pink-btn-full" onclick="publishAndSend()">
+            Опубликовать
+          </button>
+        </div>
+      </section>
+
+      <!-- ФИЛЬТР -->
+      <section id="page-filter" class="page hidden">
+        <header class="page-header-simple">
+          <button onclick="showPage('home')">✕</button>
+          <h2>Фильтр</h2>
+          <button class="pink-txt-link" onclick="resetFilters()">
+            Очистить
+          </button>
+        </header>
+        <div class="form-body">
+          <div class="f-group">
+            <label>Цена</label>
+            <div style="display: flex; gap: 10px">
+              <input type="number" class="main-input" placeholder="От" />
+              <input type="number" class="main-input" placeholder="До" />
+            </div>
+          </div>
+          <button class="pink-btn-full" onclick="showPage('home')">
+            Показать
+          </button>
+        </div>
+      </section>
+
+      <!-- КАРТОЧКА ТОВАРА (SONY PS5 STYLE) -->
+      <div id="product-modal" class="full-view hidden">
+        <div class="pv-header">
+          <button class="pv-back" onclick="closeProduct()">
+            <i class="fa fa-chevron-left"></i>
+          </button>
+          <div class="pv-top-icons">
+            <i class="fa fa-share-nodes"></i> <i class="far fa-heart"></i>
+            <i class="fa fa-ellipsis-v"></i>
+          </div>
+        </div>
+        <div id="pv-content"></div>
+      </div>
+
+      <!-- НАВИГАЦИЯ -->
+      <nav class="bottom-nav">
+        <button class="nav-item active" onclick="showPage('home')" id="n-home">
+          <i class="fa fa-home"></i><span>Главная</span>
+        </button>
+        <div class="nav-center">
+          <button class="pink-plus" onclick="showPage('add')">+</button>
+          <p>Подать</p>
+        </div>
+        <button class="nav-item" onclick="showPage('favs')" id="n-favs">
+          <i class="fa fa-heart"></i><span>Избранное</span>
+        </button>
+        <button class="nav-item" onclick="showPage('profile')" id="n-profile">
+          <i class="fa fa-user"></i><span>Профиль</span>
+        </button>
+      </nav>
     </div>
     <script src="app.js"></script>
-</body>
+  </body>
 </html>
