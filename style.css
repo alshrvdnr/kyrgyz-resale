@@ -60,29 +60,28 @@ body {
   font-weight: bold;
 }
 
-/* --- НОВОЕ: СТИЛИ ИЗБРАННОГО ПО СКРИНШОТУ --- */
+/* --- СТИЛИ ДЛЯ ИЗБРАННОГО ПО СКРИНШОТУ --- */
 .favs-header-custom {
   padding: 15px 15px 0;
   background: var(--bg);
 }
-.favs-title-row {
+.favs-top-line {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 25px;
 }
-.favs-main-title {
+.favs-top-line h2 {
   margin: 0;
   font-size: 18px;
-  font-weight: 500;
 }
-.favs-delete-btn {
+.favs-clear-link {
   background: none;
   border: none;
   color: var(--pink);
   font-size: 17px;
 }
-.favs-tabs-bar {
+.favs-tabs-nav {
   display: flex;
   border-bottom: 1px solid #222;
 }
@@ -108,13 +107,13 @@ body {
 }
 
 /* Экран Поисков */
-.searches-empty-state {
+.empty-searches-view {
   text-align: center;
   padding: 60px 20px;
 }
-.phone-mockup-img {
+.mockup-container {
   width: 160px;
-  height: 110px;
+  height: 115px;
   background: #2c2c2e;
   border-radius: 15px;
   margin: 0 auto 30px;
@@ -125,45 +124,42 @@ body {
 }
 .mockup-line {
   width: 100px;
-  height: 8px;
+  height: 10px;
   background: #3d3d3f;
-  border-radius: 4px;
+  border-radius: 5px;
   margin-bottom: 15px;
 }
-.mockup-button {
+.mockup-btn {
   width: 80px;
-  height: 20px;
+  height: 24px;
   background: var(--pink);
-  border-radius: 4px;
+  border-radius: 5px;
   display: flex;
   justify-content: center;
   align-items: center;
 }
-.mockup-button i {
+.mockup-btn i {
   color: white;
-  font-size: 8px;
+  font-size: 10px;
 }
 
-.searches-empty-state h3 {
+.empty-searches-view h3 {
   font-size: 18px;
   margin-bottom: 10px;
 }
-.searches-empty-state p {
+.empty-searches-view p {
   color: var(--gray);
   font-size: 14px;
   margin-bottom: 30px;
-  line-height: 1.4;
 }
-.go-to-search-btn {
+.fav-action-btn {
   background: var(--pink);
   color: white;
   border: none;
   padding: 14px 45px;
   border-radius: 25px;
   font-weight: bold;
-  font-size: 16px;
 }
-/* --- КОНЕЦ НОВЫХ СТИЛЕЙ --- */
 
 /* Капсулы */
 .capsule-container {
@@ -378,57 +374,19 @@ body {
 }
 
 /* Карточка товара */
-.pv-header {
-  position: absolute;
-  top: 0;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  padding: 20px;
-  z-index: 10;
-}
-.pv-back {
-  background: rgba(0, 0, 0, 0.5);
-  border: none;
-  color: white;
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-}
-.pv-top-icons {
-  display: flex;
-  gap: 20px;
-  color: white;
-  font-size: 20px;
-}
-.pd-body {
-  padding: 20px;
-}
 .pd-price {
   color: var(--pink);
   font-size: 30px;
   font-weight: bold;
 }
-.pd-title {
-  font-size: 20px;
-  font-weight: bold;
-  margin: 10px 0;
-}
-.pd-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
-  margin-bottom: 30px;
-}
 .pd-btn-write {
-  background: none;
   border: 2px solid var(--pink);
   color: var(--pink);
-  padding: 12px;
-  border-radius: 25px;
   text-align: center;
   font-weight: bold;
   text-decoration: none;
+  padding: 12px;
+  border-radius: 25px;
 }
 .pd-btn-call {
   background: var(--pink);

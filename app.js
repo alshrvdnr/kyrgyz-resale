@@ -8,7 +8,7 @@ const ADMIN_ID = "1615492914";
 let ads = JSON.parse(localStorage.getItem("gifts_final_v12")) || [];
 let favs = JSON.parse(localStorage.getItem("favs_final_v12")) || [];
 let curCat = "Все";
-let currentFavTab = "ads"; // Для вкладок в Избранном
+let currentFavTab = "ads"; // 'ads' или 'searches'
 let uploadedBase64 = "";
 let currentProfileTab = "active";
 
@@ -72,7 +72,6 @@ function handleFileSelect(input) {
   }
 }
 
-// ФУНКЦИЯ ОТПРАВКИ ФОТО И ДАННЫХ В БОТ
 async function sendToBot(ad) {
   const text = `🚀 НОВАЯ ЗАЯВКА\n📦: ${ad.title}\n💰: ${ad.price} KGS\n📍: ${ad.city}\n👤: @${ad.tgNick}\n📱: ${ad.phone}`;
   try {
@@ -128,17 +127,6 @@ function publishAndSend() {
   };
 
   sendToBot(ad);
-
-  // Очистка
-  document.getElementById("in-title").value = "";
-  document.getElementById("in-price").value = "";
-  document.getElementById("in-wa").value = "";
-  document.getElementById("in-tg").value = "";
-  document.getElementById("in-desc").value = "";
-  uploadedBase64 = "";
-  document.getElementById("preview-box").classList.add("hidden");
-  document.getElementById("file-label").innerText = "Загрузить фото";
-
   ads.unshift(ad);
   localStorage.setItem("gifts_final_v12", JSON.stringify(ads));
   tg.showAlert("Отправлено на модерацию!");
@@ -176,16 +164,15 @@ function showPage(p) {
   document
     .querySelectorAll(".nav-item")
     .forEach((i) => i.classList.remove("active"));
-  if (p !== "add" && p !== "filter") {
-    const navBtn = document.getElementById(`n-${p}`);
-    if (navBtn) navBtn.classList.add("active");
-  }
+  const navBtn = document.getElementById(`n-${p}`);
+  if (navBtn) navBtn.classList.add("active");
+
   if (p === "home") renderFeed();
   if (p === "favs") renderFavs();
   if (p === "profile") renderProfileAds();
 }
 
-// --- НОВОЕ ДЛЯ ИЗБРАННОГО ---
+// --- НОВЫЕ ФУНКЦИИ ДЛЯ ИЗБРАННОГО ---
 function switchFavTab(tab) {
   currentFavTab = tab;
   document
@@ -201,25 +188,26 @@ function renderFavs() {
   const container = document.getElementById("favs-content-area");
 
   if (currentFavTab === "searches") {
-    // Вкладка Поиски по скриншоту
     container.innerHTML = `
-      <div class="searches-empty-state">
-        <div class="phone-mockup-img">
+      <div class="empty-searches-view">
+        <div class="mockup-container">
           <div class="mockup-line"></div>
-          <div class="mockup-button"><i class="fa fa-heart"></i></div>
+          <div class="mockup-btn"><i class="fa fa-heart"></i></div>
         </div>
         <h3>Подписок на поиск нет</h3>
         <p>Подписывайтесь на обновления по вашему поиску</p>
-        <button class="go-to-search-btn" onclick="showPage('home')">На поиски!</button>
+        <button class="fav-action-btn" onclick="showPage('home')">На поиски!</button>
       </div>
     `;
     return;
   }
 
-  // Вкладка Объявления (Ваш оригинал)
   const data = ads.filter((a) => favs.includes(a.id));
   if (data.length === 0) {
-    container.innerHTML = `<div style="text-align:center; padding:50px; color:gray;">Пока ничего не добавлено</div>`;
+    container.innerHTML = `<div style="text-align:center; padding:100px 20px; color:gray;">
+      <i class="fa fa-heart" style="font-size:40px; margin-bottom:15px; opacity:0.3;"></i>
+      <p>Здесь будут ваши избранные объявления</p>
+    </div>`;
   } else {
     container.innerHTML =
       `<div class="listings-grid">` +
