@@ -1,15 +1,11 @@
 :root {
-  --bg: #000000;
+  --bg: #0b0b0c;
   --card: #1c1c1e;
   --pink: #ff8fb1;
+  --green: #00c569;
   --text: #ffffff;
   --gray: #8e8e93;
-  --radius: 16px;
-}
-
-* {
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
+  --radius: 12px;
 }
 
 body {
@@ -18,83 +14,77 @@ body {
   margin: 0;
   font-family: -apple-system, sans-serif;
 }
-
 .hidden {
   display: none !important;
 }
 
-/* Header & Search */
+/* Поиск и Фильтр */
 .main-header {
-  padding: 15px;
+  padding: 10px 15px;
   position: sticky;
   top: 0;
   background: var(--bg);
   z-index: 100;
-  border-bottom: 1px solid #222;
 }
-.search-bar {
-  background: var(--card);
-  border-radius: var(--radius);
-  padding: 12px;
+.search-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+}
+.search-bar {
+  flex: 1;
+  background: #232325;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
 }
 .search-bar input {
   background: transparent;
   border: none;
   color: white;
-  flex: 1;
+  margin-left: 10px;
+  width: 100%;
   outline: none;
   font-size: 16px;
 }
-
-/* Категории - Розовые и круглые */
-.category-row {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  padding: 15px 0 5px;
-  scrollbar-width: none;
+.filter-txt-btn {
+  background: none;
+  border: none;
+  color: var(--green);
+  font-size: 17px;
+  font-weight: 500;
 }
-.cat-chip {
-  background: var(--card);
-  padding: 10px 20px;
-  border-radius: 25px;
+
+/* Капсульные табы (Рекомендуемые / Новые) */
+.tab-switcher-container {
+  padding: 10px 15px;
+}
+.capsule-tabs {
+  background: #232325;
+  border-radius: 10px;
+  display: flex;
+  padding: 4px;
+}
+.c-tab {
+  flex: 1;
+  text-align: center;
+  padding: 10px;
   font-size: 14px;
-  white-space: nowrap;
-  color: var(--gray);
-  border: 1px solid #333;
+  color: var(--text);
+  border-radius: 8px;
   transition: 0.3s;
 }
-.cat-chip.active {
-  background: var(--pink);
-  color: white;
-  border-color: var(--pink);
-}
-
-.feed-tabs {
-  display: flex;
-  padding: 0 15px;
-  gap: 25px;
-  border-bottom: 1px solid #222;
-}
-.feed-tab {
-  padding: 12px 0;
-  color: var(--gray);
-  font-size: 14px;
-}
-.feed-tab.active {
-  color: var(--pink);
-  border-bottom: 2px solid var(--pink);
+.c-tab.active {
+  background: #424245;
   font-weight: bold;
 }
 
-/* Grid */
+/* Сетка карточек */
 .listings-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 10px;
   padding: 15px 15px 100px;
 }
 .card {
@@ -102,10 +92,11 @@ body {
   border-radius: var(--radius);
   overflow: hidden;
   position: relative;
+  border: 1px solid #222;
 }
 .card img {
   width: 100%;
-  height: 140px;
+  height: 130px;
   object-fit: cover;
 }
 .card-body {
@@ -115,104 +106,97 @@ body {
   color: var(--pink);
   font-weight: bold;
   font-size: 16px;
+  display: block;
 }
 .card-title {
   font-size: 12px;
-  margin: 4px 0;
   color: #ddd;
   height: 32px;
   overflow: hidden;
+  margin-top: 4px;
 }
 
-/* Profile */
-.profile-hero {
+/* Дизайн Избранное: Пусто */
+.fav-empty-card {
+  background: #1c1c1e;
+  border-radius: 15px;
+  padding: 30px 20px;
+  margin: 20px;
   text-align: center;
-  padding: 40px 20px;
-  background: var(--card);
 }
-.profile-avatar {
-  width: 80px;
-  height: 80px;
-  background: var(--pink);
-  border-radius: 50%;
-  margin: 0 auto 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32px;
-  font-weight: bold;
+.fav-empty-card i {
+  font-size: 40px;
+  color: #fff;
+  margin-bottom: 20px;
+  opacity: 0.8;
 }
-.profile-tabs {
-  display: flex;
-  border-bottom: 1px solid #222;
-}
-.p-tab {
-  flex: 1;
-  text-align: center;
-  padding: 15px;
-  color: var(--gray);
-  font-size: 13px;
-}
-.p-tab.active {
-  color: var(--pink);
-  border-bottom: 2px solid var(--pink);
-}
-
-/* Form */
-.form-scroll {
-  padding: 20px 20px 100px;
-}
-.f-group {
+.fav-empty-card h3 {
+  font-size: 18px;
   margin-bottom: 15px;
 }
-.f-group label {
-  display: block;
-  font-size: 12px;
+.fav-empty-card p {
   color: var(--gray);
-  margin-bottom: 6px;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 25px;
 }
-.f-group input,
-.f-group select,
-.f-group textarea {
-  width: 100%;
-  background: var(--card);
-  border: 1px solid #333;
-  padding: 12px;
-  border-radius: var(--radius);
+.fav-select-btn {
+  background: #2c2c2e;
   color: white;
+  border: 1px solid #444;
+  width: 100%;
+  padding: 15px;
+  border-radius: 10px;
   font-size: 16px;
-}
-.upload-area {
-  background: var(--card);
-  border: 2px dashed #444;
-  border-radius: var(--radius);
-  padding: 30px;
-  text-align: center;
-  color: var(--gray);
-}
-.upload-area i {
-  font-size: 30px;
-  margin-bottom: 10px;
-  display: block;
-}
-#img-pre {
-  width: 100%;
-  border-radius: var(--radius);
-  margin-top: 10px;
-}
-
-.pink-btn-full {
-  background: var(--pink);
-  color: white;
-  border: none;
-  padding: 16px;
-  border-radius: var(--radius);
-  width: 100%;
   font-weight: bold;
-  font-size: 16px;
 }
 
-/* Bottom Nav */
+/* Категории (Вертикальный список) */
+.full-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #141416;
+  z-index: 2000;
+  overflow-y: auto;
+}
+.modal-head {
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #222;
+}
+.cat-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  border-bottom: 1px solid #222;
+  background: #1c1c1e;
+  margin: 8px 15px;
+  border-radius: 12px;
+}
+.cat-item img {
+  width: 45px;
+  height: 45px;
+  border-radius: 8px;
+  background: #333;
+}
+.cat-item .cat-name {
+  flex: 1;
+  font-weight: 500;
+  font-size: 15px;
+}
+.cat-item .cat-count {
+  color: var(--gray);
+  font-size: 12px;
+  margin-right: 5px;
+}
+
+/* Навигация */
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -224,7 +208,7 @@ body {
   align-items: center;
   border-top: 1px solid #222;
   padding-bottom: 15px;
-  z-index: 500;
+  z-index: 1000;
 }
 .nav-item {
   background: none;
@@ -233,99 +217,116 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
-  font-size: 11px;
+  gap: 4px;
+  font-size: 10px;
 }
 .nav-item.active {
-  color: var(--pink);
+  color: var(--green);
 }
-.nav-plus {
+.nav-center {
   position: relative;
   top: -18px;
-  text-align: center;
 }
-.nav-plus p {
-  font-size: 11px;
-  color: var(--gray);
-  margin-top: 4px;
-}
-.big-pink-plus {
+.add-btn {
   width: 56px;
   height: 56px;
-  background: var(--pink);
+  background: var(--green);
   border-radius: 50%;
   border: 4px solid var(--bg);
   color: white;
-  font-size: 30px;
+  font-size: 28px;
 }
 
-/* Product Modal (Sony PS5 Style) */
-.product-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: var(--bg);
-  z-index: 1000;
-  overflow-y: auto;
+/* Форма */
+.form-body {
+  padding: 20px 20px 100px;
 }
-.modal-top-bar {
+.main-input {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid #333;
+  padding: 14px;
+  border-radius: 10px;
+  color: white;
+  font-size: 16px;
+  margin-bottom: 15px;
+}
+.upload-box {
+  background: var(--card);
+  border: 2px dashed #444;
+  padding: 30px;
+  text-align: center;
+  color: var(--gray);
+  border-radius: 12px;
+  margin-bottom: 15px;
+}
+#img-preview {
+  width: 100%;
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
+.publish-btn {
+  background: var(--green);
+  color: white;
+  border: none;
+  padding: 16px;
+  border-radius: 10px;
+  width: 100%;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+/* Карточка товара (PS5 Style) */
+.pv-header {
   position: absolute;
   top: 0;
   width: 100%;
   display: flex;
   justify-content: space-between;
   padding: 20px;
-  z-index: 1100;
+  z-index: 10;
 }
-.top-btns {
-  display: flex;
-  gap: 20px;
-  font-size: 20px;
-}
-.back-circle {
-  background: none;
+.pv-header button {
+  background: rgba(0, 0, 0, 0.5);
   border: none;
   color: white;
-  font-size: 22px;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+}
+.pv-actions {
+  display: flex;
+  gap: 15px;
+  color: white;
+  font-size: 20px;
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
 }
 
-.pd-image {
-  width: 100%;
-  height: 400px;
-  object-fit: cover;
-}
-.pd-content {
+.pd-price-row {
   padding: 20px;
-}
-.pd-stats {
-  display: flex;
-  justify-content: space-between;
-  color: var(--gray);
-  font-size: 13px;
-  margin-bottom: 10px;
+  border-bottom: 1px solid #222;
 }
 .pd-price {
   color: var(--pink);
-  font-size: 30px;
+  font-size: 28px;
   font-weight: bold;
-  margin: 10px 0;
 }
 .pd-title {
   font-size: 20px;
   font-weight: bold;
-  margin-bottom: 20px;
-  line-height: 1.4;
+  margin-top: 10px;
 }
-
-.pd-actions {
+.pd-footer-btns {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 15px;
-  margin: 20px 0;
+  padding: 15px;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: #141416;
 }
-.btn-pd-write {
+.btn-write {
   background: none;
   border: 2px solid var(--pink);
   color: var(--pink);
@@ -335,7 +336,7 @@ body {
   text-align: center;
   text-decoration: none;
 }
-.btn-pd-call {
+.btn-call {
   background: var(--pink);
   color: white;
   border: none;
@@ -344,36 +345,4 @@ body {
   font-weight: bold;
   text-align: center;
   text-decoration: none;
-}
-
-.btn-track {
-  background: #00c569;
-  color: white;
-  border: none;
-  padding: 15px;
-  border-radius: 12px;
-  width: 100%;
-  font-weight: bold;
-  margin: 20px 0;
-}
-
-.pd-seller {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: var(--card);
-  padding: 15px;
-  border-radius: 12px;
-}
-.ps-avatar {
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
-  background: #333;
-}
-
-.error-container {
-  text-align: center;
-  padding: 60px 20px;
-  color: var(--gray);
 }
