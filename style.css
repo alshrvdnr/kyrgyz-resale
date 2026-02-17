@@ -1,7 +1,7 @@
 :root {
-  --bg: #000000;
+  --bg: #121214;
   --card: #1c1c1e;
-  --pink: #ff8fb1;
+  --pink: #ff8fb1; /* Возвращен нежно-розовый */
   --text: #ffffff;
   --gray: #8e8e93;
   --radius: 12px;
@@ -60,55 +60,158 @@ body {
   font-weight: bold;
 }
 
-/* Категории */
-.category-row {
+/* Избранное (Новые стили) */
+.favs-page-header {
+  padding: 15px 15px 0;
+  background: var(--bg);
+}
+.favs-top-row {
   display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding: 15px 0 5px;
-  scrollbar-width: none;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
 }
-.cat-chip {
-  background: var(--card);
-  padding: 10px 20px;
-  border-radius: 25px;
-  font-size: 14px;
-  white-space: nowrap;
-  color: var(--gray);
-  border: 1px solid #333;
-  transition: 0.3s;
+.favs-top-row h2 {
+  margin: 0;
+  font-size: 18px;
 }
-.cat-chip.active {
-  background: var(--pink);
-  color: white;
-  border-color: var(--pink);
+.favs-clear-btn {
+  background: none;
+  border: none;
+  color: var(--pink);
+  font-size: 17px;
 }
-
-/* КАПСУЛЬНЫЕ ТАБЫ (КАК НА СКРИНЕ) */
-.capsule-container {
-  padding: 10px 15px;
-}
-.capsule-tabs {
-  background: #232325;
-  border-radius: 10px;
+.favs-tabs-nav {
   display: flex;
-  padding: 4px;
+  border-bottom: 1px solid #222;
 }
-.cap-tab {
+.f-tab {
   flex: 1;
   text-align: center;
-  padding: 10px;
-  font-size: 14px;
-  color: var(--text);
-  border-radius: 8px;
-  transition: 0.3s;
+  padding-bottom: 12px;
+  color: var(--gray);
+  font-size: 16px;
+  position: relative;
 }
-.cap-tab.active {
-  background: #424245;
+.f-tab.active {
+  color: var(--pink);
+}
+.f-tab.active::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--pink);
+}
+
+/* Заглушка Поисков */
+.empty-search-box {
+  text-align: center;
+  padding: 60px 20px;
+}
+.mockup-phone {
+  width: 160px;
+  height: 120px;
+  background: #2c2c2e;
+  border-radius: 15px;
+  margin: 0 auto 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+.mockup-search {
+  width: 80%;
+  height: 10px;
+  background: #3a3a3c;
+  border-radius: 5px;
+  margin-bottom: 15px;
+}
+.mockup-btn {
+  width: 60%;
+  height: 25px;
+  background: var(--pink);
+  border-radius: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.mockup-btn i {
+  color: white;
+  font-size: 10px;
+}
+
+.empty-search-box h3 {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+.empty-search-box p {
+  color: var(--gray);
+  font-size: 14px;
+  margin-bottom: 30px;
+}
+.pink-action-btn {
+  background: var(--pink);
+  color: white;
+  border: none;
+  padding: 14px 40px;
+  border-radius: 25px;
   font-weight: bold;
 }
 
-/* Сетка карточек */
+/* Bottom Nav */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  height: 80px;
+  background: #111;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding-bottom: 20px;
+  z-index: 500;
+  border-top: 1px solid #222;
+}
+.nav-item {
+  background: none;
+  border: none;
+  color: var(--gray);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  flex: 1;
+}
+.nav-item.active {
+  color: var(--pink);
+}
+.nav-center {
+  position: relative;
+  top: -15px;
+  text-align: center;
+  flex: 1.2;
+}
+.pink-plus {
+  width: 50px;
+  height: 50px;
+  background: var(--pink);
+  border-radius: 50%;
+  border: 4px solid var(--bg);
+  color: white;
+  font-size: 28px;
+}
+.nav-center p {
+  margin-top: 5px;
+  font-size: 10px;
+  color: var(--gray);
+}
+
+/* Остальное */
 .listings-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -119,7 +222,6 @@ body {
   background: var(--card);
   border-radius: var(--radius);
   overflow: hidden;
-  position: relative;
   border: 1px solid #222;
 }
 .card img {
@@ -133,119 +235,6 @@ body {
 .card-price {
   color: var(--pink);
   font-weight: bold;
-  font-size: 16px;
-}
-.card-title {
-  font-size: 12px;
-  color: #ddd;
-  height: 32px;
-  overflow: hidden;
-  margin-top: 4px;
-}
-
-/* Избранное Пусто (РОЗОВОЕ СЕРДЕЧКО) */
-.empty-fav-card {
-  background: var(--card);
-  border-radius: 20px;
-  padding: 40px 20px;
-  text-align: center;
-  margin: 20px;
-  border: 1px solid #333;
-}
-.empty-fav-card i {
-  font-size: 50px;
-  color: var(--pink);
-  margin-bottom: 20px;
-}
-.empty-fav-card h3 {
-  font-size: 18px;
-  margin-bottom: 10px;
-}
-.empty-fav-card p {
-  color: var(--gray);
-  font-size: 14px;
-  margin-bottom: 25px;
-  line-height: 1.5;
-}
-.empty-fav-btn {
-  background: #2c2c2e;
-  color: white;
-  border: 1px solid #444;
-  width: 100%;
-  padding: 15px;
-  border-radius: 12px;
-  font-weight: bold;
-}
-
-/* Профиль */
-.profile-hero {
-  text-align: center;
-  padding: 40px 20px;
-  background: var(--card);
-}
-.avatar-circle {
-  width: 80px;
-  height: 80px;
-  background: var(--pink);
-  border-radius: 50%;
-  margin: 0 auto 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 30px;
-  font-weight: bold;
-}
-.profile-tabs-nav {
-  display: flex;
-  justify-content: space-around;
-  border-bottom: 1px solid #222;
-  background: var(--bg);
-}
-.p-tab {
-  padding: 15px;
-  font-size: 13px;
-  color: var(--gray);
-}
-.p-tab.active {
-  color: var(--pink);
-  border-bottom: 2px solid var(--pink);
-}
-
-/* Подать */
-.form-scroll {
-  padding: 20px 20px 120px;
-}
-.f-group {
-  margin-bottom: 15px;
-}
-.f-group label {
-  display: block;
-  font-size: 12px;
-  color: var(--gray);
-  margin-bottom: 6px;
-}
-.main-input {
-  width: 100%;
-  background: var(--card);
-  border: 1px solid #333;
-  padding: 14px;
-  border-radius: 10px;
-  color: white;
-  font-size: 16px;
-  margin-bottom: 10px;
-}
-.upload-zone {
-  background: var(--card);
-  border: 2px dashed #444;
-  padding: 30px;
-  text-align: center;
-  color: var(--gray);
-  border-radius: 12px;
-}
-#img-preview {
-  width: 100%;
-  border-radius: 10px;
-  margin-top: 15px;
 }
 .pink-btn-full {
   background: var(--pink);
@@ -255,135 +244,4 @@ body {
   border-radius: 10px;
   width: 100%;
   font-weight: bold;
-  font-size: 16px;
-}
-
-/* Навигация */
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  height: 75px;
-  background: #111;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  padding-bottom: 15px;
-  z-index: 500;
-  border-top: 1px solid #222;
-}
-.nav-item {
-  background: none;
-  border: none;
-  color: var(--gray);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  font-size: 10px;
-}
-.nav-item.active {
-  color: var(--pink);
-}
-.nav-center {
-  position: relative;
-  top: -18px;
-  text-align: center;
-}
-.nav-center p {
-  font-size: 10px;
-  color: var(--gray);
-  margin-top: 5px;
-}
-.pink-plus {
-  width: 56px;
-  height: 56px;
-  background: var(--pink);
-  border-radius: 50%;
-  border: 4px solid var(--bg);
-  color: white;
-  font-size: 30px;
-}
-
-/* Карточка PS5 Style */
-.pv-header {
-  position: absolute;
-  top: 0;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  padding: 20px;
-  z-index: 10;
-}
-.pv-back {
-  background: rgba(0, 0, 0, 0.5);
-  border: none;
-  color: white;
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-}
-.pv-top-icons {
-  display: flex;
-  gap: 20px;
-  color: white;
-  font-size: 20px;
-}
-.pd-img {
-  width: 100%;
-  height: 400px;
-  object-fit: cover;
-}
-.pd-body {
-  padding: 20px;
-}
-.pd-stats {
-  display: flex;
-  justify-content: space-between;
-  color: var(--gray);
-  font-size: 13px;
-  margin-bottom: 10px;
-}
-.pd-price {
-  color: var(--pink);
-  font-size: 30px;
-  font-weight: bold;
-}
-.pd-title {
-  font-size: 20px;
-  font-weight: bold;
-  margin: 10px 0 20px;
-  line-height: 1.4;
-}
-.pd-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
-  margin-bottom: 30px;
-}
-.pd-btn-write {
-  background: none;
-  border: 2px solid var(--pink);
-  color: var(--pink);
-  padding: 12px;
-  border-radius: 25px;
-  text-align: center;
-  font-weight: bold;
-  text-decoration: none;
-}
-.pd-btn-call {
-  background: var(--pink);
-  color: white;
-  border: none;
-  padding: 12px;
-  border-radius: 25px;
-  text-align: center;
-  font-weight: bold;
-  text-decoration: none;
-}
-
-.error-container {
-  text-align: center;
-  padding: 60px 20px;
-  color: var(--gray);
 }

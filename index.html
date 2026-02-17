@@ -16,7 +16,7 @@
   </head>
   <body>
     <div id="app">
-      <!-- ГЛАВНАЯ СТРАНИЦА -->
+      <!-- ГЛАВНАЯ -->
       <section id="page-home" class="page">
         <header class="main-header">
           <div class="search-row">
@@ -29,12 +29,10 @@
                 onkeypress="handleSearch(event)"
               />
             </div>
-            <!-- Цвет фильтра теперь розовый, как и всё остальное -->
             <button class="filter-pink-btn" onclick="showPage('filter')">
               Фильтр
             </button>
           </div>
-
           <div class="category-row">
             <div class="cat-chip active" onclick="filterByCat('Все', this)">
               Все
@@ -54,7 +52,6 @@
           </div>
         </header>
 
-        <!-- КАПСУЛЬНЫЕ ТАБЫ (КАК НА ТВОЕМ СКРИНШОТЕ) -->
         <div id="home-tabs-wrapper">
           <div class="capsule-container">
             <div class="capsule-tabs">
@@ -66,27 +63,42 @@
               </div>
             </div>
           </div>
+          <main class="listings-grid" id="home-grid"></main>
         </div>
 
         <div id="search-error" class="error-container hidden">
           <p>По такому запросу ничего не найдено</p>
         </div>
-
-        <main class="listings-grid" id="home-grid"></main>
       </section>
 
-      <!-- ИЗБРАННОЕ -->
+      <!-- ИЗБРАННОЕ (НОВЫЙ ДИЗАЙН С ВКЛАДКАМИ) -->
       <section id="page-favs" class="page hidden">
-        <header class="page-header-simple">
-          <div class="header-line">
+        <header class="favs-page-header">
+          <div class="favs-top-row">
+            <span></span>
             <h2>Избранное</h2>
-            <button class="clear-btn" onclick="clearFavs()">Удалить всё</button>
+            <button class="favs-clear-btn" onclick="clearFavs()">
+              Удалить
+            </button>
+          </div>
+          <div class="favs-tabs-nav">
+            <div
+              class="f-tab active"
+              id="f-tab-ads"
+              onclick="switchFavTab('ads')"
+            >
+              Объявления
+            </div>
+            <div
+              class="f-tab"
+              id="f-tab-searches"
+              onclick="switchFavTab('searches')"
+            >
+              Поиски
+            </div>
           </div>
         </header>
-
-        <main id="favs-content-area">
-          <!-- Сюда вставится либо сетка, либо пустой дизайн -->
-        </main>
+        <main id="favs-content-area"></main>
       </section>
 
       <!-- ПРОФИЛЬ -->
@@ -96,10 +108,14 @@
           <h2 id="u-name">Загрузка...</h2>
         </div>
         <div class="profile-tabs-nav">
-          <div class="p-tab active" onclick="switchProfileTab('active', this)">
+          <div
+            class="p-tab active"
+            id="p-tab-active"
+            onclick="switchProfileTab('active')"
+          >
             Активно
           </div>
-          <div class="p-tab" onclick="switchProfileTab('sold', this)">
+          <div class="p-tab" id="p-tab-sold" onclick="switchProfileTab('sold')">
             Проданные / Удаленные
           </div>
         </div>
@@ -136,6 +152,17 @@
           </div>
 
           <div class="f-group">
+            <label>📍 ГОРОД</label>
+            <select id="in-city" class="main-input">
+              <option value="Бишкек">Бишкек</option>
+              <option value="Ош">Ош</option>
+              <option value="Джалал-Абад">Джалал-Абад</option>
+              <option value="Токмок">Токмок</option>
+              <option value="Каракол">Каракол</option>
+            </select>
+          </div>
+
+          <div class="f-group">
             <label>Telegram ник (без @)</label
             ><input
               type="text"
@@ -148,7 +175,7 @@
             <label>Номер телефона</label
             ><input
               type="tel"
-              id="in-phone"
+              id="in-wa"
               class="main-input"
               placeholder="996..."
             />
@@ -159,7 +186,7 @@
               type="text"
               id="in-title"
               class="main-input"
-              placeholder="Напр: Sony PS5"
+              placeholder="Что продаете?"
             />
           </div>
           <div class="f-group">
@@ -200,25 +227,26 @@
         <header class="page-header-simple">
           <button onclick="showPage('home')">✕</button>
           <h2>Фильтр</h2>
-          <button class="pink-txt-link" onclick="resetFilters()">
+          <button class="pink-txt-link" onclick="showPage('home')">
             Очистить
           </button>
         </header>
         <div class="form-body">
           <div class="f-group">
-            <label>Цена</label>
-            <div style="display: flex; gap: 10px">
-              <input type="number" class="main-input" placeholder="От" />
-              <input type="number" class="main-input" placeholder="До" />
-            </div>
+            <label>Город</label>
+            <select class="main-input">
+              <option>Все города</option>
+              <option>Бишкек</option>
+              <option>Ош</option>
+            </select>
           </div>
           <button class="pink-btn-full" onclick="showPage('home')">
-            Показать
+            Показать результаты
           </button>
         </div>
       </section>
 
-      <!-- КАРТОЧКА ТОВАРА (SONY PS5 STYLE) -->
+      <!-- ПОДРОБНОСТИ -->
       <div id="product-modal" class="full-view hidden">
         <div class="pv-header">
           <button class="pv-back" onclick="closeProduct()">
@@ -237,13 +265,13 @@
         <button class="nav-item active" onclick="showPage('home')" id="n-home">
           <i class="fa fa-home"></i><span>Главная</span>
         </button>
-        <div class="nav-center">
-          <button class="pink-plus" onclick="showPage('add')">+</button>
-          <p>Подать</p>
-        </div>
         <button class="nav-item" onclick="showPage('favs')" id="n-favs">
           <i class="fa fa-heart"></i><span>Избранное</span>
         </button>
+        <div class="nav-center">
+          <button class="pink-plus" onclick="showPage('add')">+</button>
+          <p>Подать с ИИ</p>
+        </div>
         <button class="nav-item" onclick="showPage('profile')" id="n-profile">
           <i class="fa fa-user"></i><span>Профиль</span>
         </button>
