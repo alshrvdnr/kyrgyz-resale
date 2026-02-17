@@ -16,75 +16,139 @@
   </head>
   <body>
     <div id="app">
-      <!-- ВЕРХНИЙ БЛОК: Поиск и Фильтр -->
-      <header class="header">
-        <div class="search-container">
-          <div class="search-bar">
-            <i class="fa fa-search search-icon"></i>
-            <input type="text" id="search-input" placeholder="Я ищу..." />
+      <!-- ГЛАВНАЯ СТРАНИЦА -->
+      <section id="page-home" class="page">
+        <header class="header">
+          <div class="search-container">
+            <div class="search-bar">
+              <i class="fa fa-search"></i>
+              <input type="text" id="search-input" placeholder="Я ищу..." />
+            </div>
+            <button
+              class="filter-btn"
+              onclick="toggleModal('filter-sheet', true)"
+            >
+              Фильтр
+            </button>
           </div>
-          <button class="filter-btn" onclick="openFilter()">Фильтр</button>
-        </div>
-      </header>
+        </header>
 
-      <!-- КАТЕГОРИИ (Горизонтальный скролл) -->
-      <div class="categories-wrapper">
         <div class="categories-scroll" id="categories-list">
-          <!-- Рендерится из JS -->
+          <div class="cat-card" onclick="filterByCat('Все')">
+            <span>Все</span>
+          </div>
+          <div class="cat-card" onclick="filterByCat('Электроника')">
+            <span>📱 Электроника</span>
+          </div>
+          <div class="cat-card" onclick="filterByCat('Одежда')">
+            <span>👕 Одежда</span>
+          </div>
+          <div class="cat-card" onclick="filterByCat('Услуги')">
+            <span>🛠 Услуги</span>
+          </div>
         </div>
-      </div>
 
-      <!-- ТАБЫ: Рекомендуемые / Новые -->
-      <div class="tabs">
-        <button class="tab-item active" onclick="switchTab('rec', this)">
-          Рекомендуемые
+        <div class="tabs">
+          <div class="tab-item active">Новые объявления</div>
+        </div>
+
+        <main class="listings-grid" id="listings-grid">
+          <!-- Сюда попадут новые объявления -->
+        </main>
+      </section>
+
+      <!-- СТРАНИЦА ДОБАВЛЕНИЯ -->
+      <section id="page-add" class="page hidden">
+        <div class="page-header">
+          <h2>Новое объявление</h2>
+          <button class="close-btn" onclick="showPage('home')">✕</button>
+        </div>
+        <form id="add-ad-form" class="add-form">
+          <input
+            type="text"
+            id="ad-title"
+            placeholder="Название товара"
+            required
+          />
+          <input
+            type="number"
+            id="ad-price"
+            placeholder="Цена (KGS)"
+            required
+          />
+          <select id="ad-category">
+            <option value="Электроника">Электроника</option>
+            <option value="Одежда">Одежда</option>
+            <option value="Услуги">Услуги</option>
+            <option value="Прочее">Прочее</option>
+          </select>
+          <textarea
+            id="ad-desc"
+            placeholder="Описание товара..."
+            rows="4"
+          ></textarea>
+          <input type="text" id="ad-img" placeholder="Ссылка на фото (URL)" />
+          <button type="submit" class="submit-btn">Опубликовать</button>
+        </form>
+      </section>
+
+      <!-- ПРОФИЛЬ -->
+      <section id="page-profile" class="page hidden">
+        <div class="profile-header">
+          <div id="user-photo" class="user-avatar">?</div>
+          <h2 id="user-name">Пользователь</h2>
+        </div>
+        <div class="profile-stats">
+          <h3>Мои объявления</h3>
+          <div id="my-listings" class="listings-grid"></div>
+        </div>
+      </section>
+
+      <!-- ДЕТАЛИ ТОВАРА (MODAL) -->
+      <div id="product-modal" class="full-modal hidden">
+        <div id="product-content"></div>
+        <button
+          class="back-modal-btn"
+          onclick="toggleModal('product-modal', false)"
+        >
+          ← Назад
         </button>
-        <button class="tab-item" onclick="switchTab('new', this)">Новые</button>
       </div>
 
-      <!-- СЕТКА ОБЪЯВЛЕНИЙ -->
-      <main class="main-content">
-        <div class="listings-grid" id="listings-grid">
-          <!-- Карточки рендерятся из JS -->
-        </div>
-      </main>
-
-      <!-- НИЖНЯЯ ПАНЕЛЬ НАВИГАЦИИ -->
+      <!-- НИЖНЯЯ ПАНЕЛЬ -->
       <nav class="bottom-nav">
-        <button class="nav-item active" onclick="showPage('home')">
-          <i class="fa fa-home"></i>
-          <span>Главная</span>
-        </button>
-        <button class="nav-item" onclick="showPage('fav')">
-          <i class="fa fa-heart"></i>
-          <span>Избранное</span>
+        <button
+          class="nav-item active"
+          onclick="showPage('home')"
+          id="nav-home"
+        >
+          <i class="fa fa-home"></i><span>Главная</span>
         </button>
         <div class="nav-add-container">
           <button class="nav-add-btn" onclick="showPage('add')">
             <i class="fa fa-plus"></i>
           </button>
         </div>
-        <button class="nav-item" onclick="showPage('chats')">
-          <i class="fa fa-comment-dots"></i>
-          <span>Чаты</span>
-        </button>
-        <button class="nav-item" onclick="showPage('profile')">
-          <i class="fa fa-user"></i>
-          <span>Профиль</span>
+        <button class="nav-item" onclick="showPage('profile')" id="nav-profile">
+          <i class="fa fa-user"></i><span>Профиль</span>
         </button>
       </nav>
 
-      <!-- MODALS (Hidden by default) -->
+      <!-- ФИЛЬТР (BOTTOM SHEET) -->
       <div id="filter-sheet" class="bottom-sheet hidden">
+        <div class="overlay" onclick="toggleModal('filter-sheet', false)"></div>
         <div class="sheet-content">
           <h3>Фильтры</h3>
-          <div class="filter-group">
-            <label>Город</label>
-            <select id="filter-city"></select>
-          </div>
-          <button class="apply-btn" onclick="closeFilter()">Применить</button>
+          <label>Сортировка по цене:</label>
+          <button onclick="sortAds('low')">Сначала дешевые</button>
+          <button onclick="sortAds('high')">Сначала дорогие</button>
+          <button
+            class="close-sheet"
+            onclick="toggleModal('filter-sheet', false)"
+          >
+            Закрыть
+          </button>
         </div>
-        <div class="overlay" onclick="closeFilter()"></div>
       </div>
     </div>
     <script src="app.js"></script>
