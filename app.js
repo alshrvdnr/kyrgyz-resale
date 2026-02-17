@@ -1,185 +1,184 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-// Состояние приложения
-let listings = JSON.parse(localStorage.getItem("resale_kg_ads")) || [];
-let currentCategory = "Все";
+// Состояние
+let ads = JSON.parse(localStorage.getItem("ads_db")) || [];
+let favs = JSON.parse(localStorage.getItem("favs_db")) || [];
+let currentCat = "Все";
 let searchQuery = "";
 
-// При запуске
 document.addEventListener("DOMContentLoaded", () => {
   initUser();
-  renderAll();
+  renderHome();
 
-  // РЕАЛЬНЫЙ ПОИСК: вешаем событие на ввод текста
+  // Поиск
   document.getElementById("search-input").addEventListener("input", (e) => {
     searchQuery = e.target.value.toLowerCase();
-    renderAll(); // Перерисовываем при каждом символе
+    renderHome();
   });
 });
 
 function initUser() {
-  const user = tg.initDataUnsafe?.user || { first_name: "Дилфуза", id: 0 };
-  const nameEl = document.getElementById("user-name-display");
-  const avatarEl = document.getElementById("user-avatar");
-  if (nameEl) nameEl.innerText = user.first_name;
-  if (avatarEl) avatarEl.innerText = user.first_name[0];
+  const user = tg.initDataUnsafe?.user || { first_name: "Пользователь", id: 0 };
+  document.getElementById("user-name").innerText = user.first_name;
+  document.getElementById("user-avatar").innerText = user.first_name[0];
 }
 
-// ГЛАВНАЯ ФУНКЦИЯ ОТРИСОВКИ (с учетом поиска и категорий)
-function renderAll() {
-  const grid = document.getElementById("listings-grid");
+function showPage(pageId) {
+  document.querySelectorAll(".page").forEach((p) => p.classList.add("hidden"));
+  document.getElementById(`page-${pageId}`).classList.remove("hidden");
+
+  // Активный таб
+  document
+    .querySelectorAll(".tab-item")
+    .forEach((btn) => btn.classList.remove("active"));
+  const activeNav = document.getElementById(`nav-${pageId}`);
+  if (activeNav) activeNav.classList.add("active");
+
+  if (pageId === "favs") renderFavs();
+  if (pageId === "profile") renderMyAds();
+
+  tg.HapticFeedback.impactOccurred("light");
+}
+
+function renderHome() {
+  const grid = document.getElementById("main-grid");
   grid.innerHTML = "";
 
-  // Фильтрация данных
-  let filtered = listings.filter((item) => {
-    const matchesSearch =
-      item.title.toLowerCase().includes(searchQuery) ||
-      item.desc.toLowerCase().includes(searchQuery);
-    const matchesCat =
-      currentCategory === "Все" || item.category === currentCategory;
-    return matchesSearch && matchesCat;
+  let filtered = ads.filter((a) => {
+    const matchesCat = currentCat === "Все" || a.cat === currentCat;
+    const matchesSearch = a.title.toLowerCase().includes(searchQuery);
+    return matchesCat && matchesSearch;
   });
 
   if (filtered.length === 0) {
-    grid.innerHTML = `<div style="grid-column: 1/3; text-align: center; padding: 40px; color: gray;">Ничего не найдено</div>`;
+    grid.innerHTML = `<div style="grid-column:1/3; text-align:center; padding:50px; color:gray;">Ничего не найдено</div>`;
     return;
   }
 
   filtered.forEach((ad) => {
+    const isFav = favs.includes(ad.id);
     const card = document.createElement("div");
     card.className = "card";
-    card.onclick = () => openProduct(ad);
     card.innerHTML = `
-            <img src="${
-              ad.img || "https://via.placeholder.com/300x200?text=Нет+фото"
-            }" class="card-img">
-            <div class="card-body">
+            <img src="${ad.img || "https://via.placeholder.com/200"}">
+            <div class="card-info">
                 <span class="card-price">${ad.price} KGS</span>
                 <span class="card-title">${ad.title}</span>
+                <div class="card-btns">
+                    <i class="fa fa-envelope"></i>
+                    <i class="fa-heart ${
+                      isFav ? "fa active" : "far"
+                    }" onclick="toggleFav(${ad.id})"></i>
+                </div>
             </div>
         `;
     grid.appendChild(card);
   });
 }
 
-// Переключение страниц
-function showPage(pageId) {
-  document.querySelectorAll(".page").forEach((p) => p.classList.add("hidden"));
-  document
-    .querySelectorAll(".tab-btn")
-    .forEach((b) => b.classList.remove("active"));
+function publishAd() {
+  const title = document.getElementById("add-title").value;
+  const price = document.getElementById("add-price").value;
+  const cat = document.getElementById("add-cat").value;
+  const img = document.getElementById("add-img").value;
 
-  document.getElementById(`page-${pageId}`).classList.remove("hidden");
-  const navBtn = document.getElementById(`nav-${pageId}`);
-  if (navBtn) navBtn.classList.add("active");
-
-  if (pageId === "profile") renderMyAds();
-  tg.HapticFeedback.impactOccurred("light");
-}
-
-// Создание объявления
-function createAd() {
-  const title = document.getElementById("ad-title").value;
-  const price = document.getElementById("ad-price").value;
-  const category = document.getElementById("ad-category").value;
-  const desc = document.getElementById("ad-desc").value;
-  const img = document.getElementById("ad-img").value;
-
-  if (!title || !price) {
-    tg.showAlert("Заполните название и цену!");
-    return;
-  }
+  if (!title || !price) return tg.showAlert("Заполните поля!");
 
   const newAd = {
     id: Date.now(),
     userId: tg.initDataUnsafe?.user?.id || 0,
-    userName: tg.initDataUnsafe?.user?.first_name || "Продавец",
-    userNick: tg.initDataUnsafe?.user?.username || "",
     title,
     price,
-    category,
-    desc,
+    cat,
     img,
-    date: new Date().toLocaleDateString(),
+    date: new Date(),
   };
 
-  listings.unshift(newAd);
-  localStorage.setItem("resale_kg_ads", JSON.stringify(listings));
-
-  // Сброс и возврат
-  document.getElementById("ad-title").value = "";
-  document.getElementById("ad-price").value = "";
+  ads.unshift(newAd);
+  localStorage.setItem("ads_db", JSON.stringify(ads));
   showPage("home");
-  renderAll();
-  tg.showAlert("Объявление опубликовано!");
+  renderHome();
 }
 
-// Детали товара
-function openProduct(ad) {
-  const modal = document.getElementById("product-modal");
-  const content = document.getElementById("product-details-content");
+function toggleFav(id) {
+  event.stopPropagation();
+  if (favs.includes(id)) {
+    favs = favs.filter((fid) => fid !== id);
+  } else {
+    favs.push(id);
+  }
+  localStorage.setItem("favs_db", JSON.stringify(favs));
+  renderHome();
+  tg.HapticFeedback.selectionChanged();
+}
 
-  content.innerHTML = `
-        <img src="${ad.img}" style="width:100%; height:300px; object-fit:cover;">
-        <div style="padding: 20px;">
-            <h1 style="color: var(--accent); margin-bottom: 5px;">${ad.price} KGS</h1>
-            <h2 style="margin-top: 0;">${ad.title}</h2>
-            <div style="background: #222; padding: 10px; border-radius: 10px; margin-bottom: 20px; font-size: 14px; color: #ccc;">
-                ${ad.desc}
+function renderFavs() {
+  const grid = document.getElementById("favs-grid");
+  const favAds = ads.filter((a) => favs.includes(a.id));
+  grid.innerHTML = favAds.length
+    ? ""
+    : '<p style="grid-column:1/3; text-align:center;">В избранном пусто</p>';
+
+  favAds.forEach((ad) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+            <img src="${ad.img}">
+            <div class="card-info">
+                <span class="card-price">${ad.price} KGS</span>
+                <span class="card-title">${ad.title}</span>
+                <i class="fa fa-heart active" style="color:#ff4d8d" onclick="toggleFav(${ad.id}); renderFavs();"></i>
             </div>
-            <p style="color: gray; font-size: 13px;">Продавец: ${ad.userName}</p>
-            <a href="https://t.me/${ad.userNick}" class="main-btn" style="display: block; text-align: center; text-decoration: none;">Написать в Telegram</a>
-        </div>
-    `;
-  modal.classList.remove("hidden");
-}
-
-function closeProduct() {
-  document.getElementById("product-modal").classList.add("hidden");
+        `;
+    grid.appendChild(card);
+  });
 }
 
 function filterByCat(cat) {
-  currentCategory = cat;
-  // Обновляем визуально чипы
-  document.querySelectorAll(".cat-chip").forEach((chip) => {
-    chip.classList.toggle(
-      "active",
-      chip.innerText.includes(cat) ||
-        (cat === "Все" && chip.innerText === "Все")
-    );
+  currentCat = cat;
+  document.querySelectorAll(".cat-pill").forEach((p) => {
+    p.classList.toggle("active", p.innerText === cat);
   });
-  renderAll();
+  renderHome();
+}
+
+function applyFilters() {
+  const sort = document.querySelector('input[name="sort"]:checked').value;
+  if (sort === "cheap") ads.sort((a, b) => a.price - b.price);
+  if (sort === "expensive") ads.sort((a, b) => b.price - a.price);
+  if (sort === "new") ads.sort((a, b) => b.id - a.id);
+
+  showPage("home");
+  renderHome();
 }
 
 function renderMyAds() {
-  const myGrid = document.getElementById("my-listings");
+  const grid = document.getElementById("my-ads-grid");
   const myId = tg.initDataUnsafe?.user?.id || 0;
-  const myAds = listings.filter((a) => a.userId === myId);
-
-  myGrid.innerHTML = myAds.length
+  const myAds = ads.filter((a) => a.userId === myId);
+  grid.innerHTML = myAds.length
     ? ""
-    : '<p style="padding: 20px; color: gray;">У вас нет объявлений</p>';
+    : '<p style="grid-column:1/3;">Нет объявлений</p>';
 
   myAds.forEach((ad) => {
     const card = document.createElement("div");
     card.className = "card";
     card.innerHTML = `
-            <img src="${ad.img}" class="card-img">
-            <div class="card-body">
-                <span class="card-price">${ad.price} KGS</span>
-                <button onclick="deleteAd(${ad.id})" style="background:none; border:none; color:red; font-size:12px; margin-top:5px;">Удалить</button>
+            <img src="${ad.img}">
+            <div class="card-info">
+                <b>${ad.price} KGS</b>
+                <p style="font-size:10px">${ad.title}</p>
+                <button onclick="deleteAd(${ad.id})" style="color:red; background:none; border:none; padding:0; font-size:10px;">Удалить</button>
             </div>
         `;
-    myGrid.appendChild(card);
+    grid.appendChild(card);
   });
 }
 
 function deleteAd(id) {
-  if (confirm("Удалить объявление?")) {
-    listings = listings.filter((a) => a.id !== id);
-    localStorage.setItem("resale_kg_ads", JSON.stringify(listings));
-    renderMyAds();
-    renderAll();
-  }
+  ads = ads.filter((a) => a.id !== id);
+  localStorage.setItem("ads_db", JSON.stringify(ads));
+  renderMyAds();
+  renderHome();
 }
