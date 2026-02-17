@@ -71,17 +71,17 @@
         </div>
       </section>
 
-      <!-- ИЗБРАННОЕ (НОВЫЙ ДИЗАЙН С ВКЛАДКАМИ) -->
+      <!-- ИЗБРАННОЕ (ОБНОВЛЕНО ПО ВАШЕМУ СКРИНШОТУ) -->
       <section id="page-favs" class="page hidden">
-        <header class="favs-page-header">
-          <div class="favs-top-row">
-            <span></span>
-            <h2>Избранное</h2>
-            <button class="favs-clear-btn" onclick="clearFavs()">
+        <header class="favs-header-custom">
+          <div class="favs-title-row">
+            <span style="width: 60px"></span>
+            <h2 class="favs-main-title">Избранное</h2>
+            <button class="favs-delete-btn" onclick="clearFavs()">
               Удалить
             </button>
           </div>
-          <div class="favs-tabs-nav">
+          <div class="favs-tabs-bar">
             <div
               class="f-tab active"
               id="f-tab-ads"
@@ -260,18 +260,18 @@
         <div id="pv-content"></div>
       </div>
 
-      <!-- НАВИГАЦИЯ -->
+      <!-- НАВИГАЦИЯ (ВАШ ОРИГИНАЛ БЕЗ ЧАТОВ) -->
       <nav class="bottom-nav">
         <button class="nav-item active" onclick="showPage('home')" id="n-home">
           <i class="fa fa-home"></i><span>Главная</span>
         </button>
+        <div class="nav-center">
+          <button class="pink-plus" onclick="showPage('add')">+</button>
+          <p>Подать</p>
+        </div>
         <button class="nav-item" onclick="showPage('favs')" id="n-favs">
           <i class="fa fa-heart"></i><span>Избранное</span>
         </button>
-        <div class="nav-center">
-          <button class="pink-plus" onclick="showPage('add')">+</button>
-          <p>Подать с ИИ</p>
-        </div>
         <button class="nav-item" onclick="showPage('profile')" id="n-profile">
           <i class="fa fa-user"></i><span>Профиль</span>
         </button>

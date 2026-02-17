@@ -1,14 +1,16 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
+// ДАННЫЕ БОТА (Вставь свои!)
 const BOT_TOKEN = "8399814024:AAEla8xBVk_9deHydJV0hrc5QYDyXAFpZ8k";
 const ADMIN_ID = "1615492914";
 
 let ads = JSON.parse(localStorage.getItem("gifts_final_v12")) || [];
 let favs = JSON.parse(localStorage.getItem("favs_final_v12")) || [];
 let curCat = "Все";
-let currentFavTab = "ads";
+let currentFavTab = "ads"; // Для вкладок в Избранном
 let uploadedBase64 = "";
+let currentProfileTab = "active";
 
 document.addEventListener("DOMContentLoaded", () => {
   initUser();
@@ -22,82 +24,6 @@ function initUser() {
   if (document.getElementById("u-avatar"))
     document.getElementById("u-avatar").innerText = user.first_name[0];
 }
-
-// Переключение вкладок в Избранном
-function switchFavTab(tab) {
-  currentFavTab = tab;
-  document
-    .getElementById("f-tab-ads")
-    .classList.toggle("active", tab === "ads");
-  document
-    .getElementById("f-tab-searches")
-    .classList.toggle("active", tab === "searches");
-  renderFavs();
-}
-
-function renderFavs() {
-  const container = document.getElementById("favs-content-area");
-
-  if (currentFavTab === "searches") {
-    // Вкладка ПОИСКИ (по скриншоту)
-    container.innerHTML = `
-      <div class="empty-search-box">
-        <div class="mockup-phone">
-          <div class="mockup-search"></div>
-          <div class="mockup-btn"><i class="fa fa-heart"></i></div>
-        </div>
-        <h3>Подписок на поиск нет</h3>
-        <p>Подписывайтесь на обновления по вашему поиску</p>
-        <button class="pink-action-btn" onclick="showPage('home')">На поиски!</button>
-      </div>
-    `;
-    return;
-  }
-
-  // Вкладка ОБЪЯВЛЕНИЯ
-  const data = ads.filter((a) => favs.includes(a.id));
-  if (data.length === 0) {
-    container.innerHTML = `
-      <div style="text-align:center; padding:60px 20px; color:gray;">
-        <i class="fa fa-heart" style="font-size:40px; margin-bottom:15px; opacity:0.3;"></i>
-        <p>Здесь будут ваши избранные товары</p>
-      </div>`;
-  } else {
-    container.innerHTML =
-      `<div class="listings-grid">` +
-      data
-        .map(
-          (a) => `
-        <div class="card" onclick='openProduct(${JSON.stringify(a)})'>
-          <img src="${a.img}">
-          <div class="card-body">
-            <span class="card-price">${a.price} KGS</span>
-            <div style="font-size:12px; margin-top:4px; color:#ddd;">${
-              a.title
-            }</div>
-          </div>
-        </div>`
-        )
-        .join("") +
-      `</div>`;
-  }
-}
-
-function showPage(p) {
-  document.querySelectorAll(".page").forEach((s) => s.classList.add("hidden"));
-  document.getElementById(`page-${p}`).classList.remove("hidden");
-  document
-    .querySelectorAll(".nav-item")
-    .forEach((i) => i.classList.remove("active"));
-  const navBtn = document.getElementById(`n-${p}`);
-  if (navBtn) navBtn.classList.add("active");
-
-  if (p === "home") renderFeed();
-  if (p === "favs") renderFavs();
-  if (p === "profile") renderProfileAds();
-}
-
-// --- Остальные функции без изменений объема ---
 
 function handleSearch(e) {
   if (e.key === "Enter") {
@@ -127,7 +53,7 @@ function renderFeed(data = ads) {
     const card = document.createElement("div");
     card.className = "card";
     card.onclick = () => openProduct(ad);
-    card.innerHTML = `<img src="${ad.img}"><div class="card-body"><span class="card-price">${ad.price} KGS</span><span class="card-title">${ad.title}</span><span class="card-city" style="display:block; font-size:10px; color:gray; margin-top:4px;">${ad.city}</span></div>`;
+    card.innerHTML = `<img src="${ad.img}"><div class="card-body"><span class="card-price">${ad.price} KGS</span><span class="card-title">${ad.title}</span><span class="card-city">${ad.city}</span></div>`;
     grid.appendChild(card);
   });
 }
@@ -146,6 +72,7 @@ function handleFileSelect(input) {
   }
 }
 
+// ФУНКЦИЯ ОТПРАВКИ ФОТО И ДАННЫХ В БОТ
 async function sendToBot(ad) {
   const text = `🚀 НОВАЯ ЗАЯВКА\n📦: ${ad.title}\n💰: ${ad.price} KGS\n📍: ${ad.city}\n👤: @${ad.tgNick}\n📱: ${ad.phone}`;
   try {
@@ -201,6 +128,17 @@ function publishAndSend() {
   };
 
   sendToBot(ad);
+
+  // Очистка
+  document.getElementById("in-title").value = "";
+  document.getElementById("in-price").value = "";
+  document.getElementById("in-wa").value = "";
+  document.getElementById("in-tg").value = "";
+  document.getElementById("in-desc").value = "";
+  uploadedBase64 = "";
+  document.getElementById("preview-box").classList.add("hidden");
+  document.getElementById("file-label").innerText = "Загрузить фото";
+
   ads.unshift(ad);
   localStorage.setItem("gifts_final_v12", JSON.stringify(ads));
   tg.showAlert("Отправлено на модерацию!");
@@ -210,27 +148,139 @@ function publishAndSend() {
 function openProduct(ad) {
   const modal = document.getElementById("product-modal");
   document.getElementById("pv-content").innerHTML = `
-    <img src="${ad.img}" style="width:100%; height:400px; object-fit:cover;">
-    <div class="pd-body">
-        <div class="pd-price" style="font-size:24px; color:var(--pink); font-weight:bold;">${
-          ad.price
-        } KGS</div>
-        <div class="pd-title" style="font-size:20px; margin:10px 0;">${
-          ad.title
-        }</div>
-        <div style="display:flex; gap:10px; margin-bottom:20px;">
-            <a href="https://t.me/${ad.tgNick.replace(
-              "@",
-              ""
-            )}" class="pink-btn-full" style="text-align:center; text-decoration:none; background:none; border:1px solid var(--pink); color:var(--pink);">Написать</a>
-            <a href="tel:${
-              ad.phone
-            }" class="pink-btn-full" style="text-align:center; text-decoration:none;">Позвонить</a>
+        <img src="${
+          ad.img
+        }" style="width:100%; height:400px; object-fit:cover;">
+        <div class="pd-body">
+            <div class="pd-price">${ad.price} KGS</div>
+            <div class="pd-title">${ad.title}</div>
+            <div class="pd-actions">
+                <a href="https://t.me/${ad.tgNick.replace(
+                  "@",
+                  ""
+                )}" target="_blank" class="pd-btn-write">Написать</a>
+                <a href="tel:${ad.phone}" class="pd-btn-call">Позвонить</a>
+            </div>
+            <p style="color:gray;">📍 ${ad.city}</p>
+            <div style="color:#eee; margin-top:20px; line-height:1.6;">${
+              ad.desc
+            }</div>
         </div>
-        <p style="color:gray;">📍 ${ad.city}</p>
-        <p style="color:#eee; line-height:1.4;">${ad.desc}</p>
-    </div>`;
+    `;
   modal.classList.remove("hidden");
+}
+
+function showPage(p) {
+  document.querySelectorAll(".page").forEach((s) => s.classList.add("hidden"));
+  document.getElementById(`page-${p}`).classList.remove("hidden");
+  document
+    .querySelectorAll(".nav-item")
+    .forEach((i) => i.classList.remove("active"));
+  if (p !== "add" && p !== "filter") {
+    const navBtn = document.getElementById(`n-${p}`);
+    if (navBtn) navBtn.classList.add("active");
+  }
+  if (p === "home") renderFeed();
+  if (p === "favs") renderFavs();
+  if (p === "profile") renderProfileAds();
+}
+
+// --- НОВОЕ ДЛЯ ИЗБРАННОГО ---
+function switchFavTab(tab) {
+  currentFavTab = tab;
+  document
+    .getElementById("f-tab-ads")
+    .classList.toggle("active", tab === "ads");
+  document
+    .getElementById("f-tab-searches")
+    .classList.toggle("active", tab === "searches");
+  renderFavs();
+}
+
+function renderFavs() {
+  const container = document.getElementById("favs-content-area");
+
+  if (currentFavTab === "searches") {
+    // Вкладка Поиски по скриншоту
+    container.innerHTML = `
+      <div class="searches-empty-state">
+        <div class="phone-mockup-img">
+          <div class="mockup-line"></div>
+          <div class="mockup-button"><i class="fa fa-heart"></i></div>
+        </div>
+        <h3>Подписок на поиск нет</h3>
+        <p>Подписывайтесь на обновления по вашему поиску</p>
+        <button class="go-to-search-btn" onclick="showPage('home')">На поиски!</button>
+      </div>
+    `;
+    return;
+  }
+
+  // Вкладка Объявления (Ваш оригинал)
+  const data = ads.filter((a) => favs.includes(a.id));
+  if (data.length === 0) {
+    container.innerHTML = `<div style="text-align:center; padding:50px; color:gray;">Пока ничего не добавлено</div>`;
+  } else {
+    container.innerHTML =
+      `<div class="listings-grid">` +
+      data
+        .map(
+          (a) =>
+            `<div class="card" onclick='openProduct(${JSON.stringify(
+              a
+            )})'><img src="${a.img}"><div class="card-body"><b>${
+              a.price
+            } KGS</b></div></div>`
+        )
+        .join("") +
+      `</div>`;
+  }
+}
+
+function switchProfileTab(tab) {
+  currentProfileTab = tab;
+  document
+    .getElementById("p-tab-active")
+    .classList.toggle("active", tab === "active");
+  document
+    .getElementById("p-tab-sold")
+    .classList.toggle("active", tab === "sold");
+  renderProfileAds();
+}
+
+function renderProfileAds() {
+  const grid = document.getElementById("my-ads-grid");
+  const myId = tg.initDataUnsafe?.user?.id || 0;
+  const myAds = ads.filter(
+    (a) =>
+      a.userId === myId &&
+      (currentProfileTab === "active"
+        ? a.status === "active"
+        : a.status === "sold")
+  );
+  grid.innerHTML = myAds.length
+    ? ""
+    : '<p style="text-align:center; padding:50px; color:gray;">Ничего не найдено</p>';
+  myAds.forEach((ad) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `<img src="${ad.img}"><div class="card-body"><b>${
+      ad.price
+    } KGS</b><br><button onclick="moveStatus(${
+      ad.id
+    })" style="color:var(--pink); background:none; border:none; padding:5px 0;">${
+      currentProfileTab === "active" ? "В архив" : "Удалить"
+    }</button></div>`;
+    grid.appendChild(card);
+  });
+}
+
+function moveStatus(id) {
+  const ad = ads.find((a) => a.id === id);
+  if (currentProfileTab === "active") ad.status = "sold";
+  else ads = ads.filter((a) => a.id !== id);
+  localStorage.setItem("gifts_final_v12", JSON.stringify(ads));
+  renderProfileAds();
 }
 
 function filterByCat(c, el) {
