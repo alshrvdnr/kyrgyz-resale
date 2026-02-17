@@ -78,7 +78,7 @@
             <span style="width: 60px"></span>
             <h2>Избранное</h2>
             <button class="favs-clear-link" onclick="clearFavs()">
-              Удалить
+              Удалить всё
             </button>
           </div>
           <div class="favs-tabs-nav">
@@ -119,7 +119,8 @@
             Проданные / Удаленные
           </div>
         </div>
-        <main class="listings-grid" id="my-ads-grid"></main>
+        <!-- В профиле теперь management-list для кнопок управления -->
+        <main class="management-list" id="my-ads-grid"></main>
       </section>
 
       <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ -->
@@ -150,7 +151,6 @@
               <img id="img-preview" src="" />
             </div>
           </div>
-
           <div class="f-group">
             <label>📍 ГОРОД</label>
             <select id="in-city" class="main-input">
@@ -161,8 +161,6 @@
               <option value="Каракол">Каракол</option>
             </select>
           </div>
-
-          <!-- НОВОЕ ПОЛЕ АДРЕС -->
           <div class="f-group">
             <label>Адрес (улица, дом)</label>
             <input
@@ -172,10 +170,9 @@
               placeholder="Введите адрес"
             />
           </div>
-
           <div class="f-group">
-            <label>Telegram ник (без @)</label
-            ><input
+            <label>Telegram ник (без @)</label>
+            <input
               type="text"
               id="in-tg"
               class="main-input"
@@ -183,8 +180,8 @@
             />
           </div>
           <div class="f-group">
-            <label>Номер телефона</label
-            ><input
+            <label>Номер телефона</label>
+            <input
               type="tel"
               id="in-wa"
               class="main-input"
@@ -192,8 +189,8 @@
             />
           </div>
           <div class="f-group">
-            <label>Название</label
-            ><input
+            <label>Название</label>
+            <input
               type="text"
               id="in-title"
               class="main-input"
@@ -201,8 +198,8 @@
             />
           </div>
           <div class="f-group">
-            <label>Цена (KGS)</label
-            ><input
+            <label>Цена (KGS)</label>
+            <input
               type="number"
               id="in-price"
               class="main-input"
@@ -219,16 +216,42 @@
             </select>
           </div>
           <div class="f-group">
-            <label>Описание</label
-            ><textarea
+            <label>Описание</label>
+            <textarea
               id="in-desc"
               class="main-input"
               placeholder="Описание..."
             ></textarea>
           </div>
-
           <button class="pink-btn-full" onclick="publishAndSend()">
             Опубликовать
+          </button>
+        </div>
+      </section>
+
+      <!-- СТРАНИЦА РЕДАКТИРОВАНИЯ -->
+      <section id="page-edit-ad" class="page hidden">
+        <header class="page-header-simple">
+          <button onclick="showPage('profile')" class="icon-btn">✕</button>
+          <h2>Изменить данные</h2>
+          <span></span>
+        </header>
+        <div class="form-scroll">
+          <input type="hidden" id="edit-id" />
+          <div class="f-group">
+            <label>Название</label>
+            <input type="text" id="edit-title" class="main-input" />
+          </div>
+          <div class="f-group">
+            <label>Цена (KGS)</label>
+            <input type="number" id="edit-price" class="main-input" />
+          </div>
+          <div class="f-group">
+            <label>Адрес</label>
+            <input type="text" id="edit-address" class="main-input" />
+          </div>
+          <button class="pink-btn-full" onclick="saveAdChanges()">
+            Сохранить изменения
           </button>
         </div>
       </section>
@@ -257,15 +280,13 @@
         </div>
       </section>
 
-      <!-- ПОДРОБНОСТИ (ОБНОВЛЕНО ДЛЯ УДОБСТВА) -->
+      <!-- ПОДРОБНОСТИ -->
       <div id="product-modal" class="full-view hidden">
         <div class="pv-header">
           <button class="pv-back" onclick="closeProduct()">
             <i class="fa fa-chevron-left"></i>
           </button>
-          <div class="pv-top-icons" id="modal-fav-icon">
-            <!-- Сюда вставится сердечко -->
-          </div>
+          <div class="pv-top-icons" id="modal-fav-icon"></div>
         </div>
         <div id="pv-content" class="pv-scroll-area"></div>
       </div>
