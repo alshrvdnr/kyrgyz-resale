@@ -1,106 +1,137 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
+tg.enableClosingConfirmation();
 
-// ДАННЫЕ БОТА (Вставь свои)
+// --- ДАННЫЕ ДЛЯ МОДЕРАЦИИ (Вставь свои токены!) ---
 const BOT_TOKEN = "8399814024:AAEla8xBVk_9deHydJV0hrc5QYDyXAFpZ8k";
-const ADMIN_ID = "1615492914";
+const ADMIN_CHAT_ID = "1615492914";
 
-let ads = JSON.parse(localStorage.getItem("kg_resale_v5")) || [];
-let favorites = JSON.parse(localStorage.getItem("favs_v5")) || [];
-let uploadedPhoto = "";
-
-const cats_list = [
-  { name: "Транспорт", count: "335 946", icon: "🚗" },
-  { name: "Недвижимость", count: "68 515", icon: "🏠" },
-  { name: "Услуги", count: "129 146", icon: "🛠" },
-  { name: "Техника и электроника", count: "117 467", icon: "📱" },
-  { name: "Дом и сад", count: "152 715", icon: "🌱" },
-  { name: "Работа", count: "15 243", icon: "💼" },
-];
+// Состояние базы данных
+let ads_db = JSON.parse(localStorage.getItem("gifts_global_v10")) || [];
+let favs_db = JSON.parse(localStorage.getItem("favs_global_v10")) || [];
+let currentCategory = "Все";
+let currentProfileTab = "active";
+let tempUploadedPhoto = "";
 
 document.addEventListener("DOMContentLoaded", () => {
-  initUser();
+  setupUser();
   renderFeed();
-  renderCategories();
 });
 
-function initUser() {
-  const user = tg.initDataUnsafe?.user || { first_name: "Пользователь" };
+// Инициализация юзера из Telegram
+function setupUser() {
+  const user = tg.initDataUnsafe?.user || { first_name: "Пользователь", id: 0 };
   document.getElementById("u-name").innerText = user.first_name;
   document.getElementById("u-avatar").innerText = user.first_name[0];
 }
 
-// ПОИСК (Enter)
+// --- ЛОГИКА ПОИСКА ПО ENTER ---
 function handleSearch(e) {
   if (e.key === "Enter") {
     const query = e.target.value.toLowerCase();
-    const results = ads.filter((a) => a.title.toLowerCase().includes(query));
+    const results = ads_db.filter(
+      (a) =>
+        a.title.toLowerCase().includes(query) ||
+        a.desc.toLowerCase().includes(query)
+    );
 
-    const homeContent = document.getElementById("home-content");
-    const error = document.getElementById("search-error");
+    const tabsBlock = document.getElementById("home-tabs-block");
+    const errorBox = document.getElementById("search-error");
 
     if (results.length === 0 && query !== "") {
-      homeContent.classList.add("hidden");
-      error.classList.remove("hidden");
+      tabsBlock.classList.add("hidden");
+      errorBox.classList.remove("hidden");
+      renderFeed([]);
     } else {
-      homeContent.classList.remove("hidden");
-      error.classList.add("hidden");
-      renderFeed(query === "" ? ads : results);
+      tabsBlock.classList.remove("hidden");
+      errorBox.classList.add("hidden");
+      renderFeed(query === "" ? ads_db : results);
     }
-    e.target.blur();
+    e.target.blur(); // Скрываем клавиатуру
   }
 }
 
-function renderFeed(data = ads) {
+// Рендеринг ленты
+function renderFeed(data = ads_db) {
   const grid = document.getElementById("home-grid");
-  grid.innerHTML = data.length
-    ? ""
-    : '<p style="grid-column:1/3;text-align:center;padding:50px;color:gray;">Ничего не найдено</p>';
-  data.forEach((ad) => {
+  grid.innerHTML = "";
+
+  let filtered =
+    currentCategory === "Все"
+      ? data
+      : data.filter((a) => a.cat === currentCategory);
+
+  filtered.forEach((ad) => {
+    const isFav = favs_db.includes(ad.id);
     const card = document.createElement("div");
     card.className = "card";
-    card.onclick = () => openProduct(ad);
-    card.innerHTML = `<img src="${
-      ad.img || "https://via.placeholder.com/300"
-    }"><div class="card-body"><span class="card-price">${
-      ad.price
-    } KGS</span><span class="card-title">${ad.title}</span></div>`;
+    card.onclick = () => openProductDetails(ad);
+    card.innerHTML = `
+            <img src="${ad.img || "https://via.placeholder.com/300"}">
+            <div class="card-body">
+                <span class="card-price">${ad.price} KGS</span>
+                <span class="card-title">${ad.title}</span>
+                <i class="fa-heart fav-btn-icon ${isFav ? "fa active" : "far"}" 
+                   style="position:absolute; bottom:12px; right:12px; color:${
+                     isFav ? "#ff8fb1" : "#888"
+                   }" 
+                   onclick="toggleFavorite(event, ${ad.id})"></i>
+            </div>
+        `;
     grid.appendChild(card);
   });
 }
 
-// Категории как на скрине
-function renderCategories() {
-  const container = document.getElementById("cat-list-items");
-  container.innerHTML = cats_list
-    .map(
-      (c) => `
-        <div class="cat-item" onclick="filterByCat('${c.name}')">
-            <div style="font-size:24px; padding:10px; background:#222; border-radius:8px;">${c.icon}</div>
-            <div class="cat-name">${c.name}</div>
-            <div class="cat-count">${c.count}</div>
-            <i class="fa fa-chevron-right" style="color:#444; font-size:12px;"></i>
-        </div>
-    `
-    )
-    .join("");
-}
-
+// --- ЗАГРУЗКА ФОТО ---
 function handleFile(input) {
   const file = input.files[0];
   if (file) {
     const reader = new FileReader();
     reader.onload = (e) => {
-      uploadedPhoto = e.target.result;
-      document.getElementById("img-preview").src = uploadedPhoto;
-      document.getElementById("img-preview-wrap").classList.remove("hidden");
-      document.getElementById("file-label").innerText = "Фото загружено ✅";
+      tempUploadedPhoto = e.target.result;
+      document.getElementById("image-preview").src = tempUploadedPhoto;
+      document.getElementById("preview-container").classList.remove("hidden");
+      document.getElementById("upload-text").innerText = "Фото загружено ✅";
     };
     reader.readAsDataURL(file);
   }
 }
 
-async function publishWithModeration() {
+// --- МОДЕРАЦИЯ (ОТПРАВКА В БОТ) ---
+async function sendToModerationBot(adData) {
+  const messageText =
+    `🔔 **НОВАЯ ЗАЯВКА**\n\n` +
+    `📦 Товар: ${adData.title}\n` +
+    `💰 Цена: ${adData.price} KGS\n` +
+    `👤 TG: @${adData.tgNick}\n` +
+    `📱 Тел: ${adData.phone}\n` +
+    `📁 Кат: ${adData.cat}`;
+
+  try {
+    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: ADMIN_CHAT_ID,
+        text: messageText,
+        parse_mode: "Markdown",
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: "Одобрить ✅", callback_data: `ok_${adData.id}` },
+              { text: "Отклонить ❌", callback_data: `no_${adData.id}` },
+            ],
+          ],
+        },
+      }),
+    });
+  } catch (err) {
+    console.error("API Error:", err);
+  }
+}
+
+// --- ПУБЛИКАЦИЯ С ОЧИСТКОЙ ---
+function submitToModeration() {
   const title = document.getElementById("in-title").value;
   const price = document.getElementById("in-price").value;
   const phone = document.getElementById("in-phone").value;
@@ -108,119 +139,221 @@ async function publishWithModeration() {
   const cat = document.getElementById("in-cat").value;
   const desc = document.getElementById("in-desc").value;
 
-  if (!title || !price || !uploadedPhoto)
-    return tg.showAlert("Заполните поля и фото!");
+  if (!title || !price || !tempUploadedPhoto) {
+    tg.showAlert("Заполните название, цену и загрузите фото!");
+    return;
+  }
 
-  const ad = {
+  const newAd = {
     id: Date.now(),
+    userId: tg.initDataUnsafe?.user?.id || 0,
+    userName: tg.initDataUnsafe?.user?.first_name || "User",
     title,
     price,
     phone,
     tgNick,
     cat,
     desc,
-    img: uploadedPhoto,
-    userId: tg.initDataUnsafe?.user?.id || 0,
+    img: tempUploadedPhoto,
+    status: "active",
+    views: Math.floor(Math.random() * 1200),
   };
 
-  // ОЧИСТКА ФОРМЫ
+  // Сохранение
+  ads_db.unshift(newAd);
+  localStorage.setItem("gifts_global_v10", JSON.stringify(ads_db));
+
+  // Отправка боту
+  sendToModerationBot(newAd);
+
+  // ОЧИСТКА ФОРМЫ (Как просил)
   document.getElementById("in-title").value = "";
   document.getElementById("in-price").value = "";
   document.getElementById("in-phone").value = "";
   document.getElementById("in-tg").value = "";
   document.getElementById("in-desc").value = "";
-  uploadedPhoto = "";
-  document.getElementById("img-preview-wrap").classList.add("hidden");
-  document.getElementById("file-label").innerText = "Загрузить фото";
+  document.getElementById("file-input").value = "";
+  tempUploadedPhoto = "";
+  document.getElementById("preview-container").classList.add("hidden");
+  document.getElementById("upload-text").innerText = "Загрузить фото";
 
-  // ОТПРАВКА В БОТ
-  const text = `🔔 НОВАЯ ЗАЯВКА\n👤: ${ad.tgNick}\n📦: ${ad.title}\n💰: ${ad.price} KGS`;
-  await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: ADMIN_ID, text: text }),
-  });
-
-  ads.unshift(ad);
-  localStorage.setItem("kg_resale_v5", JSON.stringify(ads));
-  tg.showAlert("Объявление отправлено!");
+  tg.showAlert("Объявление отправлено на проверку!");
   showPage("home");
+  renderFeed();
 }
 
-function openProduct(ad) {
+// Детали (Дизайн из скриншота PS5)
+function openProductDetails(ad) {
   const modal = document.getElementById("product-modal");
-  document.getElementById("pv-content").innerHTML = `
-        <img src="${ad.img}" style="width:100%; height:350px; object-fit:cover;">
-        <div class="pd-price-row">
-            <div class="pd-price">${ad.price} KGS</div>
-            <div class="pd-title">${ad.title}</div>
-            <p style="color:gray; font-size:14px; margin-top:10px;">${ad.desc}</p>
-        </div>
-    `;
-  document.getElementById("pv-footer").innerHTML = `
-        <div class="pd-footer-btns">
-            <a href="https://t.me/${ad.tgNick.replace(
-              "@",
-              ""
-            )}" target="_blank" class="btn-write">Написать</a>
-            <a href="tel:${ad.phone}" class="btn-call">Позвонить</a>
+  const inner = document.getElementById("product-full-content");
+
+  inner.innerHTML = `
+        <img src="${ad.img}" class="pd-hero-img">
+        <div class="pd-details-box">
+            <div class="pd-stats-row">
+                <span>Просмотры: ${ad.views}</span>
+                <div><i class="fa fa-eye"></i> ${
+                  ad.views
+                } <i class="fa fa-heart" style="margin-left:10px;"></i> 12</div>
+            </div>
+            <div class="pd-price-large">${ad.price} KGS</div>
+            <div class="pd-title-large">${ad.title}</div>
+            
+            <div class="pd-actions-row">
+                <!-- Прямая ссылка в чат TG -->
+                <a href="https://t.me/${ad.tgNick.replace(
+                  "@",
+                  ""
+                )}" target="_blank" class="btn-pd-write">Написать</a>
+                <a href="tel:${ad.phone}" class="btn-pd-call">Позвонить</a>
+            </div>
+
+            <p style="color:var(--text-gray); font-size:14px;">Доставка: Бесплатная доставка по городу</p>
+            <div style="margin:20px 0; line-height:1.7; color:#eee; white-space: pre-wrap;">${
+              ad.desc
+            }</div>
+
+            <div class="pd-seller-card">
+                <div class="ps-avatar-mock"></div>
+                <div>
+                    <b>${ad.userName}</b><br>
+                    <small style="color:var(--text-gray);">Отвечает на 100% сообщений</small>
+                </div>
+            </div>
         </div>
     `;
   modal.classList.remove("hidden");
 }
 
-function renderFavs() {
-  const container = document.getElementById("favs-content");
-  const favData = ads.filter((a) => favorites.includes(a.id));
-
-  if (favData.length === 0) {
-    container.innerHTML = `
-            <div class="fav-empty-card">
-                <i class="fa fa-heart"></i>
-                <h3>У вас пока нет избранных объявлений</h3>
-                <p>Выберите категорию, чтобы начать поиск объявлений. Нажмите на сердечко, и понравившееся объявление появится здесь.</p>
-                <button class="fav-select-btn" onclick="openCategories()">Выберите категорию</button>
-            </div>
-        `;
-  } else {
-    container.innerHTML =
-      `<div class="listings-grid">` +
-      favData
-        .map(
-          (ad) =>
-            `<div class="card"><img src="${ad.img}"><div class="card-body"><b>${ad.price} KGS</b></div></div>`
-        )
-        .join("") +
-      `</div>`;
-  }
-}
-
-function showPage(pageId) {
-  document.querySelectorAll(".page").forEach((p) => p.classList.add("hidden"));
-  document.getElementById(`page-${pageId}`).classList.remove("hidden");
-  document
-    .querySelectorAll(".nav-item")
-    .forEach((n) => n.classList.remove("active"));
-  if (pageId !== "add")
-    document.getElementById(`n-${pageId}`).classList.add("active");
-  if (pageId === "home") renderFeed();
-  if (pageId === "favs") renderFavs();
-  tg.HapticFeedback.impactOccurred("light");
-}
-
-function openCategories() {
-  document.getElementById("cat-modal").classList.remove("hidden");
-}
-function closeCategories() {
-  document.getElementById("cat-modal").classList.add("hidden");
-}
 function closeProduct() {
   document.getElementById("product-modal").classList.add("hidden");
 }
 
-function switchMainTab(type, el) {
+// Навигация
+function showPage(pageId) {
+  document.querySelectorAll(".page").forEach((p) => p.classList.add("hidden"));
+  document.getElementById(`page-${pageId}`).classList.remove("hidden");
+
   document
-    .querySelectorAll(".c-tab")
+    .querySelectorAll(".tab-item")
+    .forEach((n) => n.classList.remove("active"));
+  if (pageId !== "add") {
+    const btn = document.getElementById(`n-${pageId}`);
+    if (btn) btn.classList.add("active");
+  }
+
+  if (pageId === "home") {
+    document.getElementById("home-tabs-block").classList.remove("hidden");
+    document.getElementById("search-error").classList.add("hidden");
+    renderFeed();
+  }
+  if (pageId === "favs") renderFavorites();
+  if (pageId === "profile") renderProfileAds();
+
+  tg.HapticFeedback.impactOccurred("light");
+}
+
+// Избранное
+function toggleFavorite(e, id) {
+  e.stopPropagation();
+  if (favs_db.includes(id)) favs_db = favs_db.filter((f) => f !== id);
+  else favs_db.push(id);
+  localStorage.setItem("favs_global_v10", JSON.stringify(favs_db));
+  renderFeed();
+  tg.HapticFeedback.selectionChanged();
+}
+
+function renderFavorites() {
+  const grid = document.getElementById("favs-grid");
+  const empty = document.getElementById("favs-empty");
+  const data = ads_db.filter((a) => favs_db.includes(a.id));
+
+  if (data.length === 0) {
+    grid.innerHTML = "";
+    empty.classList.remove("hidden");
+  } else {
+    empty.classList.add("hidden");
+    grid.innerHTML = data
+      .map(
+        (ad) =>
+          `<div class="card" onclick="openProductDetails(${ad.id})"><img src="${ad.img}"><div class="card-body"><b>${ad.price} KGS</b><br><small>${ad.title}</small></div></div>`
+      )
+      .join("");
+  }
+}
+
+function clearFavs() {
+  if (confirm("Удалить все избранное?")) {
+    favs_db = [];
+    localStorage.setItem("favs_global_v10", JSON.stringify(favs_db));
+    renderFavorites();
+  }
+}
+
+// Фильтр категорий
+function filterByCat(cat, el) {
+  currentCategory = cat;
+  document
+    .querySelectorAll(".cat-chip")
+    .forEach((c) => c.classList.remove("active"));
+  el.classList.add("active");
+  renderFeed();
+}
+
+// Профиль
+function switchProfileTab(tab, el) {
+  currentProfileTab = tab;
+  document
+    .querySelectorAll(".p-tab")
+    .forEach((t) => t.classList.remove("active"));
+  el.classList.add("active");
+  renderProfileAds();
+}
+
+function renderProfileAds() {
+  const grid = document.getElementById("my-ads-grid");
+  const myId = tg.initDataUnsafe?.user?.id || 0;
+  const myAds = ads_db.filter(
+    (a) =>
+      a.userId === myId &&
+      (currentProfileTab === "active"
+        ? a.status === "active"
+        : a.status === "sold")
+  );
+
+  grid.innerHTML = myAds.length
+    ? ""
+    : '<div class="search-error-box">Ничего не найдено</div>';
+  myAds.forEach((ad) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+            <img src="${ad.img}">
+            <div class="card-body">
+                <b>${ad.price} KGS</b>
+                <button onclick="changeAdStatus(${
+                  ad.id
+                })" style="background:none; border:none; color:var(--pink); font-size:12px; display:block; padding:10px 0;">
+                    ${currentProfileTab === "active" ? "В архив" : "Удалить"}
+                </button>
+            </div>
+        `;
+    grid.appendChild(card);
+  });
+}
+
+function changeAdStatus(id) {
+  const ad = ads_db.find((a) => a.id === id);
+  if (currentProfileTab === "active") ad.status = "sold";
+  else ads_db = ads_db.filter((a) => a.id !== id);
+  localStorage.setItem("gifts_global_v10", JSON.stringify(ads_db));
+  renderProfileAds();
+}
+
+// Заглушки для дизайна
+function switchFeed(type, el) {
+  document
+    .querySelectorAll(".feed-tab")
     .forEach((t) => t.classList.remove("active"));
   el.classList.add("active");
 }
