@@ -75,27 +75,13 @@
       <section id="page-favs" class="page hidden">
         <header class="favs-header-custom">
           <div class="favs-top-line">
-            <span style="width: 60px"></span>
+            <span style="width: 60px;"></span>
             <h2>Избранное</h2>
-            <button class="favs-clear-link" onclick="clearFavs()">
-              Удалить
-            </button>
+            <button class="favs-clear-link" onclick="clearFavs()">Удалить</button>
           </div>
           <div class="favs-tabs-nav">
-            <div
-              class="f-tab active"
-              id="f-tab-ads"
-              onclick="switchFavTab('ads')"
-            >
-              Объявления
-            </div>
-            <div
-              class="f-tab"
-              id="f-tab-searches"
-              onclick="switchFavTab('searches')"
-            >
-              Поиски
-            </div>
+            <div class="f-tab active" id="f-tab-ads" onclick="switchFavTab('ads')">Объявления</div>
+            <div class="f-tab" id="f-tab-searches" onclick="switchFavTab('searches')">Поиски</div>
           </div>
         </header>
         <main id="favs-content-area"></main>
@@ -165,12 +151,7 @@
           <!-- НОВОЕ ПОЛЕ АДРЕС -->
           <div class="f-group">
             <label>Адрес (улица, дом)</label>
-            <input
-              type="text"
-              id="in-address"
-              class="main-input"
-              placeholder="Введите адрес"
-            />
+            <input type="text" id="in-address" class="main-input" placeholder="Введите адрес">
           </div>
 
           <div class="f-group">
@@ -264,7 +245,7 @@
             <i class="fa fa-chevron-left"></i>
           </button>
           <div class="pv-top-icons" id="modal-fav-icon">
-            <!-- Сюда вставится сердечко -->
+             <!-- Сюда вставится сердечко -->
           </div>
         </div>
         <div id="pv-content" class="pv-scroll-area"></div>

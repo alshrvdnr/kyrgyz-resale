@@ -18,10 +18,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function initUser() {
   const user = tg.initDataUnsafe?.user || { first_name: "Пользователь", id: 0 };
-  if (document.getElementById("u-name"))
-    document.getElementById("u-name").innerText = user.first_name;
-  if (document.getElementById("u-avatar"))
-    document.getElementById("u-avatar").innerText = user.first_name[0];
+  if(document.getElementById("u-name")) document.getElementById("u-name").innerText = user.first_name;
+  if(document.getElementById("u-avatar")) document.getElementById("u-avatar").innerText = user.first_name[0];
 }
 
 // Поиск
@@ -47,7 +45,7 @@ function handleSearch(e) {
 // Главный фид
 function renderFeed(data = ads) {
   const grid = document.getElementById("home-grid");
-  if (!grid) return;
+  if(!grid) return;
   grid.innerHTML = "";
   let filtered = curCat === "Все" ? data : data.filter((a) => a.cat === curCat);
   filtered.forEach((ad) => {
@@ -81,24 +79,11 @@ async function sendToBot(ad) {
     formData.append("chat_id", ADMIN_ID);
     formData.append("photo", blob, "photo.jpg");
     formData.append("caption", text);
-    formData.append(
-      "reply_markup",
-      JSON.stringify({
-        inline_keyboard: [
-          [
-            { text: "Одобрить ✅", callback_data: `ok_${ad.id}` },
-            { text: "Удалить ❌", callback_data: `no_${ad.id}` },
-          ],
-        ],
-      })
-    );
-    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
-      method: "POST",
-      body: formData,
-    });
-  } catch (e) {
-    console.error(e);
-  }
+    formData.append("reply_markup", JSON.stringify({
+      inline_keyboard: [[{ text: "Одобрить ✅", callback_data: `ok_${ad.id}` },{ text: "Удалить ❌", callback_data: `no_${ad.id}` }]]
+    }));
+    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: "POST", body: formData });
+  } catch(e) { console.error(e); }
 }
 
 function publishAndSend() {
@@ -111,28 +96,17 @@ function publishAndSend() {
   const cat = document.getElementById("in-cat").value;
   const desc = document.getElementById("in-desc").value;
 
-  if (!title || !price || !uploadedBase64)
-    return tg.showAlert("Заполните поля и фото!");
+  if (!title || !price || !uploadedBase64) return tg.showAlert("Заполните поля и фото!");
 
   const ad = {
-    id: Date.now(),
-    title,
-    price,
-    phone,
-    address,
-    tgNick,
-    city,
-    cat,
-    desc,
-    img: uploadedBase64,
-    status: "active",
-    userId: tg.initDataUnsafe?.user?.id || 0,
+    id: Date.now(), title, price, phone, address, tgNick, city, cat, desc,
+    img: uploadedBase64, status: "active", userId: tg.initDataUnsafe?.user?.id || 0
   };
 
   sendToBot(ad);
   ads.unshift(ad);
   localStorage.setItem("gifts_final_v12", JSON.stringify(ads));
-
+  
   // Чистка
   document.getElementById("in-title").value = "";
   document.getElementById("in-price").value = "";
@@ -154,9 +128,7 @@ function openProduct(ad) {
   const isFav = favs.includes(ad.id);
 
   // Ставим сердечко
-  favIconArea.innerHTML = `<i class="${
-    isFav ? "fa-solid" : "fa-regular"
-  } fa-heart" style="color:var(--pink)" onclick="toggleFav(${ad.id})"></i>`;
+  favIconArea.innerHTML = `<i class="${isFav ? 'fa-solid' : 'fa-regular'} fa-heart" style="color:var(--pink)" onclick="toggleFav(${ad.id})"></i>`;
 
   document.getElementById("pv-content").innerHTML = `
         <img src="${ad.img}" style="width:100%; height:auto; display:block;">
@@ -164,14 +136,9 @@ function openProduct(ad) {
             <div class="pd-price">${ad.price} KGS</div>
             <div class="pd-title">${ad.title}</div>
             
-            <a href="https://t.me/${ad.tgNick.replace(
-              "@",
-              ""
-            )}" target="_blank" class="pd-btn-write">Написать продавцу</a>
+            <a href="https://t.me/${ad.tgNick.replace("@","")}" target="_blank" class="pd-btn-write">Написать продавцу</a>
 
-            <p style="color:#eee; font-size:16px; line-height:1.6; margin-bottom:20px;">${
-              ad.desc
-            }</p>
+            <p style="color:#eee; font-size:16px; line-height:1.6; margin-bottom:20px;">${ad.desc}</p>
             
             <div class="contact-info-block">
                 <div class="contact-label">📍 ГОРОД</div>
@@ -180,7 +147,7 @@ function openProduct(ad) {
             
             <div class="contact-info-block">
                 <div class="contact-label">🏠 АДРЕС</div>
-                <div class="contact-value">${ad.address || "Не указан"}</div>
+                <div class="contact-value">${ad.address || 'Не указан'}</div>
             </div>
 
             <div class="contact-info-block">
@@ -195,35 +162,33 @@ function openProduct(ad) {
 }
 
 function toggleFav(id) {
-  if (favs.includes(id)) {
-    favs = favs.filter((f) => f !== id);
-  } else {
-    favs.push(id);
-  }
-  localStorage.setItem("favs_final_v12", JSON.stringify(favs));
-
-  // Обновляем иконку в открытой модалке
-  const icon = document.querySelector("#modal-fav-icon i");
-  if (icon) {
-    icon.classList.toggle("fa-solid");
-    icon.classList.toggle("fa-regular");
-  }
+    if (favs.includes(id)) {
+        favs = favs.filter(f => f !== id);
+    } else {
+        favs.push(id);
+    }
+    localStorage.setItem("favs_final_v12", JSON.stringify(favs));
+    
+    // Обновляем иконку в открытой модалке
+    const icon = document.querySelector("#modal-fav-icon i");
+    if(icon) {
+        icon.classList.toggle('fa-solid');
+        icon.classList.toggle('fa-regular');
+    }
 }
 
-function closeProduct() {
-  document.getElementById("product-modal").classList.add("hidden");
-  tg.BackButton.hide();
+function closeProduct() { 
+    document.getElementById("product-modal").classList.add("hidden"); 
+    tg.BackButton.hide();
 }
 
 function showPage(p) {
   document.querySelectorAll(".page").forEach((s) => s.classList.add("hidden"));
   document.getElementById(`page-${p}`).classList.remove("hidden");
-  document
-    .querySelectorAll(".nav-item")
-    .forEach((i) => i.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach((i) => i.classList.remove("active"));
   const navBtn = document.getElementById(`n-${p}`);
   if (navBtn) navBtn.classList.add("active");
-
+  
   if (p === "home") renderFeed();
   if (p === "favs") renderFavs();
   if (p === "profile") renderProfileAds();
@@ -231,12 +196,8 @@ function showPage(p) {
 
 function switchFavTab(tab) {
   currentFavTab = tab;
-  document
-    .getElementById("f-tab-ads")
-    .classList.toggle("active", tab === "ads");
-  document
-    .getElementById("f-tab-searches")
-    .classList.toggle("active", tab === "searches");
+  document.getElementById("f-tab-ads").classList.toggle("active", tab === "ads");
+  document.getElementById("f-tab-searches").classList.toggle("active", tab === "searches");
   renderFavs();
 }
 
@@ -250,56 +211,26 @@ function renderFavs() {
   if (data.length === 0) {
     container.innerHTML = `<div style="text-align:center; padding:100px 20px; color:gray;"><i class="fa fa-heart" style="font-size:40px; margin-bottom:15px; opacity:0.3;"></i><p>Здесь будут ваши избранные объявления</p></div>`;
   } else {
-    container.innerHTML =
-      `<div class="listings-grid">` +
-      data
-        .map(
-          (a) =>
-            `<div class="card" onclick='openProduct(${JSON.stringify(
-              a
-            )})'><img src="${a.img}"><div class="card-body"><b>${
-              a.price
-            } KGS</b></div></div>`
-        )
-        .join("") +
-      `</div>`;
+    container.innerHTML = `<div class="listings-grid">` + data.map(a => `<div class="card" onclick='openProduct(${JSON.stringify(a)})'><img src="${a.img}"><div class="card-body"><b>${a.price} KGS</b></div></div>`).join("") + `</div>`;
   }
 }
 
 function switchProfileTab(tab) {
   currentProfileTab = tab;
-  document
-    .getElementById("p-tab-active")
-    .classList.toggle("active", tab === "active");
-  document
-    .getElementById("p-tab-sold")
-    .classList.toggle("active", tab === "sold");
+  document.getElementById("p-tab-active").classList.toggle("active", tab === "active");
+  document.getElementById("p-tab-sold").classList.toggle("active", tab === "sold");
   renderProfileAds();
 }
 
 function renderProfileAds() {
   const grid = document.getElementById("my-ads-grid");
   const myId = tg.initDataUnsafe?.user?.id || 0;
-  const myAds = ads.filter(
-    (a) =>
-      a.userId === myId &&
-      (currentProfileTab === "active"
-        ? a.status === "active"
-        : a.status === "sold")
-  );
-  grid.innerHTML = myAds.length
-    ? ""
-    : '<p style="text-align:center; padding:50px; color:gray;">Ничего не найдено</p>';
+  const myAds = ads.filter(a => a.userId === myId && (currentProfileTab === "active" ? a.status === "active" : a.status === "sold"));
+  grid.innerHTML = myAds.length ? "" : '<p style="text-align:center; padding:50px; color:gray;">Ничего не найдено</p>';
   myAds.forEach((ad) => {
     const card = document.createElement("div");
     card.className = "card";
-    card.innerHTML = `<img src="${ad.img}"><div class="card-body"><b>${
-      ad.price
-    } KGS</b><br><button onclick="moveStatus(${
-      ad.id
-    })" style="color:var(--pink); background:none; border:none; padding:5px 0;">${
-      currentProfileTab === "active" ? "В архив" : "Удалить"
-    }</button></div>`;
+    card.innerHTML = `<img src="${ad.img}"><div class="card-body"><b>${ad.price} KGS</b><br><button onclick="moveStatus(${ad.id})" style="color:var(--pink); background:none; border:none; padding:5px 0;">${currentProfileTab === "active" ? "В архив" : "Удалить"}</button></div>`;
     grid.appendChild(card);
   });
 }
@@ -314,15 +245,9 @@ function moveStatus(id) {
 
 function filterByCat(c, el) {
   curCat = c;
-  document
-    .querySelectorAll(".cat-chip")
-    .forEach((i) => i.classList.remove("active"));
+  document.querySelectorAll(".cat-chip").forEach((i) => i.classList.remove("active"));
   el.classList.add("active");
   renderFeed();
 }
 
-function clearFavs() {
-  favs = [];
-  localStorage.setItem("favs_final_v12", JSON.stringify(favs));
-  renderFavs();
-}
+function clearFavs() { favs = []; localStorage.setItem("favs_final_v12", JSON.stringify(favs)); renderFavs(); }
