@@ -1,36 +1,33 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-// Инициализация базы данных
-let ads = JSON.parse(localStorage.getItem("kyrgyz_gifts_db")) || [];
-let favorites = JSON.parse(localStorage.getItem("kyrgyz_favs_db")) || [];
+// ДАННЫЕ БОТА (Вставь свои!)
+const BOT_TOKEN = "8399814024:AAEla8xBVk_9deHydJV0hrc5QYDyXAFpZ8k";
+const ADMIN_ID = "1615492914";
+
+let ads = JSON.parse(localStorage.getItem("gifts_final_v4")) || [];
+let favorites = JSON.parse(localStorage.getItem("favs_final_v4")) || [];
 let currentCategory = "Все";
-let profileTab = "active";
 let uploadedBase64 = "";
 
 document.addEventListener("DOMContentLoaded", () => {
-  updateUserInfo();
-  renderFeed();
+  initApp();
 });
 
-// Работа с пользователем
-function updateUserInfo() {
-  const user = tg.initDataUnsafe?.user || { first_name: "Никнейм", id: 0 };
+function initApp() {
+  const user = tg.initDataUnsafe?.user || { first_name: "Пользователь" };
   document.getElementById("u-name").innerText = user.first_name;
   document.getElementById("u-avatar").innerText = user.first_name[0];
+  renderFeed();
 }
 
-// РЕАЛЬНЫЙ ПОИСК (Enter)
+// ПОИСК (ENTER)
 function handleSearch(e) {
   if (e.key === "Enter") {
     const query = e.target.value.toLowerCase();
-    const results = ads.filter(
-      (a) =>
-        a.title.toLowerCase().includes(query) ||
-        a.desc.toLowerCase().includes(query)
-    );
+    const results = ads.filter((a) => a.title.toLowerCase().includes(query));
 
-    const tabs = document.getElementById("home-tabs-container");
+    const tabs = document.getElementById("home-tabs-wrapper");
     const error = document.getElementById("search-error");
 
     if (results.length === 0 && query !== "") {
@@ -42,19 +39,16 @@ function handleSearch(e) {
       error.classList.add("hidden");
       renderFeed(query === "" ? ads : results);
     }
-    e.target.blur(); // Скрыть клавиатуру
+    e.target.blur();
   }
 }
 
-// Отрисовка ленты
 function renderFeed(data = ads) {
   const grid = document.getElementById("home-grid");
   grid.innerHTML = "";
-
   let filtered = data;
-  if (currentCategory !== "Все") {
+  if (currentCategory !== "Все")
     filtered = data.filter((a) => a.cat === currentCategory);
-  }
 
   filtered.forEach((ad) => {
     const isFav = favorites.includes(ad.id);
@@ -66,59 +60,61 @@ function renderFeed(data = ads) {
             <div class="card-body">
                 <span class="card-price">${ad.price} KGS</span>
                 <span class="card-title">${ad.title}</span>
-                <i class="fa-heart fav-btn ${
-                  isFav ? "fa active" : "far"
-                }" onclick="toggleFav(event, ${ad.id})"></i>
             </div>
         `;
     grid.appendChild(card);
   });
 }
 
-// Навигация
-function showPage(pageId) {
-  document.querySelectorAll(".page").forEach((p) => p.classList.add("hidden"));
-  document.getElementById(`page-${pageId}`).classList.remove("hidden");
-
-  document
-    .querySelectorAll(".nav-item")
-    .forEach((n) => n.classList.remove("active"));
-  if (pageId !== "add") {
-    const navBtn = document.getElementById(`n-${pageId}`);
-    if (navBtn) navBtn.classList.add("active");
-  }
-
-  if (pageId === "home") {
-    document.getElementById("home-tabs-container").classList.remove("hidden");
-    document.getElementById("search-error").classList.add("hidden");
-    renderFeed();
-  }
-  if (pageId === "favs") renderFavorites();
-  if (pageId === "profile") renderProfileAds();
-
-  tg.HapticFeedback.impactOccurred("light");
-}
-
-// ЗАГРУЗКА ФОТО
-function previewFile(input) {
+// ФОТО
+function processFile(input) {
   const file = input.files[0];
   if (file) {
     const reader = new FileReader();
-    reader.onload = function (e) {
+    reader.onload = (e) => {
       uploadedBase64 = e.target.result;
-      document.getElementById("image-preview").src = uploadedBase64;
-      document
-        .getElementById("image-preview-container")
-        .classList.remove("hidden");
-      document.getElementById("upload-text").innerText =
-        "Фото успешно выбрано ✅";
+      document.getElementById("img-pre").src = uploadedBase64;
+      document.getElementById("pre-view-box").classList.remove("hidden");
+      document.getElementById("file-label").innerText = "Фото выбрано ✅";
     };
     reader.readAsDataURL(file);
   }
 }
 
-// Публикация
-function submitAd() {
+// ОТПРАВКА В БОТ (МОДЕРАЦИЯ)
+async function sendToModerator(ad) {
+  const text =
+    `🚀 **ЗАЯВКА НА ПУБЛИКАЦИЮ**\n\n` +
+    `👤 От: ${ad.userName} (@${ad.userNick})\n` +
+    `📦 Товар: ${ad.title}\n` +
+    `💰 Цена: ${ad.price} KGS\n` +
+    `📱 Тел: ${ad.phone}\n` +
+    `📁 Категория: ${ad.cat}`;
+
+  try {
+    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: ADMIN_ID,
+        text: text,
+        parse_mode: "Markdown",
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: "Одобрить ✅", callback_data: `ok_${ad.id}` },
+              { text: "Отклонить ❌", callback_data: `no_${ad.id}` },
+            ],
+          ],
+        },
+      }),
+    });
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function publishAd() {
   const title = document.getElementById("in-title").value;
   const price = document.getElementById("in-price").value;
   const phone = document.getElementById("in-phone").value;
@@ -126,14 +122,14 @@ function submitAd() {
   const cat = document.getElementById("in-cat").value;
   const desc = document.getElementById("in-desc").value;
 
-  if (!title || !price || !uploadedBase64) {
-    tg.showAlert("Заполните название, цену и загрузите фото!");
-    return;
-  }
+  if (!title || !price || !uploadedBase64)
+    return tg.showAlert("Заполни все поля и загрузи фото!");
 
-  const newAd = {
+  const ad = {
     id: Date.now(),
     userId: tg.initDataUnsafe?.user?.id || 0,
+    userName: tg.initDataUnsafe?.user?.first_name || "User",
+    userNick: tg.initDataUnsafe?.user?.username || "",
     title,
     price,
     phone,
@@ -141,54 +137,70 @@ function submitAd() {
     cat,
     desc,
     img: uploadedBase64,
-    status: "active", // Может быть 'active' или 'history'
+    status: "active",
+    views: Math.floor(Math.random() * 900),
   };
 
-  ads.unshift(newAd);
-  localStorage.setItem("kyrgyz_gifts_db", JSON.stringify(ads));
+  ads.unshift(ad);
+  localStorage.setItem("gifts_final_v4", JSON.stringify(ads));
 
-  // Сброс
-  uploadedBase64 = "";
+  sendToModerator(ad);
+
+  // ОЧИСТКА ФОРМЫ
+  document.getElementById("in-title").value = "";
+  document.getElementById("in-price").value = "";
+  document.getElementById("in-phone").value = "";
+  document.getElementById("in-tg").value = "";
+  document.getElementById("in-desc").value = "";
   document.getElementById("file-input").value = "";
-  document.getElementById("image-preview-container").classList.add("hidden");
+  uploadedBase64 = "";
+  document.getElementById("pre-view-box").classList.add("hidden");
+  document.getElementById("file-label").innerText = "Загрузить фото";
 
+  tg.showAlert("Отправлено на проверку!");
   showPage("home");
 }
 
-// Детали товара
 function openProduct(ad) {
   const modal = document.getElementById("product-modal");
-  const details = document.getElementById("product-details");
-  const footer = document.getElementById("product-footer");
+  const inner = document.getElementById("product-details-inner");
 
-  details.innerHTML = `
-        <img src="${
-          ad.img
-        }" style="width:100%; height:380px; object-fit:cover;">
-        <div style="padding:20px;">
-            <h1 style="color:var(--pink); margin:0;">${ad.price} KGS</h1>
-            <h2 style="margin:10px 0;">${ad.title}</h2>
-            <div style="display:flex; gap:10px; margin-bottom:15px;">
-                <a href="tel:${
-                  ad.phone
-                }" style="color:var(--gray); text-decoration:none;"><i class="fa fa-phone"></i> Позвонить</a>
-                <a href="https://wa.me/${ad.phone.replace(
-                  /\D/g,
-                  ""
-                )}" style="color:var(--gray); text-decoration:none;"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+  inner.innerHTML = `
+        <img src="${ad.img}" class="pd-image">
+        <div class="pd-content">
+            <div class="pd-stats">
+                <span>Показы: 81 511</span>
+                <div><i class="fa fa-eye"></i> ${
+                  ad.views
+                } <i class="fa fa-heart" style="margin-left:10px;"></i> 12</div>
             </div>
-            <p style="color:#ddd; line-height:1.6;">${ad.desc}</p>
+            <div class="pd-price">${ad.price} KGS</div>
+            <div class="pd-title">${ad.title}</div>
+            
+            <div class="pd-actions">
+                <a href="https://t.me/${ad.tgNick.replace(
+                  "@",
+                  ""
+                )}" target="_blank" class="btn-pd-write">Написать</a>
+                <a href="tel:${ad.phone}" class="btn-pd-call">Позвонить</a>
+            </div>
+
+            <p style="color:var(--gray); font-size:14px;">Доставка: Бесплатная доставка по городу</p>
+            <div style="margin:20px 0; line-height:1.6; color:#ddd;">${
+              ad.desc
+            }</div>
+
+            <button class="btn-track"><i class="fa fa-heart"></i> Отслеживать объявление</button>
+
+            <div class="pd-seller">
+                <div class="ps-avatar"></div>
+                <div>
+                    <b>${ad.userName}</b><br>
+                    <small style="color:var(--gray);">Отвечает на 100% сообщений</small>
+                </div>
+            </div>
         </div>
     `;
-
-  // Кнопка НАПИСАТЬ (Прямой переход в чат)
-  footer.innerHTML = `
-        <button class="btn-publish" onclick="window.open('https://t.me/${ad.tgNick.replace(
-          "@",
-          ""
-        )}', '_blank')">Написать</button>
-    `;
-
   modal.classList.remove("hidden");
 }
 
@@ -196,44 +208,19 @@ function closeProduct() {
   document.getElementById("product-modal").classList.add("hidden");
 }
 
-// ИЗБРАННОЕ
-function toggleFav(e, id) {
-  e.stopPropagation();
-  if (favorites.includes(id)) {
-    favorites = favorites.filter((f) => f !== id);
-  } else {
-    favorites.push(id);
-  }
-  localStorage.setItem("kyrgyz_favs_db", JSON.stringify(favorites));
-  renderFeed();
-  tg.HapticFeedback.selectionChanged();
+function showPage(pageId) {
+  document.querySelectorAll(".page").forEach((p) => p.classList.add("hidden"));
+  document.getElementById(`page-${pageId}`).classList.remove("hidden");
+  document
+    .querySelectorAll(".nav-item")
+    .forEach((n) => n.classList.remove("active"));
+  if (pageId !== "add")
+    document.getElementById(`n-${pageId}`).classList.add("active");
+  if (pageId === "home") renderFeed();
+  if (pageId === "profile") renderProfileAds();
+  tg.HapticFeedback.impactOccurred("light");
 }
 
-function renderFavorites() {
-  const grid = document.getElementById("favs-grid");
-  const favData = ads.filter((a) => favorites.includes(a.id));
-  grid.innerHTML = favData.length
-    ? ""
-    : '<div class="error-container">В избранном пока пусто</div>';
-
-  favData.forEach((ad) => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.onclick = () => openProduct(ad);
-    card.innerHTML = `<img src="${ad.img}"><div class="card-body"><b>${ad.price} KGS</b><br><small>${ad.title}</small></div>`;
-    grid.appendChild(card);
-  });
-}
-
-function clearFavs() {
-  if (confirm("Удалить все избранные товары?")) {
-    favorites = [];
-    localStorage.setItem("kyrgyz_favs_db", JSON.stringify(favorites));
-    renderFavorites();
-  }
-}
-
-// Категории
 function filterByCat(cat, el) {
   currentCategory = cat;
   document
@@ -243,68 +230,21 @@ function filterByCat(cat, el) {
   renderFeed();
 }
 
-// Профиль
-function switchProfileTab(tab, el) {
-  profileTab = tab;
+function clearFavs() {
+  favorites = [];
+  localStorage.setItem("favs_final_v4", JSON.stringify(favorites));
+  renderFavs();
+}
+
+function switchProfileTab(t, el) {
   document
     .querySelectorAll(".p-tab")
-    .forEach((t) => t.classList.remove("active"));
+    .forEach((item) => item.classList.remove("active"));
   el.classList.add("active");
   renderProfileAds();
 }
 
 function renderProfileAds() {
   const grid = document.getElementById("my-ads-grid");
-  const myId = tg.initDataUnsafe?.user?.id || 0;
-
-  const myAds = ads.filter(
-    (a) =>
-      a.userId === myId &&
-      a.status === (profileTab === "active" ? "active" : "history")
-  );
-
-  grid.innerHTML = myAds.length
-    ? ""
-    : '<div class="error-container">Ничего не найдено</div>';
-
-  myAds.forEach((ad) => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
-            <img src="${ad.img}">
-            <div class="card-body">
-                <b>${ad.price} KGS</b>
-                <button onclick="moveAdStatus(${
-                  ad.id
-                })" style="background:none; border:none; color:var(--pink); font-size:12px; display:block; padding:5px 0;">
-                    ${
-                      profileTab === "active"
-                        ? "В архив / Продано"
-                        : "Удалить навсегда"
-                    }
-                </button>
-            </div>
-        `;
-    grid.appendChild(card);
-  });
-}
-
-function moveAdStatus(id) {
-  const ad = ads.find((a) => a.id === id);
-  if (profileTab === "active") {
-    ad.status = "history";
-  } else {
-    ads = ads.filter((a) => a.id !== id);
-  }
-  localStorage.setItem("kyrgyz_gifts_db", JSON.stringify(ads));
-  renderProfileAds();
-}
-
-// Пустые функции для неработающих кнопок (для красоты)
-function switchFeed(type, el) {
-  document
-    .querySelectorAll(".feed-tab")
-    .forEach((t) => t.classList.remove("active"));
-  el.classList.add("active");
-  tg.HapticFeedback.impactOccurred("medium");
+  grid.innerHTML = '<div class="error-container">Ничего не найдено</div>';
 }
