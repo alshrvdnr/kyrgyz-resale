@@ -23,7 +23,7 @@ let ads = JSON.parse(localStorage.getItem("gifts_final_v12")) || [];
 let favs = JSON.parse(localStorage.getItem("favs_final_v12")) || [];
 let curCat = "Все";
 let curCity = "Все";
-let currentFavTab = "ads";
+let curMainTab = "new"; // 'new' или 'rec'
 let currentProfileTab = "active";
 let selectedFiles = [];
 
@@ -52,6 +52,13 @@ function handleSearch(e) {
   }
 }
 
+function switchMainTab(tab) {
+  curMainTab = tab;
+  document.getElementById("mtab-new").classList.toggle("active", tab === "new");
+  document.getElementById("mtab-rec").classList.toggle("active", tab === "rec");
+  renderFeed();
+}
+
 function renderFeed(data = ads) {
   renderFeedInternal(data);
 }
@@ -61,28 +68,34 @@ function renderFeedInternal(data) {
   if (!grid) return;
   grid.innerHTML = "";
 
-  // ФИЛЬТРАЦИЯ
+  // 1. Фильтрация (Категория + Город)
   let filtered = data.filter((ad) => {
     const catMatch = curCat === "Все" || ad.cat === curCat;
     const cityMatch = curCity === "Все" || ad.city === curCity;
     return catMatch && cityMatch;
   });
 
-  filtered.sort((a, b) => b.id - a.id);
+  // 2. Сортировка (Новые vs Рекомендуемые)
+  if (curMainTab === "new") {
+    // Новые сверху
+    filtered.sort((a, b) => b.id - a.id);
+  } else {
+    // Рекомендуемые - для примера перемешаем (или можно по цене)
+    filtered.sort(() => Math.random() - 0.5);
+  }
 
   filtered.forEach((ad) => {
-    // Генерируем карточку
     const card = createAdCard(ad);
     grid.appendChild(card);
   });
 }
 
-// Функция создания карточки (Единая для ленты, профиля и избранного)
+// СОЗДАНИЕ КАРТОЧКИ (Общий вид)
 function createAdCard(ad) {
   const catName = catMap[ad.cat] || "Товар";
   let coverImg = Array.isArray(ad.img) ? ad.img[0] : ad.img;
 
-  // ЛОГИКА СТАТУСОВ: "Продано" или "Удалено" = Бейдж ПРОДАНО
+  // СТАТУСЫ
   const showSoldBadge = ad.status === "sold" || ad.status === "deleted";
   const badgeHTML = showSoldBadge
     ? `<div class="sold-badge">ПРОДАНО</div>`
@@ -90,10 +103,8 @@ function createAdCard(ad) {
 
   let imageHTML = "";
   if (ad.status === "deleted") {
-    // УДАЛЕНО - заглушка
     imageHTML = `${badgeHTML}<div class="deleted-placeholder"><span class="deleted-text">Фото скрыто<br>конфиденциально</span></div>`;
   } else {
-    // АКТИВНО или ПРОДАНО - фото
     imageHTML = `${badgeHTML}<img src="${coverImg}" loading="lazy" style="height:140px; object-fit:cover; width:100%;">`;
   }
 
@@ -101,14 +112,21 @@ function createAdCard(ad) {
   const heartColor = isFav ? "var(--pink)" : "white";
   const heartClass = isFav ? "fa-solid" : "fa-regular";
 
+  // Форматирование даты
+  let dateStr = "";
+  if (ad.dateReceived) {
+    // Преобразуем 2023-10-25 в 25.10.23 (пример)
+    const d = new Date(ad.dateReceived);
+    dateStr = d.toLocaleDateString("ru-RU", {
+      day: "numeric",
+      month: "numeric",
+      year: "2-digit",
+    });
+  }
+
   const card = document.createElement("div");
   card.className = "card";
-
-  // Профиль имеет свои кнопки, поэтому клик на открытие только в Ленте и Избранном
   card.onclick = () => openProduct(ad);
-
-  // ДАТА вместо описания
-  const dateStr = ad.dateReceived ? `Получено: ${ad.dateReceived}` : "";
 
   card.innerHTML = `
       <button class="card-fav-btn" onclick="toggleFavCard(event, ${ad.id})">
@@ -119,13 +137,13 @@ function createAdCard(ad) {
       <div class="card-body">
         <span class="card-price">${ad.price} KGS</span>
         
-        <!-- КАТЕГОРИЯ (Серый квадрат) + НАЗВАНИЕ -->
-        <div class="card-cat-row">
-            <span class="card-category">${catName}</span> ${ad.title}
+        <!-- НИЖНИЙ РЯД: Слева Инфо, Справа Дата -->
+        <div class="card-bottom-row">
+            <div class="card-info-left">
+                <span class="card-category">${catName}</span> ${ad.title}
+            </div>
+            <div class="card-date">${dateStr}</div>
         </div>
-        
-        <!-- ДАТА ВНИЗУ -->
-        <div class="card-date">${dateStr}</div>
       </div>`;
 
   return card;
@@ -203,7 +221,7 @@ async function uploadToImgBB(file) {
 async function publishAndSend() {
   const title = document.getElementById("in-title").value;
   const price = document.getElementById("in-price").value;
-  const dateReceived = document.getElementById("in-date").value; // ДАТА
+  const dateReceived = document.getElementById("in-date").value;
   const phone = document.getElementById("in-wa").value;
   const address = document.getElementById("in-address").value;
   const tgNick = document.getElementById("in-tg").value;
@@ -268,7 +286,6 @@ async function publishAndSend() {
 }
 
 async function sendToBot(ad) {
-  // Отправляем боту (можно убрать, если не нужно, но оставил для сохранения логики)
   const text = `📦 ${ad.title}\n💰 ${ad.price} KGS\n📅 ${ad.dateReceived}\n📍 ${ad.city}`;
   const urlGroup = `https://api.telegram.org/bot${BOT_TOKEN}/sendMediaGroup`;
   try {
@@ -286,7 +303,7 @@ async function sendToBot(ad) {
 }
 
 // ---------------------------------------------------------
-// ПРОДУКТ
+// ПРОДУКТ (ПОЛНЫЙ ПРОСМОТР)
 // ---------------------------------------------------------
 function openProduct(ad) {
   const modal = document.getElementById("product-modal");
@@ -318,7 +335,7 @@ function openProduct(ad) {
     }`;
   }
 
-  // КОНТАКТЫ
+  // КОНТАКТЫ (Включая АДРЕС)
   let contactInfoHTML = "";
   if (ad.status === "active") {
     contactInfoHTML = `
@@ -328,6 +345,9 @@ function openProduct(ad) {
         )}" target="_blank" class="pd-btn-write">Написать продавцу</a>
         <div class="contact-info-block"><div class="contact-label">📍 ГОРОД</div><div class="contact-value">${
           ad.city
+        }</div></div>
+        <div class="contact-info-block"><div class="contact-label">🏠 АДРЕС</div><div class="contact-value">${
+          ad.address || "Не указан"
         }</div></div>
         <div class="contact-info-block"><div class="contact-label">📅 ДАТА ПОЛУЧЕНИЯ</div><div class="contact-value">${
           ad.dateReceived || "-"
@@ -381,7 +401,6 @@ function toggleFav(id) {
   }
   localStorage.setItem("favs_final_v12", JSON.stringify(favs));
 
-  // Обновляем все экраны, чтобы синхронизация была мгновенной
   renderFeed();
   renderFavs();
 
@@ -432,7 +451,7 @@ function renderProfileAds() {
     : '<p style="text-align:center; padding:50px; color:gray;">Пусто</p>';
 
   myAds.forEach((ad) => {
-    // В профиле используем ту же карточку, но добавляем кнопки управления
+    // В профиле используем простую структуру, но с кнопками
     const cardWrapper = document.createElement("div");
     cardWrapper.className = "card";
 
@@ -459,17 +478,26 @@ function renderProfileAds() {
       buttonsHTML = `<div style="text-align:center; font-size:12px; color:gray; margin-top:10px; font-weight:bold;">Статус: Продано</div>`;
     }
 
-    // ДАТА
-    const dateStr = ad.dateReceived ? `Получено: ${ad.dateReceived}` : "";
+    let dateStr = "";
+    if (ad.dateReceived) {
+      const d = new Date(ad.dateReceived);
+      dateStr = d.toLocaleDateString("ru-RU", {
+        day: "numeric",
+        month: "numeric",
+        year: "2-digit",
+      });
+    }
 
     cardWrapper.innerHTML = `
         ${imgBlock}
         <div class="card-body">
             <span class="card-price">${ad.price} KGS</span>
-            <div class="card-cat-row">
-                <span class="card-category">${catName}</span> ${ad.title}
+            <div class="card-bottom-row">
+                 <div class="card-info-left">
+                    <span class="card-category">${catName}</span> ${ad.title}
+                </div>
+                <div class="card-date">${dateStr}</div>
             </div>
-            <div class="card-date">${dateStr}</div>
             ${buttonsHTML}
         </div>`;
 
@@ -483,7 +511,7 @@ function showActionPopup(id) {
       title: "Завершение сделки",
       message: "Выберите действие:",
       buttons: [
-        { id: "sold", type: "default", text: "Продано (Оставить фото)" },
+        { id: "sold", type: "default", text: "Продано" },
         { id: "delete", type: "destructive", text: "Удалить (Скрыть фото)" },
         { id: "cancel", type: "cancel" },
       ],
@@ -500,7 +528,6 @@ function changeStatus(id, newStatus) {
   if (ad) {
     ad.status = newStatus;
     localStorage.setItem("gifts_final_v12", JSON.stringify(ads));
-    // Обновляем все для синхронизации
     renderProfileAds();
     renderFeed();
     renderFavs();
@@ -523,27 +550,13 @@ function showPage(p) {
   if (p === "profile") renderProfileAds();
 }
 
-function switchFavTab(tab) {
-  currentFavTab = tab;
-  document
-    .getElementById("f-tab-ads")
-    .classList.toggle("active", tab === "ads");
-  document
-    .getElementById("f-tab-searches")
-    .classList.toggle("active", tab === "searches");
-  renderFavs();
-}
-
 function renderFavs() {
   const container = document.getElementById("favs-content-area");
-  if (currentFavTab === "searches")
-    return (container.innerHTML = `<div class="empty-searches-view"><h3>Нет подписок</h3></div>`);
 
   const data = ads.filter((a) => favs.includes(a.id));
   if (data.length === 0)
-    return (container.innerHTML = `<div style="text-align:center; padding:50px;">Пусто</div>`);
+    return (container.innerHTML = `<div style="text-align:center; padding:50px; color:gray;">Пусто</div>`);
 
-  // Теперь используем общую функцию создания карточки, чтобы визуально всё совпадало
   container.innerHTML = `<div class="listings-grid"></div>`;
   const grid = container.querySelector(".listings-grid");
 

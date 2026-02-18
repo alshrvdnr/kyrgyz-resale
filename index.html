@@ -2,16 +2,10 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <title>Кыргызстан Подарки</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
@@ -22,56 +16,38 @@
           <div class="search-row">
             <div class="search-bar">
               <i class="fa fa-search"></i>
-              <input
-                type="text"
-                id="main-search"
-                placeholder="Я ищу..."
-                onkeypress="handleSearch(event)"
-              />
+              <input type="text" id="main-search" placeholder="Я ищу..." onkeypress="handleSearch(event)"/>
             </div>
           </div>
-
-          <!-- ФИЛЬТР КАТЕГОРИЙ -->
+          
+          <!-- КАТЕГОРИИ -->
           <div class="category-row">
-            <div class="cat-chip active" onclick="filterByCat('Все', this)">
-              Все
-            </div>
-            <div class="cat-chip" onclick="filterByCat('flowers', this)">
-              Цветы
-            </div>
-            <div class="cat-chip" onclick="filterByCat('jewelry', this)">
-              Ювелирка
-            </div>
-            <div class="cat-chip" onclick="filterByCat('gifts', this)">
-              Подарки
-            </div>
-            <div class="cat-chip" onclick="filterByCat('certs', this)">
-              Сертификаты
-            </div>
+            <div class="cat-chip active" onclick="filterByCat('Все', this)">Все</div>
+            <div class="cat-chip" onclick="filterByCat('flowers', this)">Цветы</div>
+            <div class="cat-chip" onclick="filterByCat('jewelry', this)">Ювелирка</div>
+            <div class="cat-chip" onclick="filterByCat('gifts', this)">Подарки</div>
+            <div class="cat-chip" onclick="filterByCat('certs', this)">Сертификаты</div>
           </div>
 
-          <!-- ФИЛЬТР ГОРОДОВ (Бишкек, Ош, Манас, Токмок, Каракол) -->
+          <!-- ГОРОДА (Бишкек, Ош, Манас, Токмок, Каракол) -->
           <div class="city-row">
-            <div class="cat-chip active" onclick="filterByCity('Все', this)">
-              Все
-            </div>
-            <div class="cat-chip" onclick="filterByCity('Бишкек', this)">
-              Бишкек
-            </div>
+            <div class="cat-chip active" onclick="filterByCity('Все', this)">Все</div>
+            <div class="cat-chip" onclick="filterByCity('Бишкек', this)">Бишкек</div>
             <div class="cat-chip" onclick="filterByCity('Ош', this)">Ош</div>
-            <div class="cat-chip" onclick="filterByCity('Манас', this)">
-              Манас
-            </div>
-            <div class="cat-chip" onclick="filterByCity('Токмок', this)">
-              Токмок
-            </div>
-            <div class="cat-chip" onclick="filterByCity('Каракол', this)">
-              Каракол
-            </div>
+            <div class="cat-chip" onclick="filterByCity('Манас', this)">Манас</div>
+            <div class="cat-chip" onclick="filterByCity('Токмок', this)">Токмок</div>
+            <div class="cat-chip" onclick="filterByCity('Каракол', this)">Каракол</div>
           </div>
         </header>
 
         <div id="home-tabs-wrapper">
+          <!-- ВКЛАДКИ РЕКОМЕНДОВАННЫЕ / НОВЫЕ -->
+          <div class="capsule-container">
+            <div class="capsule-tabs">
+              <div class="cap-tab active" id="mtab-new" onclick="switchMainTab('new')">Новые</div>
+              <div class="cap-tab" id="mtab-rec" onclick="switchMainTab('rec')">Рекомендуемые</div>
+            </div>
+          </div>
           <main class="listings-grid" id="home-grid"></main>
         </div>
 
@@ -80,31 +56,13 @@
         </div>
       </section>
 
-      <!-- ИЗБРАННОЕ -->
+      <!-- ИЗБРАННОЕ (БЕЗ ПОИСКА) -->
       <section id="page-favs" class="page hidden">
         <header class="favs-header-custom">
           <div class="favs-top-line">
-            <span style="width: 60px"></span>
+            <span style="width: 60px;"></span>
             <h2>Избранное</h2>
-            <button class="favs-clear-link" onclick="clearFavs()">
-              Удалить
-            </button>
-          </div>
-          <div class="favs-tabs-nav">
-            <div
-              class="f-tab active"
-              id="f-tab-ads"
-              onclick="switchFavTab('ads')"
-            >
-              Объявления
-            </div>
-            <div
-              class="f-tab"
-              id="f-tab-searches"
-              onclick="switchFavTab('searches')"
-            >
-              Поиски
-            </div>
+            <button class="favs-clear-link" onclick="clearFavs()">Очистить</button>
           </div>
         </header>
         <main id="favs-content-area"></main>
@@ -117,16 +75,8 @@
           <h2 id="u-name">Загрузка...</h2>
         </div>
         <div class="profile-tabs-nav">
-          <div
-            class="p-tab active"
-            id="p-tab-active"
-            onclick="switchProfileTab('active')"
-          >
-            Активные
-          </div>
-          <div class="p-tab" id="p-tab-sold" onclick="switchProfileTab('sold')">
-            Архив
-          </div>
+          <div class="p-tab active" id="p-tab-active" onclick="switchProfileTab('active')">Активные</div>
+          <div class="p-tab" id="p-tab-sold" onclick="switchProfileTab('sold')">Архив</div>
         </div>
         <main class="listings-grid" id="my-ads-grid"></main>
       </section>
@@ -141,37 +91,17 @@
         <div class="form-scroll">
           <div class="f-group">
             <label>Фотографии (до 5 шт)</label>
-            <div
-              class="upload-zone"
-              onclick="document.getElementById('file-input').click()"
-            >
+            <div class="upload-zone" onclick="document.getElementById('file-input').click()">
               <i class="fa fa-camera"></i>
               <span id="file-label">Нажмите для выбора фото</span>
-              <input
-                type="file"
-                id="file-input"
-                accept="image/*"
-                multiple
-                hidden
-                onchange="handleFileSelect(this)"
-              />
+              <input type="file" id="file-input" accept="image/*" multiple hidden onchange="handleFileSelect(this)"/>
             </div>
             <div id="preview-box" class="hidden">
               <div id="gallery-preview" class="upload-gallery"></div>
-              <p
-                style="
-                  font-size: 12px;
-                  color: gray;
-                  text-align: center;
-                  margin-top: 5px;
-                "
-              >
-                Выбрано: <span id="photo-count">0</span>
-              </p>
+              <p style="font-size:12px; color:gray; text-align:center; margin-top:5px;">Выбрано: <span id="photo-count">0</span></p>
             </div>
           </div>
 
-          <!-- ОБЯЗАТЕЛЬНО: КАТЕГОРИЯ -->
           <div class="f-group">
             <label>Отдел (Категория)</label>
             <select id="in-cat" class="main-input">
@@ -182,10 +112,9 @@
             </select>
           </div>
 
-          <!-- ОБЯЗАТЕЛЬНО: ДАТА ПОЛУЧЕНИЯ -->
           <div class="f-group">
             <label>Дата получения</label>
-            <input type="date" id="in-date" class="main-input" />
+            <input type="date" id="in-date" class="main-input">
           </div>
 
           <div class="f-group">
@@ -199,73 +128,25 @@
             </select>
           </div>
 
-          <div class="f-group">
-            <label>Адрес</label
-            ><input
-              type="text"
-              id="in-address"
-              class="main-input"
-              placeholder="Улица, дом"
-            />
-          </div>
-          <div class="f-group">
-            <label>Telegram (без @)</label
-            ><input
-              type="text"
-              id="in-tg"
-              class="main-input"
-              placeholder="username"
-            />
-          </div>
-          <div class="f-group">
-            <label>Телефон</label
-            ><input
-              type="tel"
-              id="in-wa"
-              class="main-input"
-              placeholder="996..."
-            />
-          </div>
-          <div class="f-group">
-            <label>Название товара</label
-            ><input
-              type="text"
-              id="in-title"
-              class="main-input"
-              placeholder="Например: 101 Роза"
-            />
-          </div>
-          <div class="f-group">
-            <label>Цена (KGS)</label
-            ><input
-              type="number"
-              id="in-price"
-              class="main-input"
-              placeholder="0"
-            />
-          </div>
-
+          <div class="f-group"><label>Адрес</label><input type="text" id="in-address" class="main-input" placeholder="Улица, дом"></div>
+          <div class="f-group"><label>Telegram (без @)</label><input type="text" id="in-tg" class="main-input" placeholder="username"/></div>
+          <div class="f-group"><label>Телефон</label><input type="tel" id="in-wa" class="main-input" placeholder="996..."/></div>
+          <div class="f-group"><label>Название товара</label><input type="text" id="in-title" class="main-input" placeholder="Например: 101 Роза"/></div>
+          <div class="f-group"><label>Цена (KGS)</label><input type="number" id="in-price" class="main-input" placeholder="0"/></div>
+          
           <div class="f-group">
             <label>Описание (необязательно)</label>
-            <textarea
-              id="in-desc"
-              class="main-input"
-              placeholder="Детали..."
-            ></textarea>
+            <textarea id="in-desc" class="main-input" placeholder="Детали..."></textarea>
           </div>
 
-          <button class="pink-btn-full" onclick="publishAndSend()">
-            Опубликовать
-          </button>
+          <button class="pink-btn-full" onclick="publishAndSend()">Опубликовать</button>
         </div>
       </section>
 
       <!-- МОДАЛКА -->
       <div id="product-modal" class="full-view hidden">
         <div class="pv-header">
-          <button class="pv-back" onclick="closeProduct()">
-            <i class="fa fa-chevron-left"></i>
-          </button>
+          <button class="pv-back" onclick="closeProduct()"><i class="fa fa-chevron-left"></i></button>
           <div class="pv-top-icons" id="modal-fav-icon"></div>
         </div>
         <div id="pv-content" class="pv-scroll-area"></div>
@@ -273,19 +154,10 @@
 
       <!-- НАВИГАЦИЯ -->
       <nav class="bottom-nav">
-        <button class="nav-item active" onclick="showPage('home')" id="n-home">
-          <i class="fa fa-home"></i><span>Главная</span>
-        </button>
-        <div class="nav-center">
-          <button class="pink-plus" onclick="showPage('add')">+</button>
-          <p>Подать</p>
-        </div>
-        <button class="nav-item" onclick="showPage('favs')" id="n-favs">
-          <i class="fa fa-heart"></i><span>Избранное</span>
-        </button>
-        <button class="nav-item" onclick="showPage('profile')" id="n-profile">
-          <i class="fa fa-user"></i><span>Профиль</span>
-        </button>
+        <button class="nav-item active" onclick="showPage('home')" id="n-home"><i class="fa fa-home"></i><span>Главная</span></button>
+        <div class="nav-center"><button class="pink-plus" onclick="showPage('add')">+</button><p>Подать</p></div>
+        <button class="nav-item" onclick="showPage('favs')" id="n-favs"><i class="fa fa-heart"></i><span>Избранное</span></button>
+        <button class="nav-item" onclick="showPage('profile')" id="n-profile"><i class="fa fa-user"></i><span>Профиль</span></button>
       </nav>
     </div>
     <script src="app.js"></script>
