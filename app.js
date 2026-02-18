@@ -39,7 +39,7 @@ let selectedFiles = [];
 let selectedReceipt = null;
 let selectedTariff = "standard";
 
-// СИНХРОНИЗАЦИЯ С ОБЛАКОМ
+// СЛУШАЕМ БАЗУ
 db.ref("ads").on("value", (snapshot) => {
   const data = snapshot.val();
   ads = data ? Object.values(data) : [];
@@ -64,8 +64,8 @@ function initUser() {
 function handleSearch(e) {
   if (e.key === "Enter") {
     const query = e.target.value.toLowerCase();
-    const results = ads.filter((a) => a.title.toLowerCase().includes(query));
-    renderFeedInternal(results, "results-grid");
+    const res = ads.filter((a) => a.title.toLowerCase().includes(query));
+    renderFeedInternal(res, "results-grid");
     showPage("results");
     e.target.blur();
   }
@@ -75,6 +75,7 @@ function switchMainTab(tab) {
   curMainTab = tab;
   renderFeed();
 }
+
 function renderFeed() {
   renderFeedInternal(ads, "home-grid");
 }
@@ -90,15 +91,18 @@ function renderFeedInternal(data, gridId) {
   });
   const now = Date.now();
   filtered.sort((a, b) => {
-    const getRank = (i) =>
-      i.status === "sold" || i.status === "deleted"
-        ? 2
-        : i.tariff === "vip" && i.vipTill > now
-        ? 0
-        : 1;
-    if (getRank(a) !== getRank(b)) return getRank(a) - getRank(b);
+    const getRank = (item) => {
+      if (item.status === "sold" || item.status === "deleted") return 2;
+      if (item.tariff === "vip" && item.vipTill > now) return 0;
+      return 1;
+    };
+    const rankA = getRank(a);
+    const rankB = getRank(b);
+    if (rankA !== rankB) return rankA - rankB;
     if (filterSort === "cheap")
       return parseFloat(a.price) - parseFloat(b.price);
+    if (filterSort === "expensive")
+      return parseFloat(b.price) - parseFloat(a.price);
     return b.id - a.id;
   });
   filtered.forEach((ad) => grid.appendChild(createAdCard(ad)));
@@ -160,9 +164,9 @@ function selectTariff(t) {
     .getElementById("tariff-std")
     .classList.toggle("active", t === "standard");
   document.getElementById("tariff-vip").classList.toggle("active", t === "vip");
-  const vipBlock = document.getElementById("vip-block");
-  if (t === "vip") vipBlock.classList.remove("hidden");
-  else vipBlock.classList.add("hidden");
+  const vb = document.getElementById("vip-block");
+  if (t === "vip") vb.classList.remove("hidden");
+  else vb.classList.add("hidden");
 }
 
 function handleFileSelect(input) {
@@ -247,6 +251,7 @@ async function publishAndSend() {
         "in-tg",
         "in-desc",
       ].forEach((i) => (document.getElementById(i).value = ""));
+      selectedFiles = [];
       tg.MainButton.hide();
       showPage("home");
       tg.showAlert("На модерации!");
@@ -330,8 +335,8 @@ function showPage(p) {
   if (p === "favs") renderFavs();
 }
 
-function switchProfileTab(tab) {
-  currentProfileTab = tab;
+function switchProfileTab(t) {
+  currentProfileTab = t;
   renderProfileAds();
 }
 
@@ -357,13 +362,33 @@ function renderProfileAds() {
       ad.price
     } KGS</span><div class="card-cat-row">${ad.title}</div>${
       ad.status === "active"
-        ? '<button class="btn-mini btn-edit" onclick="openEditModal(' +
+        ? '<div class="profile-actions"><button class="btn-mini btn-edit" onclick="openEditModal(' +
           ad.id +
-          ')">Изменить</button>'
+          ')">Изменить</button><button class="btn-mini btn-sold-action" onclick="showActionPopup(' +
+          ad.id +
+          ')">Продано</button></div>'
         : ""
     }</div>`;
     grid.appendChild(wrap);
   });
+}
+
+function showActionPopup(id) {
+  tg.showPopup(
+    {
+      title: "Завершение",
+      message: "Что сделать?",
+      buttons: [
+        { id: "sold", type: "default", text: "Продано" },
+        { id: "delete", type: "destructive", text: "Удалить" },
+        { id: "cancel", type: "cancel" },
+      ],
+    },
+    (btnId) => {
+      if (btnId === "sold") db.ref("ads/" + id).update({ status: "sold" });
+      if (btnId === "delete") db.ref("ads/" + id).remove();
+    }
+  );
 }
 
 function filterByCat(c, el) {
@@ -381,6 +406,17 @@ function filterByCity(c, el) {
     .forEach((i) => i.classList.remove("active"));
   el.classList.add("active");
   renderFeed();
+}
+function renderFavs() {
+  const area = document.getElementById("favs-content-area");
+  const data = ads.filter((a) => favs.includes(a.id));
+  area.innerHTML = data.length
+    ? '<div class="listings-grid"></div>'
+    : '<p style="text-align:center; padding:50px; color:gray;">Пусто</p>';
+  if (data.length) {
+    const g = area.querySelector(".listings-grid");
+    data.forEach((ad) => g.appendChild(createAdCard(ad)));
+  }
 }
 function clearFavs() {
   favs = [];

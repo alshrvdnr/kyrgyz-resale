@@ -53,20 +53,16 @@
           </div>
           <main class="listings-grid" id="home-grid"></main>
         </div>
+        <div id="search-error" class="error-container hidden"><p>Ничего не найдено</p></div>
       </section>
 
-      <!-- СТРАНИЦА РЕЗУЛЬТАТОВ -->
+      <!-- РЕЗУЛЬТАТЫ -->
       <section id="page-results" class="page hidden">
         <header class="results-header">
-          <button class="back-circle-btn" onclick="showPage('home')">
-            <i class="fa fa-arrow-left"></i>
-          </button>
-          <h2>Результаты</h2>
-          <span style="width: 24px"></span>
+          <button class="back-circle-btn" onclick="showPage('home')"><i class="fa fa-arrow-left"></i></button>
+          <h2>Результаты</h2><span style="width: 24px"></span>
         </header>
-        <div style="padding-top: 10px">
-          <main class="listings-grid" id="results-grid"></main>
-        </div>
+        <div style="padding-top: 10px"><main class="listings-grid" id="results-grid"></main></div>
       </section>
 
       <!-- ИЗБРАННОЕ -->
@@ -97,27 +93,18 @@
       <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ -->
       <section id="page-add" class="page hidden">
         <header class="page-header-simple">
-          <button onclick="showPage('home')" class="close-circle-btn">
-            <i class="fa fa-times"></i>
-          </button>
-          <h2>Новое объявление</h2>
-          <span></span>
+          <button onclick="showPage('home')" class="close-circle-btn"><i class="fa fa-times"></i></button>
+          <h2>Новое объявление</h2><span></span>
         </header>
         <div class="form-scroll">
           <div class="tariff-container">
-            <div class="tariff-card active" id="tariff-std" onclick="selectTariff('standard')">
-              <div class="tariff-title">Стандарт</div>
-              <div class="tariff-price">Бесплатно</div>
-            </div>
-            <div class="tariff-card" id="tariff-vip" onclick="selectTariff('vip')">
-              <div class="tariff-title vip-gold-text">VIP</div>
-              <div class="tariff-price">100 сом</div>
-            </div>
+            <div class="tariff-card active" id="tariff-std" onclick="selectTariff('standard')"><div class="tariff-title">Стандарт</div><div class="tariff-price">Бесплатно</div></div>
+            <div class="tariff-card" id="tariff-vip" onclick="selectTariff('vip')"><div class="tariff-title vip-gold-text">VIP</div><div class="tariff-price">100 сом</div></div>
           </div>
 
           <div id="vip-block" class="hidden vip-details">
             <div class="tariff-title vip-gold-text">VIP размещение</div>
-            <p style="font-size: 12px; color: gray; margin-bottom: 10px">Объявление будет в топе 3 дня.</p>
+            <p style="font-size: 12px; color: gray;">Объявление будет в топе 3 дня.</p>
             <div class="qr-placeholder">
               <img src="https://i.ibb.co/XRs6vY57/photo-2025-05-18-17-53-48.jpg" style="width: 100%; border-radius: 10px" id="vip-qr-img" />
             </div>
@@ -130,103 +117,38 @@
 
           <div class="f-group">
             <label>Фотографии (до 5 шт)</label>
-            <div class="upload-zone" onclick="document.getElementById('file-input').click()">
-              <i class="fa fa-camera"></i>
-              <span id="file-label">Нажмите для выбора фото</span>
-              <input type="file" id="file-input" accept="image/*" multiple hidden onchange="handleFileSelect(this)" />
-            </div>
-            <div id="preview-box" class="hidden">
-              <div id="gallery-preview" class="upload-gallery"></div>
-              <p style="font-size: 12px; color: gray; text-align: center; margin-top: 5px;">Выбрано: <span id="photo-count">0</span></p>
-            </div>
+            <div class="upload-zone" onclick="document.getElementById('file-input').click()"><i class="fa fa-camera"></i><span id="file-label">Нажмите для выбора фото</span><input type="file" id="file-input" accept="image/*" multiple hidden onchange="handleFileSelect(this)" /></div>
+            <div id="preview-box" class="hidden"><div id="gallery-preview" class="upload-gallery"></div><p style="font-size: 12px; color: gray; text-align: center; margin-top: 5px;">Выбрано: <span id="photo-count">0</span></p></div>
           </div>
 
-          <div class="f-group">
-            <label>Отдел (Категория)</label>
-            <select id="in-cat" class="main-input">
-              <option value="flowers">Цветы</option>
-              <option value="jewelry">Ювелирка</option>
-              <option value="gifts">Подарки</option>
-              <option value="certs">Сертификаты</option>
-            </select>
-          </div>
-
+          <div class="f-group"><label>Отдел (Категория)</label><select id="in-cat" class="main-input"><option value="flowers">Цветы</option><option value="jewelry">Ювелирка</option><option value="gifts">Подарки</option><option value="certs">Сертификаты</option></select></div>
           <div class="f-group"><label>Дата получения</label><input type="date" id="in-date" class="main-input" /></div>
-          <div class="f-group">
-            <label>Город</label>
-            <select id="in-city" class="main-input">
-              <option value="Бишкек">Бишкек</option>
-              <option value="Ош">Ош</option>
-              <option value="Манас">Манас</option>
-              <option value="Токмок">Токмок</option>
-              <option value="Каракол">Каракол</option>
-            </select>
-          </div>
+          <div class="f-group"><label>Город</label><select id="in-city" class="main-input"><option value="Бишкек">Бишкек</option><option value="Ош">Ош</option><option value="Манас">Манас</option><option value="Токмок">Токмок</option><option value="Каракол">Каракол</option></select></div>
           <div class="f-group"><label>Адрес</label><input type="text" id="in-address" class="main-input" placeholder="Улица, дом" /></div>
           <div class="f-group"><label>Telegram ник (без собачки)</label><input type="text" id="in-tg" class="main-input" placeholder="username" /></div>
           <div class="f-group"><label>Телефон</label><input type="tel" id="in-wa" class="main-input" placeholder="996..." /></div>
-          <div class="f-group"><label>Название товара</label><input type="text" id="in-title" class="main-input" placeholder="Например: 101 Роза" /></div>
+          <div class="f-group"><label>Название товара</label><input type="text" id="in-title" class="main-input" /></div>
           <div class="f-group"><label>Цена (KGS)</label><input type="number" id="in-price" class="main-input" placeholder="0" /></div>
           <div class="f-group"><label>Описание (необязательно)</label><textarea id="in-desc" class="main-input" placeholder="Детали..."></textarea></div>
-
           <button class="pink-btn-full" onclick="publishAndSend()">Опубликовать</button>
         </div>
       </section>
 
       <!-- ФИЛЬТР -->
       <section id="page-filter" class="page hidden">
-        <header class="filter-header">
-          <button class="filter-close" onclick="showPage('home')">✕</button>
-          <h2>Фильтр</h2>
-          <button class="filter-reset" onclick="resetExtendedFilter()">Очистить</button>
-        </header>
-
+        <header class="filter-header"><button class="filter-close" onclick="showPage('home')">✕</button><h2>Фильтр</h2><button class="filter-reset" onclick="resetExtendedFilter()">Очистить</button></header>
         <div class="filter-body">
-          <div class="filter-section">
-            <label class="filter-label">Категория</label>
-            <select id="ext-cat" class="filter-select">
-              <option value="Все">Выбрать</option>
-              <option value="flowers">Цветы</option>
-              <option value="jewelry">Ювелирка</option>
-              <option value="gifts">Подарки</option>
-              <option value="certs">Сертификаты</option>
-            </select>
-          </div>
-
-          <div class="filter-section">
-            <label class="filter-label">Местоположение</label>
-            <select id="ext-city" class="filter-select">
-              <option value="Все">Кыргызстан (Все)</option>
-              <option value="Бишкек">Бишкек</option>
-              <option value="Ош">Ош</option>
-            </select>
-          </div>
-
-          <div class="filter-section">
-            <label class="filter-label">Цена (KGS)</label>
-            <div class="price-row">
-              <input type="number" id="price-from" class="price-input" placeholder="От 0" />
-              <input type="number" id="price-to" class="price-input" placeholder="До ..." />
-            </div>
-          </div>
-
-          <div class="filter-section">
-            <label class="filter-label">Сортировать</label>
-            <label class="sort-option"><span class="sort-label">Сначала дешевле</span><input type="radio" name="sort" value="cheap" class="sort-input" /><div class="custom-radio"></div></label>
-            <label class="sort-option"><span class="sort-label">Сначала дороже</span><input type="radio" name="sort" value="expensive" class="sort-input" /><div class="custom-radio"></div></label>
-          </div>
+          <div class="filter-section"><label class="filter-label">Категория</label><select id="ext-cat" class="filter-select"><option value="Все">Выбрать</option><option value="flowers">Цветы</option><option value="jewelry">Ювелирка</option><option value="gifts">Подарки</option><option value="certs">Сертификаты</option></select></div>
+          <div class="filter-section"><label class="filter-label">Местоположение</label><select id="ext-city" class="filter-select"><option value="Все">Кыргызстан (Все)</option><option value="Бишкек">Бишкек</option><option value="Ош">Ош</option></select></div>
+          <div class="filter-section"><label class="filter-label">Цена (KGS)</label><div class="price-row"><input type="number" id="price-from" class="price-input" placeholder="От 0" /><input type="number" id="price-to" class="price-input" placeholder="До ..." /></div></div>
+          <div class="filter-section"><label class="filter-label">Сортировать</label><label class="sort-option"><span class="sort-label">Сначала дешевле</span><input type="radio" name="sort" value="cheap" class="sort-input" /><div class="custom-radio"></div></label><label class="sort-option"><span class="sort-label">Сначала дороже</span><input type="radio" name="sort" value="expensive" class="sort-input" /><div class="custom-radio"></div></label></div>
         </div>
-
         <div class="filter-bottom-fixed"><button class="green-btn" onclick="applyExtendedFilter()">Показать результаты</button></div>
       </section>
 
       <!-- МОДАЛКА РЕДАКТИРОВАНИЯ -->
       <div id="edit-modal" class="full-view hidden">
-        <div class="pv-header">
-            <button class="pv-back" onclick="closeEditModal()">✕</button>
-            <h2 style="font-size: 18px;">Изменить</h2>
-            <span></span>
-        </div>
+        <div class="pv-header"><button class="pv-back" onclick="closeEditModal()">✕</button><h2 style="font-size: 18px;">Изменить</h2><span></span></div>
         <div class="form-scroll">
             <div class="f-group"><label>Изменить имя</label><input type="text" id="edit-in-title" class="main-input"></div>
             <div class="f-group"><label>Изменить цену</label><input type="number" id="edit-in-price" class="main-input"></div>
@@ -238,20 +160,14 @@
 
       <!-- МОДАЛКА ТОВАРА -->
       <div id="product-modal" class="full-view hidden">
-        <div class="pv-header">
-          <button class="pv-back" onclick="closeProduct()"><i class="fa fa-chevron-left"></i></button>
-          <div class="pv-top-icons" id="modal-fav-icon"></div>
-        </div>
+        <div class="pv-header"><button class="pv-back" onclick="closeProduct()"><i class="fa fa-chevron-left"></i></button><div id="modal-fav-icon"></div></div>
         <div id="pv-content" class="pv-scroll-area"></div>
       </div>
 
       <!-- НАВИГАЦИЯ -->
       <nav class="bottom-nav">
         <button class="nav-item active" onclick="showPage('home')" id="n-home"><i class="fa fa-home"></i><span>Главная</span></button>
-        <div class="nav-center">
-          <button class="pink-plus" onclick="showPage('add')">+</button>
-          <p>Подать</p>
-        </div>
+        <div class="nav-center"><button class="pink-plus" onclick="showPage('add')">+</button><p>Подать</p></div>
         <button class="nav-item" onclick="showPage('favs')" id="n-favs"><i class="fa fa-heart"></i><span>Избранное</span></button>
         <button class="nav-item" onclick="showPage('profile')" id="n-profile"><i class="fa fa-user"></i><span>Профиль</span></button>
       </nav>
