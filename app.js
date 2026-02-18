@@ -1,9 +1,6 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-// ---------------------------------------------------------
-// НАСТРОЙКИ
-// ---------------------------------------------------------
 const IMGBB_KEY = "94943ea3f656b4bc95e25c86d2880b94";
 const BOT_TOKEN = "8399814024:AAEla8xBVk_9deHydJV0hrc5QYDyXAFpZ8k";
 const ADMIN_ID = "1615492914";
@@ -16,9 +13,6 @@ const catMap = {
   Все: "Все",
 };
 
-// ---------------------------------------------------------
-// ДАННЫЕ
-// ---------------------------------------------------------
 let ads = JSON.parse(localStorage.getItem("gifts_final_v12")) || [];
 let favs = JSON.parse(localStorage.getItem("favs_final_v12")) || [];
 
@@ -49,9 +43,7 @@ function initUser() {
     document.getElementById("current-city-label").innerText = curCity;
 }
 
-// ---------------------------------------------------------
-// ВЫБОР ГОРОДА
-// ---------------------------------------------------------
+// ГОРОДА
 function showCitySelector() {
   document.getElementById("city-selector-overlay").classList.remove("hidden");
 }
@@ -65,16 +57,13 @@ function selectCity(city) {
   renderFeed();
 }
 
-// ---------------------------------------------------------
-// ЛЕНТА И КАТЕГОРИИ
-// ---------------------------------------------------------
+// ЛЕНТА
 function filterByCat(cat, el) {
   curCat = cat;
   document
     .querySelectorAll(".cat-card")
     .forEach((i) => i.classList.remove("active"));
   el.classList.add("active");
-
   const titles = {
     flowers: "Свежие букеты",
     gifts: "Свежие подарки",
@@ -104,17 +93,13 @@ function renderFeedInternal(data, gridId) {
   const grid = document.getElementById(gridId);
   if (!grid) return;
   grid.innerHTML = "";
-
   let filtered = data.filter(
     (ad) => (curCat === "Все" || ad.cat === curCat) && ad.city === curCity
   );
-
-  // Сортировка: Сначала активные, потом проданные
   filtered.sort((a, b) => {
     if (a.status !== b.status) return a.status === "active" ? -1 : 1;
     return b.id - a.id;
   });
-
   filtered.forEach((ad) => grid.appendChild(createAdCard(ad, false)));
 }
 
@@ -153,36 +138,47 @@ function createAdCard(ad, isProfile = false) {
 }
 
 function renderProfileControls(ad) {
+  if (ad.status !== "active" && !ad.managing) return ""; // Скрываем кнопки для архива
+
   if (ad.managing) {
     return `<div class="profile-actions-triple">
             <button class="btn-mini btn-sold-action" onclick="event.stopPropagation(); setStatus(${ad.id}, 'sold')">Продано</button>
             <button class="btn-mini" style="background:#ff3b30; color:white;" onclick="event.stopPropagation(); setStatus(${ad.id}, 'deleted')">Удалить</button>
-            <button class="btn-mini btn-edit" onclick="event.stopPropagation(); cancelManage(${ad.id})">Отмена</button>
+            <button class="btn-mini btn-cancel" onclick="event.stopPropagation(); cancelManage(${ad.id})">Отмена</button>
         </div>`;
   }
   return `<div class="profile-actions"><button class="btn-mini btn-edit" onclick="event.stopPropagation(); editAd(${ad.id})">Изменить</button>
     <button class="btn-mini btn-sold-action" onclick="event.stopPropagation(); startManage(${ad.id})">Управление</button></div>`;
 }
 
-// ---------------------------------------------------------
+function startManage(id) {
+  ads.find((a) => a.id === id).managing = true;
+  renderProfileAds();
+}
+function cancelManage(id) {
+  ads.find((a) => a.id === id).managing = false;
+  renderProfileAds();
+}
+function setStatus(id, s) {
+  const ad = ads.find((a) => a.id === id);
+  ad.status = s;
+  ad.managing = false;
+  localStorage.setItem("gifts_final_v12", JSON.stringify(ads));
+  renderProfileAds();
+  renderFeed();
+}
+
 // МОДАЛКА
-// ---------------------------------------------------------
 function openProduct(ad) {
   const modal = document.getElementById("product-modal");
   const isSold = ad.status === "sold" || ad.status === "deleted";
   const isFav = favs.includes(ad.id);
-
   document.getElementById("modal-fav-icon").innerHTML = `<i class="${
     isFav ? "fa-solid" : "fa-regular"
   } fa-heart" style="color:var(--pink); font-size:22px;" onclick="toggleFav(${
     ad.id
   })"></i>`;
-
   let imgClass = ad.status === "deleted" ? "blur-img" : "";
-  let galleryHTML = `<div class="product-gallery">${ad.img
-    .map((i) => `<img src="${i}" class="${imgClass}">`)
-    .join("")}</div>`;
-
   let contactInfo = isSold
     ? ""
     : `
@@ -195,22 +191,22 @@ function openProduct(ad) {
     )}" target="_blank" class="pd-btn-write">Написать продавцу</a>`;
 
   document.getElementById("pv-content").innerHTML = `
-    ${galleryHTML}
+    <div class="product-gallery">${ad.img
+      .map((i) => `<img src="${i}" class="${imgClass}">`)
+      .join("")}</div>
     <div class="pd-body">
         ${
           isSold
             ? `<span style="color:red; font-weight:bold; font-size:20px; display:block; margin-bottom:15px;">ПРОДАНО</span>`
             : ""
         }
-        <div class="info-cell" style="background: rgba(255, 77, 141, 0.1); border-color: var(--pink);">
-            <span class="info-cell-label">Сколько будет стоить</span>
-            <div class="pd-price">${ad.price} KGS</div>
-            <div style="font-size: 14px; margin-top: 5px;">${
-              catMap[ad.cat]
-            } — ${ad.title}</div>
-        </div>
+        <div class="info-cell" style="background: rgba(255, 77, 141, 0.1); border-color: var(--pink);"><span class="info-cell-label">Стоимость</span><div class="pd-price">${
+          ad.price
+        } KGS</div><div style="font-size: 14px; margin-top: 5px;">${
+    catMap[ad.cat]
+  } — ${ad.title}</div></div>
         <div class="pd-desc-label">Описание</div><div class="info-cell">${
-          ad.desc || "Нет описания"
+          ad.desc || "Описание отсутствует"
         }</div>
         <div class="info-cell"><span class="info-cell-label">Город</span>${
           ad.city
@@ -229,39 +225,18 @@ function closeProduct() {
   tg.BackButton.hide();
 }
 
-// ---------------------------------------------------------
-// УПРАВЛЕНИЕ / ИЗБРАННОЕ / ПРОФИЛЬ
-// ---------------------------------------------------------
-function startManage(id) {
-  ads.find((a) => a.id === id).managing = true;
-  renderProfileAds();
-}
-function cancelManage(id) {
-  ads.find((a) => a.id === id).managing = false;
-  renderProfileAds();
-}
-function setStatus(id, s) {
-  const ad = ads.find((a) => a.id === id);
-  ad.status = s;
-  ad.managing = false;
-  localStorage.setItem("gifts_final_v12", JSON.stringify(ads));
-  renderProfileAds();
-  renderFeed();
-}
-
+// ИЗБРАННОЕ
 function toggleFav(id) {
   favs = favs.includes(id) ? favs.filter((f) => f !== id) : [...favs, id];
   localStorage.setItem("favs_final_v12", JSON.stringify(favs));
   renderFeed();
   renderFavs();
 }
-
 function clearFavs() {
   favs = [];
   localStorage.setItem("favs_final_v12", JSON.stringify(favs));
   renderFavs();
 }
-
 function renderFavs() {
   const container = document.getElementById("favs-content-area");
   const data = ads.filter((a) => favs.includes(a.id));
@@ -277,6 +252,7 @@ function renderFavs() {
   );
 }
 
+// ПРОФИЛЬ
 function switchProfileTab(tab) {
   currentProfileTab = tab;
   document
@@ -287,7 +263,6 @@ function switchProfileTab(tab) {
     .classList.toggle("active", tab === "sold");
   renderProfileAds();
 }
-
 function renderProfileAds() {
   const grid = document.getElementById("my-ads-grid");
   const myId = tg.initDataUnsafe?.user?.id || 0;
@@ -304,9 +279,7 @@ function renderProfileAds() {
   myAds.forEach((ad) => grid.appendChild(createAdCard(ad, true)));
 }
 
-// ---------------------------------------------------------
-// ПУБЛИКАЦИЯ
-// ---------------------------------------------------------
+// ПОДАЧА
 async function publishAndSend() {
   const title = document.getElementById("in-title").value,
     price = document.getElementById("in-price").value,
