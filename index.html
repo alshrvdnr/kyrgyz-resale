@@ -21,23 +21,25 @@
         <header class="main-header">
           <div class="top-location-bar" onclick="showCitySelector()">
             <div class="location-text">
-              <i class="fa-solid fa-location-dot"></i>
+              <i
+                class="fa-solid fa-location-dot"
+                style="color: var(--yellow-main)"
+              ></i>
               <span id="current-city-label">Бишкек</span>
               <i
-                class="fa-solid fa-chevron-right"
-                style="font-size: 10px; margin-left: 4px"
+                class="fa-solid fa-chevron-down"
+                style="font-size: 10px; margin-left: 5px"
               ></i>
             </div>
           </div>
 
           <div class="search-profile-row">
             <div class="search-wrapper">
-              <i class="fa fa-search"></i>
+              <i class="fa fa-search" style="color: var(--gray)"></i>
               <input
                 type="text"
                 id="main-search"
-                placeholder="Поиск..."
-                onkeypress="handleSearch(event)"
+                placeholder="Поиск подарков..."
               />
             </div>
             <div
@@ -51,39 +53,36 @@
 
           <div class="categories-container">
             <div class="cat-card active" onclick="filterByCat('Все', this)">
-              <div class="cat-icon-box">
-                <i class="fa-solid fa-border-all"></i>
-              </div>
-              <span>Все</span>
+              <i class="fa-solid fa-border-all"></i><span>Все</span>
             </div>
             <div class="cat-card" onclick="filterByCat('flowers', this)">
-              <div class="cat-icon-box"><i class="fa-solid fa-leaf"></i></div>
-              <span>Цветы</span>
+              <i class="fa-solid fa-leaf"></i><span>Цветы</span>
             </div>
             <div class="cat-card" onclick="filterByCat('gifts', this)">
-              <div class="cat-icon-box"><i class="fa-solid fa-gift"></i></div>
-              <span>Подарки</span>
+              <i class="fa-solid fa-gift"></i><span>Подарки</span>
             </div>
             <div class="cat-card" onclick="filterByCat('jewelry', this)">
-              <div class="cat-icon-box"><i class="fa-solid fa-ring"></i></div>
-              <span>Ювелирка</span>
+              <i class="fa-solid fa-ring"></i><span>Ювелирка</span>
             </div>
             <div class="cat-card" onclick="filterByCat('certs', this)">
-              <div class="cat-icon-box"><i class="fa-solid fa-ticket"></i></div>
-              <span>Сертификаты</span>
+              <i class="fa-solid fa-ticket"></i><span>Сертификаты</span>
             </div>
           </div>
         </header>
 
         <div id="home-content-area">
-          <h2 class="section-title-main" id="dynamic-feed-title">
+          <h2
+            class="section-title-main"
+            id="dynamic-feed-title"
+            style="padding-left: 15px; font-size: 18px"
+          >
             Свежие предложения
           </h2>
           <main class="listings-grid" id="home-grid"></main>
         </div>
       </section>
 
-      <!-- ВЫБОР ГОРОДА -->
+      <!-- ГОРОДА -->
       <div
         id="city-selector-overlay"
         class="city-overlay hidden"
@@ -99,71 +98,59 @@
         </div>
       </div>
 
-      <!-- РЕЗУЛЬТАТЫ ПОИСКА -->
-      <section id="page-results" class="page hidden">
-        <header class="results-header">
-          <button class="back-circle-btn-yellow" onclick="showPage('home')">
-            <i class="fa fa-arrow-left"></i>
-          </button>
-          <h2>Результаты</h2>
-          <span style="width: 24px"></span>
-        </header>
-        <main class="listings-grid" id="results-grid"></main>
-      </section>
-
       <!-- ИЗБРАННОЕ -->
       <section id="page-favs" class="page hidden">
         <header class="favs-header-custom">
           <div class="favs-top-line">
-            <h2>Избранные</h2>
+            <h2 style="margin: 0">Избранное</h2>
             <button class="favs-clear-btn" onclick="clearFavs()">
               Очистить
             </button>
           </div>
+          <div class="favs-header-line"></div>
         </header>
         <main id="favs-content-area"></main>
       </section>
 
       <!-- ПРОФИЛЬ -->
       <section id="page-profile" class="page hidden">
-        <header class="profile-header-nav">
-          <button class="back-circle-btn-yellow" onclick="showPage('home')">
+        <header style="padding: 15px">
+          <button class="close-circle-btn-new" onclick="showPage('home')">
             <i class="fa fa-arrow-left"></i>
           </button>
         </header>
-        <div class="profile-new-hero">
-          <div class="profile-hero-content">
-            <div class="avatar-circle-profile" id="u-avatar-big">?</div>
-          </div>
-          <h2 id="u-name" class="profile-nick">Никнейм</h2>
-          <div class="profile-separator"></div>
-        </div>
-        <div class="profile-tabs-nav">
+        <div style="text-align: center; padding: 20px">
           <div
-            class="p-tab active"
-            id="p-tab-active"
-            onclick="switchProfileTab('active')"
+            class="user-avatar-circle"
+            id="u-avatar-big"
+            style="width: 80px; height: 80px; margin: 0 auto; font-size: 30px"
           >
-            Активные
+            ?
           </div>
-          <div class="p-tab" id="p-tab-sold" onclick="switchProfileTab('sold')">
-            Архив
-          </div>
+          <h2 id="u-name">Имя</h2>
         </div>
         <main class="listings-grid" id="my-ads-grid"></main>
       </section>
 
-      <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ -->
+      <!-- ПОДАТЬ -->
       <section id="page-add" class="page hidden">
-        <header class="page-header-simple-centered">
+        <header
+          style="
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          "
+        >
           <button onclick="cancelAdd()" class="close-circle-btn-new">
             <i class="fa fa-times"></i>
           </button>
-          <h2 id="add-title-text">Новое объявление</h2>
-          <span></span>
+          <h2 style="margin: 0; font-size: 18px">Новое объявление</h2>
+          <div style="width: 45px"></div>
         </header>
-        <div class="form-scroll">
-          <div class="tariff-container-split" id="tariff-selection-area">
+        <div class="form-body-padded">
+          <!-- Тарифы -->
+          <div class="tariff-container-split">
             <div
               class="tariff-card-half tariff-std active"
               id="tariff-std"
@@ -182,138 +169,115 @@
             </div>
           </div>
 
-          <div id="vip-block" class="hidden vip-details-yellow-glow">
-            <p class="vip-promo-text">
-              VIP-объявления размещаются в ТОПе и находятся в приоритетной
-              выдаче в течение 3 дней. Это позволяет получить больше просмотров
-              и откликов.
-            </p>
-            <div class="qr-container-small">
+          <div id="vip-block" class="hidden">
+            <!-- Блок оплаты VIP -->
+            <div
+              class="info-block"
+              style="border: 1px solid var(--yellow-main); text-align: center"
+            >
+              <p>Размещение в ТОПе на 3 дня</p>
               <img
                 src="https://i.ibb.co/v487YmS6/photo-2025-02-18-19-14-11.jpg"
+                style="width: 150px; margin: 10px 0"
               />
-            </div>
-            <div
-              class="upload-zone-yellow"
-              onclick="document.getElementById('receipt-input').click()"
-            >
-              <span id="receipt-label">Добавить чек</span>
+              <button
+                class="yellow-btn-full"
+                onclick="document.getElementById('receipt-input').click()"
+                id="receipt-label"
+              >
+                Добавить чек
+              </button>
               <input
                 type="file"
                 id="receipt-input"
-                accept="image/*"
                 hidden
                 onchange="handleReceiptSelect(this)"
               />
             </div>
           </div>
 
-          <div class="form-body-padded">
-            <div class="f-group">
-              <label>Фотографии (до 5 шт)</label>
-              <div
-                class="upload-zone-neat"
-                onclick="document.getElementById('file-input').click()"
-              >
-                <i class="fa fa-camera"></i>
-                <span id="file-label">Выбрать фото</span>
-                <input
-                  type="file"
-                  id="file-input"
-                  accept="image/*"
-                  multiple
-                  hidden
-                  onchange="handleFileSelect(this)"
-                />
-              </div>
-              <div id="preview-box" class="hidden">
-                <div id="gallery-preview" class="upload-gallery"></div>
-              </div>
-            </div>
-
-            <div class="f-group">
-              <label>Категория</label>
-              <select id="in-cat" class="main-input">
-                <option value="flowers">Цветы</option>
-                <option value="jewelry">Ювелирка</option>
-                <option value="gifts">Подарки</option>
-                <option value="certs">Сертификаты</option>
-              </select>
-            </div>
-            <div class="f-group">
-              <label>Название товара</label
-              ><input
-                type="text"
-                id="in-title"
-                class="main-input"
-                placeholder="Например: Кольцо с бриллиантом"
-              />
-            </div>
-            <div class="f-group">
-              <label>Цена (KGS)</label
-              ><input type="number" id="in-price" class="main-input" />
-            </div>
-            <div class="f-group">
-              <label>Дата получения</label
-              ><input type="date" id="in-date" class="main-input" />
-            </div>
-            <div class="f-group">
-              <label>Город</label>
-              <select id="in-city" class="main-input">
-                <option value="Бишкек">Бишкек</option>
-                <option value="Ош">Ош</option>
-                <option value="Манас">Манас</option>
-                <option value="Токмок">Токмок</option>
-                <option value="Каракол">Каракол</option>
-              </select>
-            </div>
-            <div class="f-group">
-              <label>Адрес</label
-              ><input
-                type="text"
-                id="in-address"
-                class="main-input"
-                placeholder="Улица, дом"
-              />
-            </div>
-            <div class="f-group">
-              <label>Telegram ник</label
-              ><input
-                type="text"
-                id="in-tg"
-                class="main-input"
-                placeholder="@username"
-              />
-            </div>
-            <div class="f-group">
-              <label>Телефон</label
-              ><input
-                type="tel"
-                id="in-wa"
-                class="main-input"
-                placeholder="0XXXXXXXXX"
-              />
-            </div>
-            <div class="f-group">
-              <label>Описание</label
-              ><textarea id="in-desc" class="main-input" rows="4"></textarea>
-            </div>
-
-            <button
-              class="yellow-btn-full"
-              id="publish-btn"
-              onclick="publishAndSend()"
+          <div class="f-group">
+            <label>Фотографии</label>
+            <div
+              class="main-input"
+              onclick="document.getElementById('file-input').click()"
+              style="text-align: center; cursor: pointer"
             >
-              Опубликовать
-            </button>
+              <i class="fa fa-camera"></i> Выбрать фото
+              <input
+                type="file"
+                id="file-input"
+                multiple
+                hidden
+                onchange="handleFileSelect(this)"
+              />
+            </div>
+            <div
+              id="gallery-preview"
+              style="
+                display: flex;
+                gap: 5px;
+                margin-top: 10px;
+                overflow-x: auto;
+              "
+            ></div>
           </div>
+
+          <div class="f-group">
+            <label>Категория</label>
+            <select id="in-cat" class="main-input">
+              <option value="flowers">Цветы</option>
+              <option value="jewelry">Ювелирка</option>
+              <option value="gifts">Подарки</option>
+              <option value="certs">Сертификаты</option>
+            </select>
+          </div>
+          <div class="f-group">
+            <label>Название</label
+            ><input type="text" id="in-title" class="main-input" />
+          </div>
+          <div class="f-group">
+            <label>Цена (KGS)</label
+            ><input type="number" id="in-price" class="main-input" />
+          </div>
+          <div class="f-group">
+            <label>Город</label>
+            <select id="in-city" class="main-input">
+              <option value="Бишкек">Бишкек</option>
+              <option value="Ош">Ош</option>
+              <option value="Манас">Манас</option>
+            </select>
+          </div>
+          <div class="f-group">
+            <label>Описание</label
+            ><textarea id="in-desc" class="main-input" rows="3"></textarea>
+          </div>
+          <div class="f-group">
+            <label>Telegram (@nick)</label
+            ><input type="text" id="in-tg" class="main-input" />
+          </div>
+
+          <button class="yellow-btn-full" onclick="publishAndSend()">
+            Опубликовать
+          </button>
         </div>
       </section>
 
-      <!-- ОТДЕЛЬНАЯ СТРАНИЦА ОБЪЯВЛЕНИЯ -->
+      <!-- ТОВАР -->
       <div id="product-modal" class="full-view-page hidden">
-        <div class="pv-header-transparent">
-          <button class="pv-back-btn" onclick="closeProduct()">
+        <div
+          class="pv-header-transparent"
+          style="
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            width: calc(100% - 30px);
+          "
+        >
+          <button class="close-circle-btn-new" onclick="closeProduct()">
             <i class="fa fa-arrow-left"></i>
           </button>
           <div id="modal-fav-icon"></div>
@@ -324,7 +288,7 @@
       <!-- НАВИГАЦИЯ -->
       <nav class="bottom-nav">
         <button class="nav-item active" onclick="showPage('home')" id="n-home">
-          <i class="fa-solid fa-house"></i><span>Главное</span>
+          <i class="fa-solid fa-house"></i><span>Главная</span>
         </button>
         <div class="nav-center">
           <button class="yellow-plus-main" onclick="showPage('add')">

@@ -9,18 +9,39 @@
   --input-bg: #1c1c1e;
 }
 
+/* Фиксация интерфейса */
+html,
 body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  position: fixed; /* Запрет смещения страницы */
+  overflow: hidden;
   background: var(--bg);
   color: var(--white);
-  margin: 0;
   font-family: -apple-system, sans-serif;
-  overflow-x: hidden;
 }
+
+#app {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden; /* Запрет горизонтального скролла */
+  display: flex;
+  flex-direction: column;
+}
+
+.page {
+  width: 100%;
+  flex: 1;
+}
+
 .hidden {
   display: none !important;
 }
 
-/* NAV BAR ОБНОВЛЕННЫЙ */
+/* NAV BAR */
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -43,20 +64,10 @@ body {
   align-items: center;
   gap: 5px;
   width: 80px;
-  transition: 0.3s;
-}
-.nav-item i {
-  font-size: 24px;
-}
-.nav-item span {
-  font-size: 12px;
-  font-weight: 500;
 }
 .nav-item.active {
   color: var(--yellow-main);
-  transform: scale(1.1);
 }
-
 .nav-center {
   position: relative;
   top: -20px;
@@ -72,204 +83,28 @@ body {
   font-size: 26px;
   box-shadow: 0 4px 15px rgba(255, 204, 0, 0.4);
 }
-.nav-center p {
-  margin-top: 4px;
-  font-size: 12px;
-  color: var(--gray);
+
+/* ФОРМА ПОДАЧИ - Идеальное центрирование */
+.form-body-padded {
+  padding: 10px 15px 120px 15px; /* Равные отступы слева и справа */
+  max-width: 600px;
+  margin: 0 auto;
 }
 
-/* ФОРМА ПОДАЧИ */
-.form-body-padded {
-  padding: 10px 15px 120px; /* Отступы по краям */
-}
-.f-group {
-  margin-bottom: 20px;
-}
-.f-group label {
-  display: block;
-  margin-bottom: 8px;
-  color: var(--gray);
-  font-size: 14px;
-}
-.main-input {
-  width: 100%;
-  background: var(--input-bg);
-  border: 1px solid #333;
-  border-radius: 12px;
-  padding: 14px;
-  color: #fff;
-  font-size: 16px;
-  outline: none;
-}
-.yellow-btn-full {
-  width: 100%;
+.close-circle-btn-new {
   background: var(--yellow-main);
   color: #000;
   border: none;
-  padding: 18px;
-  border-radius: 15px;
-  font-size: 18px;
-  font-weight: bold;
-  margin-top: 10px;
-}
-
-/* ТАРИФЫ */
-.tariff-container-split {
-  display: flex;
-  gap: 12px;
-  padding: 15px;
-}
-.tariff-card-half {
-  flex: 1;
-  padding: 20px;
-  border-radius: 15px;
-  text-align: center;
-  background: var(--input-bg);
-  border: 2px solid transparent;
-  transition: 0.3s;
-}
-.tariff-std.active {
-  border-color: #d4af37;
-  background: rgba(212, 175, 55, 0.1);
-}
-.tariff-vip.active {
-  border-color: var(--yellow-main);
-  box-shadow: 0 0 20px rgba(255, 204, 0, 0.6);
-  background: rgba(255, 204, 0, 0.1);
-}
-.vip-details-yellow-glow {
-  margin: 0 15px 20px;
-  padding: 20px;
-  border: 2px solid var(--yellow-main);
-  border-radius: 15px;
-  box-shadow: 0 0 15px rgba(255, 204, 0, 0.3);
-  text-align: center;
-}
-.vip-promo-text {
-  font-size: 14px;
-  line-height: 1.5;
-  color: #f0f0f0;
-  margin-bottom: 15px;
-  font-weight: 500;
-}
-
-/* СТРАНИЦА ОБЪЯВЛЕНИЯ (LALAFO STYLE) */
-.full-view-page {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: var(--bg);
-  z-index: 3000;
-  overflow-y: auto;
-}
-.pv-header-transparent {
-  position: absolute;
-  top: 0;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  padding: 15px;
-  z-index: 10;
-}
-.pv-back-btn {
-  background: rgba(0, 0, 0, 0.5);
-  border: none;
-  color: #fff;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-}
-.fav-btn-circle {
-  background: rgba(0, 0, 0, 0.5);
-  border: none;
-  color: #888;
-  width: 40px;
-  height: 40px;
+  width: 45px; /* Увеличена */
+  height: 45px;
   border-radius: 50%;
   font-size: 20px;
-}
-.fav-btn-circle.active {
-  color: var(--yellow-main);
-  text-shadow: 0 0 10px var(--yellow-main);
-}
-
-.modal-carousel-container {
-  position: relative;
-  width: 100%;
-  height: 350px;
-  background: #000;
-}
-.product-gallery-slider {
   display: flex;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  height: 100%;
-}
-.product-gallery-slider img {
-  min-width: 100%;
-  object-fit: contain;
-  scroll-snap-align: start;
-}
-.carousel-dots {
-  display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 6px;
-  margin-top: -25px;
-  position: relative;
-  z-index: 5;
-}
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.4);
-}
-.dot.active {
-  background: var(--yellow-main);
-  width: 10px;
-  height: 10px;
 }
 
-.pd-main-info {
-  padding: 20px;
-}
-.pd-price-row {
-  margin-bottom: 15px;
-}
-.pd-price {
-  font-size: 28px;
-  font-weight: 800;
-  color: var(--yellow-main);
-}
-.pd-sub-header {
-  font-size: 16px;
-  color: var(--gray);
-  display: flex;
-  justify-content: space-between;
-  margin-top: 5px;
-  border-bottom: 1px solid #333;
-  padding-bottom: 15px;
-}
-.info-block {
-  background: var(--card-gray);
-  border-radius: 12px;
-  padding: 15px;
-  margin-bottom: 10px;
-}
-.info-label {
-  font-size: 12px;
-  color: var(--gray);
-  margin-bottom: 4px;
-  display: block;
-}
-.info-value {
-  font-size: 15px;
-  line-height: 1.4;
-}
-
-/* HEADER & GRID */
+/* HEADER & КАТЕГОРИИ */
 .main-header {
   padding: 15px;
   position: sticky;
@@ -277,21 +112,125 @@ body {
   background: var(--bg);
   z-index: 100;
 }
+
+.top-location-bar {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  cursor: pointer;
+}
+.location-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.search-profile-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
 .search-wrapper {
-  background: #fff;
-  border-radius: 10px;
-  padding: 10px;
+  background: #2c2c2e;
+  border-radius: 12px;
+  padding: 12px;
   display: flex;
   align-items: center;
   flex: 1;
 }
 .search-wrapper input {
+  background: none;
   border: none;
-  outline: none;
+  color: #fff;
   margin-left: 10px;
   width: 100%;
-  color: #000;
+  outline: none;
 }
+.user-avatar-circle {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: var(--yellow-main);
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.categories-container {
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
+  padding-bottom: 5px;
+  scrollbar-width: none;
+}
+.categories-container::-webkit-scrollbar {
+  display: none;
+}
+.cat-card {
+  min-width: 90px;
+  background: var(--card-gray);
+  border: 1px solid #333;
+  padding: 10px;
+  border-radius: 12px;
+  text-align: center;
+  transition: 0.3s;
+}
+.cat-card.active {
+  border-color: var(--yellow-main);
+  background: rgba(255, 204, 0, 0.1);
+}
+.cat-card i {
+  font-size: 18px;
+  margin-bottom: 5px;
+  display: block;
+}
+
+/* ИЗБРАННОЕ */
+.favs-header-custom {
+  padding: 20px 15px 10px;
+}
+.favs-top-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.favs-header-line {
+  height: 3px;
+  width: 40px;
+  background: var(--yellow-main);
+  margin-top: 8px;
+  border-radius: 2px;
+}
+.favs-clear-btn {
+  background: none;
+  border: none;
+  color: var(--yellow-main);
+  font-size: 14px;
+}
+
+.empty-favs-container {
+  text-align: center;
+  padding: 60px 20px;
+}
+.fav-icon-box-empty {
+  width: 80px;
+  height: 80px;
+  background: var(--card-gray);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  font-size: 30px;
+  color: var(--yellow-main);
+}
+
+/* КАРТОЧКИ И МОДАЛКА */
 .listings-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -315,23 +254,39 @@ body {
 .card-price {
   color: var(--yellow-main);
   font-weight: bold;
-  font-size: 16px;
 }
-.card-title-text {
-  font-size: 13px;
-  color: #ccc;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: block;
+
+.full-view-page {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  z-index: 3000;
+  overflow-y: auto;
 }
-.sold-tag {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: #ff3b30;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 10px;
+.pd-main-info {
+  padding: 20px;
+}
+.pd-price {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--yellow-main);
+}
+.info-block {
+  background: var(--card-gray);
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 10px;
+}
+.yellow-btn-full {
+  width: 100%;
+  background: var(--yellow-main);
+  color: #000;
+  border: none;
+  padding: 18px;
+  border-radius: 15px;
+  font-size: 18px;
   font-weight: bold;
 }
