@@ -16,6 +16,7 @@ body {
   margin: 0;
   font-family: -apple-system, sans-serif;
   overflow-x: hidden;
+  width: 100%;
 }
 .hidden {
   display: none !important;
@@ -64,14 +65,14 @@ body {
   box-shadow: 0 4px 15px rgba(255, 204, 0, 0.4);
 }
 
-/* Локация */
+/* Локация в хедере */
 .top-location-bar {
   display: flex;
   align-items: center;
   gap: 5px;
   background: #2c2c2e;
   width: fit-content;
-  padding: 6px 12px;
+  padding: 6px 14px;
   border-radius: 20px;
   margin-bottom: 15px;
   cursor: pointer;
@@ -99,61 +100,106 @@ body {
   color: var(--yellow-main);
 }
 
-/* VIP Блок */
-.vip-details-box {
-  border: 2px solid var(--yellow-main);
-  border-radius: 15px;
-  padding: 15px;
+/* РАЗДЕЛ ПОДАТЬ: Тарифы */
+.tariff-container-split {
+  display: flex;
+  gap: 12px;
   margin-bottom: 20px;
-  text-align: center;
-  box-shadow: 0 0 15px rgba(255, 204, 0, 0.2);
 }
-.qr-image {
-  width: 140px;
-  height: 140px;
-  margin: 10px 0;
-  border-radius: 10px;
+.tariff-card-half {
+  flex: 1;
+  padding: 18px;
+  border-radius: 15px;
+  background: var(--input-bg);
+  text-align: center;
+  border: 2px solid transparent;
+  transition: 0.3s;
+}
+/* Стандарт выбран */
+.tariff-std.active {
+  border: 2px solid var(--yellow-main) !important;
+  background: rgba(255, 204, 0, 0.1);
+}
+/* VIP выбран: пунктир и свечение */
+.tariff-vip.active {
+  border: 2px dashed var(--yellow-main) !important;
+  box-shadow: 0 0 15px rgba(255, 204, 0, 0.6);
+  background: rgba(255, 204, 0, 0.1);
+}
+/* Блок с QR VIP: пунктир и свечение */
+.vip-details-yellow-glow {
+  border: 2px dashed var(--yellow-main);
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 0 20px rgba(255, 204, 0, 0.3);
+  text-align: center;
 }
 
-/* Солидная кнопка Опубликовать */
-.premium-btn {
+/* ПРОФИЛЬ: Вкладки */
+.profile-tabs {
+  display: flex;
+  border-bottom: 1px solid #333;
+  margin-bottom: 15px;
+}
+.p-tab {
+  flex: 1;
+  text-align: center;
+  padding: 15px;
+  color: var(--gray);
+  font-weight: bold;
+  cursor: pointer;
+}
+.p-tab.active {
+  color: var(--yellow-main);
+  border-bottom: 3px solid var(--yellow-main);
+}
+.back-btn-profile {
+  color: var(--yellow-main);
+  background: none;
+  border: none;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+/* Объявление: Кнопка "Написать продавцу" */
+.btn-contact-modal {
+  display: block;
   width: 100%;
+  box-sizing: border-box;
   background: var(--premium-grad);
   color: #000;
   border: none;
-  padding: 18px;
-  border-radius: 15px;
-  font-size: 18px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  box-shadow: 0 5px 15px rgba(255, 204, 0, 0.3);
-  margin-top: 20px;
-  transition: 0.3s;
-}
-.premium-btn:active {
-  transform: scale(0.98);
-  box-shadow: none;
+  padding: 16px;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 16px;
+  text-align: center;
+  text-decoration: none;
+  margin: 15px 0;
 }
 
 /* Избранное */
-.favs-header-full {
+.favs-header-custom {
   padding: 20px 15px;
   border-bottom: 1px solid #333;
-  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 .favs-clear-btn {
-  position: absolute;
-  top: 25px;
-  right: 15px;
   color: var(--yellow-main);
   font-weight: 600;
+  cursor: pointer;
 }
-.empty-favs-block {
+.empty-fav-box {
   text-align: center;
-  padding: 50px 20px;
+  padding: 60px 20px;
 }
-.fav-big-heart {
+.fav-heart-circle-big {
   width: 80px;
   height: 80px;
   background: #2c2c2e;
@@ -164,24 +210,6 @@ body {
   margin: 0 auto 20px;
   color: var(--yellow-main);
   font-size: 32px;
-}
-
-/* Форма */
-.form-scroll {
-  padding: 15px 20px 120px 20px;
-}
-.f-group {
-  margin-bottom: 18px;
-}
-.main-input {
-  width: 100%;
-  background: var(--input-bg);
-  border: 1px solid #333;
-  padding: 14px;
-  border-radius: 12px;
-  color: #fff;
-  box-sizing: border-box;
-  font-size: 15px;
 }
 
 /* Карточки */
@@ -202,10 +230,25 @@ body {
   height: 160px;
   object-fit: cover;
 }
+.sold-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #ff3b30;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: bold;
+  z-index: 10;
+}
+.blur-img {
+  filter: blur(12px);
+}
 .fav-heart-btn {
   position: absolute;
-  top: 8px;
-  left: 8px;
+  top: 10px;
+  left: 10px;
   z-index: 10;
   color: #fff;
   font-size: 18px;
@@ -214,7 +257,24 @@ body {
   color: var(--yellow-main);
 }
 
-/* Модалка карусель */
+/* Форма */
+.form-scroll {
+  padding: 10px 20px 120px 20px;
+}
+.f-group {
+  margin-bottom: 18px;
+}
+.main-input {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid #333;
+  padding: 14px;
+  border-radius: 12px;
+  color: #fff;
+  box-sizing: border-box;
+}
+
+/* Карусель */
 .modal-carousel-container {
   position: relative;
   width: 100%;

@@ -24,9 +24,7 @@
               class="fa-solid fa-location-dot"
               style="color: var(--yellow-main)"
             ></i>
-            <span id="current-city-label" style="font-weight: bold"
-              >Бишкек</span
-            >
+            <span id="current-city-label">Бишкек</span>
             <i
               class="fa-solid fa-chevron-right"
               style="font-size: 10px; margin-left: 4px"
@@ -112,10 +110,10 @@
         <main class="listings-grid" id="home-grid"></main>
       </section>
 
-      <!-- ВЫБОР ГОРОДА (Модалка) -->
+      <!-- ВЫБОР ГОРОДА -->
       <div
         id="city-selector"
-        class="city-overlay hidden"
+        class="hidden"
         style="
           position: fixed;
           top: 0;
@@ -133,7 +131,7 @@
           style="
             background: #1e1e1e;
             width: 280px;
-            padding: 20px;
+            padding: 25px;
             border-radius: 20px;
             position: relative;
             text-align: center;
@@ -210,66 +208,60 @@
         >
           <i
             class="fa fa-times"
-            onclick="showPage('home')"
+            onclick="cancelAdd()"
             style="font-size: 22px"
           ></i>
-          <h2 style="font-size: 18px; margin: 0">Новое объявление</h2>
+          <h2 id="add-title-text" style="font-size: 18px; margin: 0">
+            Новое объявление
+          </h2>
           <div style="width: 22px"></div>
         </header>
         <div class="form-scroll">
-          <div
-            class="tariff-container-split"
-            style="display: flex; gap: 10px; margin-bottom: 15px"
-          >
+          <div class="tariff-container-split">
             <div
-              class="tariff-card-half active"
+              class="tariff-card-half tariff-std active"
               id="tariff-std"
               onclick="selectTariff('standard')"
-              style="
-                flex: 1;
-                padding: 15px;
-                background: #1c1c1e;
-                border-radius: 12px;
-                text-align: center;
-                border: 2px solid transparent;
-              "
             >
               Стандарт<br /><small>Бесплатно</small>
             </div>
             <div
-              class="tariff-card-half"
+              class="tariff-card-half tariff-vip"
               id="tariff-vip"
               onclick="selectTariff('vip')"
-              style="
-                flex: 1;
-                padding: 15px;
-                background: #1c1c1e;
-                border-radius: 12px;
-                text-align: center;
-                border: 2px solid transparent;
-              "
             >
               VIP<br /><small>100 сом</small>
             </div>
           </div>
 
           <div id="vip-block" class="hidden">
-            <div class="vip-details-box">
+            <div class="vip-details-yellow-glow">
               <p style="font-size: 14px; margin: 0">
-                Объявление будет находиться в ТОПе 3 дня.
+                VIP-объявление будет в ТОПе 3 дня.
               </p>
               <img
                 src="https://i.ibb.co/v487YmS6/photo-2025-02-18-19-14-11.jpg"
-                class="qr-image"
+                style="
+                  width: 130px;
+                  height: 130px;
+                  margin: 15px 0;
+                  border-radius: 10px;
+                "
               />
-              <button
-                class="premium-btn"
-                style="padding: 12px; font-size: 14px; margin-top: 5px"
+              <div
+                style="
+                  background: var(--yellow-main);
+                  color: #000;
+                  padding: 12px;
+                  border-radius: 10px;
+                  font-weight: bold;
+                  cursor: pointer;
+                "
                 onclick="document.getElementById('receipt-input').click()"
                 id="receipt-label"
               >
                 Добавить чек
-              </button>
+              </div>
               <input
                 type="file"
                 id="receipt-input"
@@ -280,11 +272,11 @@
           </div>
 
           <div class="f-group">
-            <label>Фотографии (макс. 5 фото)</label>
+            <label>Фотографии (макс. 5)</label>
             <div
               class="main-input"
               onclick="document.getElementById('file-input').click()"
-              style="text-align: center"
+              style="text-align: center; cursor: pointer"
             >
               <i class="fa fa-camera"></i> Выбрать фото
               <input
@@ -315,7 +307,6 @@
               <option value="certs">Сертификаты</option>
             </select>
           </div>
-
           <div class="f-group">
             <label>Город</label>
             <select id="in-city" class="main-input">
@@ -325,14 +316,13 @@
               <option value="Каракол">Каракол</option>
             </select>
           </div>
-
           <div class="f-group">
             <label>Название товара</label
             ><input
               type="text"
               id="in-title"
               class="main-input"
-              placeholder="Например: Розы Голландия, Кольцо 585 пробы..."
+              placeholder="Например: Букет роз, Кольцо золотое..."
             />
           </div>
           <div class="f-group">
@@ -358,7 +348,7 @@
             />
           </div>
           <div class="f-group">
-            <label>Телефон / WhatsApp</label
+            <label>Телефон</label
             ><input
               type="tel"
               id="in-wa"
@@ -372,46 +362,43 @@
               id="in-desc"
               class="main-input"
               rows="4"
-              placeholder="Подробности о товаре..."
+              placeholder="Подробное описание..."
             ></textarea>
           </div>
 
-          <button class="premium-btn" onclick="publishAndSend()">
+          <button
+            class="yellow-plus-main"
+            style="
+              width: 100%;
+              border-radius: 15px;
+              height: 60px;
+              font-weight: 800;
+              text-transform: uppercase;
+            "
+            onclick="publishAndSend()"
+          >
             Опубликовать
           </button>
         </div>
       </section>
 
-      <!-- ИЗБРАННЫЕ -->
+      <!-- ИЗБРАННОЕ -->
       <section id="page-favs" class="page hidden">
-        <header class="favs-header-full">
+        <header class="favs-header-custom">
           <h2 style="margin: 0">Избранное</h2>
           <span class="favs-clear-btn" onclick="clearFavs()">Очистить</span>
         </header>
         <main id="favs-content-area"></main>
       </section>
 
-      <!-- МОДАЛКА ПРОДУКТА -->
-      <div
-        id="product-modal"
-        class="hidden"
-        style="
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: var(--bg);
-          z-index: 3000;
-          overflow-y: auto;
-        "
-      >
-        <div id="pv-content"></div>
-      </div>
-
       <!-- ПРОФИЛЬ -->
       <section id="page-profile" class="page hidden">
-        <div style="text-align: center; padding: 30px 20px">
+        <header style="padding: 15px">
+          <button class="back-btn-profile" onclick="showPage('home')">
+            <i class="fa fa-arrow-left"></i> Назад
+          </button>
+        </header>
+        <div style="text-align: center; padding: 10px 20px 20px">
           <div
             id="u-avatar-big"
             style="
@@ -430,10 +417,44 @@
           >
             ?
           </div>
-          <h2 id="u-name" style="margin-top: 10px">Имя</h2>
+          <h2 id="u-name" style="margin-top: 10px">Никнейм</h2>
+        </div>
+        <div class="profile-tabs">
+          <div
+            class="p-tab active"
+            id="tab-active"
+            onclick="switchProfileTab('active')"
+          >
+            Активные
+          </div>
+          <div
+            class="p-tab"
+            id="tab-archive"
+            onclick="switchProfileTab('archive')"
+          >
+            Архив
+          </div>
         </div>
         <main class="listings-grid" id="my-ads-grid"></main>
       </section>
+
+      <!-- МОДАЛКА ТОВАРА -->
+      <div
+        id="product-modal"
+        class="hidden"
+        style="
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: var(--bg);
+          z-index: 3000;
+          overflow-y: auto;
+        "
+      >
+        <div id="pv-content"></div>
+      </div>
 
       <!-- НАВИГАЦИЯ -->
       <nav class="bottom-nav">

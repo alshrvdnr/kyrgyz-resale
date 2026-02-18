@@ -22,7 +22,9 @@ let favs = JSON.parse(localStorage.getItem("favs_final_v12")) || [];
 let curCat = "Все",
   curCity = "Бишкек",
   selectedTariff = "standard",
-  selectedFiles = [];
+  editingId = null,
+  selectedFiles = [],
+  profTab = "active";
 
 document.addEventListener("DOMContentLoaded", () => {
   initUser();
@@ -48,7 +50,7 @@ function selectCity(city) {
   renderFeed();
 }
 
-// КАТЕГОРИИ И ЗАГОЛОВКИ
+// КАТЕГОРИИ
 function filterByCat(cat, el) {
   curCat = cat;
   document
@@ -65,23 +67,35 @@ function renderFeed() {
   const grid = document.getElementById("home-grid");
   grid.innerHTML = "";
   const filtered = ads.filter(
-    (ad) => (curCat === "Все" || ad.cat === curCat) && ad.city === curCity
+    (ad) =>
+      (curCat === "Все" || ad.cat === curCat) &&
+      ad.city === curCity &&
+      ad.status === "active"
   );
   filtered.forEach((ad) => grid.appendChild(createAdCard(ad)));
 }
 
-function createAdCard(ad) {
+function createAdCard(ad, isProfile = false) {
   const isFav = favs.includes(ad.id);
+  const isSold = ad.status === "sold";
+  const isDeleted = ad.status === "deleted";
   const card = document.createElement("div");
   card.className = "card";
   card.onclick = () => openProduct(ad);
   card.innerHTML = `
-    <div class="fav-heart-btn ${isFav ? "active" : ""}" onclick="toggleFav(${
-    ad.id
-  }, event)">
-        <i class="fa-solid fa-heart"></i>
-    </div>
-    <img src="${ad.img[0]}" loading="lazy">
+    ${isSold ? '<div class="sold-badge">ПРОДАНО</div>' : ""}
+    ${
+      !isProfile
+        ? `<div class="fav-heart-btn ${
+            isFav ? "active" : ""
+          }" onclick="toggleFav(${
+            ad.id
+          }, event)"><i class="fa-solid fa-heart"></i></div>`
+        : ""
+    }
+    <img src="${ad.img[0]}" loading="lazy" class="${
+    isDeleted ? "blur-img" : ""
+  }">
     <div style="padding:10px;">
       <div style="color:var(--yellow-main); font-weight:bold;">${
         ad.price
@@ -89,6 +103,15 @@ function createAdCard(ad) {
       <div style="font-size:12px; color:#ccc; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${
         ad.title
       }</div>
+      ${
+        isProfile && ad.status === "active"
+          ? `
+        <div style="display:flex; gap:5px; margin-top:8px;">
+          <button onclick="event.stopPropagation(); editAd(${ad.id})" style="flex:1; background:#444; color:#fff; border:none; padding:6px; border-radius:6px; font-size:11px;">Изменить</button>
+          <button onclick="event.stopPropagation(); manageAd(${ad.id})" style="flex:1; background:var(--yellow-main); color:#000; border:none; padding:6px; border-radius:6px; font-size:11px; font-weight:bold;">Управление</button>
+        </div>`
+          : ""
+      }
     </div>
   `;
   return card;
@@ -98,21 +121,18 @@ function createAdCard(ad) {
 function renderFavs() {
   const container = document.getElementById("favs-content-area");
   const filtered = ads.filter((ad) => favs.includes(ad.id));
-
   if (filtered.length === 0) {
     container.innerHTML = `
-      <div class="empty-favs-block">
-        <div class="fav-big-heart"><i class="fa-solid fa-heart"></i></div>
+      <div class="empty-fav-box">
+        <div class="fav-heart-circle-big"><i class="fa-solid fa-heart"></i></div>
         <h3 style="margin-bottom:8px;">У вас пока нет объявлений</h3>
-        <p style="color:var(--gray); font-size:14px; margin-bottom:25px;">Сохраняйте то, что понравилось</p>
-        <button class="premium-btn" style="width:auto; padding:12px 30px;" onclick="showPage('home')">Поиск</button>
+        <p style="color:var(--gray); font-size:14px; margin-bottom:25px;">Сохраняйте товары, которые вам понравились</p>
+        <button class="yellow-plus-main" style="width:auto; padding:12px 40px; border-radius:12px;" onclick="showPage('home')">Поиск</button>
       </div>`;
   } else {
-    const grid = document.createElement("div");
-    grid.className = "listings-grid";
+    container.innerHTML = '<div class="listings-grid" id="fav-grid"></div>';
+    const grid = document.getElementById("fav-grid");
     filtered.forEach((ad) => grid.appendChild(createAdCard(ad)));
-    container.innerHTML = "";
-    container.appendChild(grid);
   }
 }
 
@@ -121,8 +141,10 @@ function toggleFav(id, event) {
   favs = favs.includes(id) ? favs.filter((f) => f !== id) : [...favs, id];
   localStorage.setItem("favs_final_v12", JSON.stringify(favs));
   renderFeed();
-  if (!document.getElementById("page-favs").classList.contains("hidden"))
-    renderFavs();
+  if (!document.getElementById("product-modal").classList.contains("hidden")) {
+    const ad = ads.find((a) => a.id === id);
+    openProduct(ad);
+  }
 }
 
 function clearFavs() {
@@ -132,12 +154,11 @@ function clearFavs() {
   renderFeed();
 }
 
-// СТРАНИЦА ТОВАРА
+// МОДАЛКА
 function openProduct(ad) {
   const modal = document.getElementById("product-modal");
   const isFav = favs.includes(ad.id);
   const dateStr = new Date(ad.id).toLocaleDateString();
-
   let dots = ad.img
     .map(
       (_, i) =>
@@ -170,11 +191,11 @@ function openProduct(ad) {
       <a href="https://t.me/${ad.tgNick?.replace(
         "@",
         ""
-      )}" class="premium-btn" style="display:block; text-align:center; text-decoration:none;">Написать продавцу</a>
-      <div style="color:var(--gray); font-size:12px; margin-top:15px;">Дата публикации: ${dateStr}</div>
+      )}" class="btn-contact-modal">Написать продавцу</a>
+      <div style="color:var(--gray); font-size:12px; margin-top:10px;">Дата публикации: ${dateStr}</div>
       ${
         ad.receiveDate
-          ? `<div style="color:var(--gray); font-size:12px;">Дата получения товара: ${ad.receiveDate}</div>`
+          ? `<div style="color:var(--gray); font-size:12px;">Дата получения: ${ad.receiveDate}</div>`
           : ""
       }
       <div style="background:#2c2c2e; padding:15px; border-radius:12px; margin:20px 0;">
@@ -209,6 +230,57 @@ function closeProduct() {
   tg.BackButton.hide();
 }
 
+// ПРОФИЛЬ
+function switchProfileTab(tab) {
+  profTab = tab;
+  document
+    .getElementById("tab-active")
+    .classList.toggle("active", tab === "active");
+  document
+    .getElementById("tab-archive")
+    .classList.toggle("active", tab === "archive");
+  renderProfile();
+}
+
+function renderProfile() {
+  const grid = document.getElementById("my-ads-grid");
+  grid.innerHTML = "";
+  const myId = tg.initDataUnsafe?.user?.id || 0;
+  const filtered = ads.filter((ad) => {
+    const isMine = ad.userId === myId;
+    if (!isMine) return false;
+    return profTab === "active"
+      ? ad.status === "active"
+      : ad.status === "sold" || ad.status === "deleted";
+  });
+  filtered.forEach((ad) => grid.appendChild(createAdCard(ad, true)));
+}
+
+function manageAd(id) {
+  const res = prompt("Управление:\n1 - Продано\n2 - Удалить\n3 - Отмена");
+  const ad = ads.find((a) => a.id === id);
+  if (res === "1") ad.status = "sold";
+  else if (res === "2") ad.status = "deleted";
+  else return;
+  localStorage.setItem("gifts_final_v12", JSON.stringify(ads));
+  renderProfile();
+  renderFeed();
+}
+
+function editAd(id) {
+  const ad = ads.find((a) => a.id === id);
+  editingId = id;
+  showPage("add");
+  document.getElementById("add-title-text").innerText = "Изменить";
+  document.getElementById("in-title").value = ad.title;
+  document.getElementById("in-price").value = ad.price;
+  document.getElementById("in-wa").value = ad.phone;
+  document.getElementById("in-tg").value = ad.tgNick;
+  document.getElementById("in-desc").value = ad.desc;
+  document.getElementById("in-cat").value = ad.cat;
+  document.getElementById("in-city").value = ad.city;
+}
+
 // ПОДАЧА
 function selectTariff(t) {
   selectedTariff = t;
@@ -227,33 +299,43 @@ function handleReceiptSelect(input) {
 async function publishAndSend() {
   const title = document.getElementById("in-title").value;
   const price = document.getElementById("in-price").value;
-  if (!title || !price) return alert("Заполните поля!");
+  if (!title || !price) return alert("Заполни поля!");
 
-  tg.MainButton.showProgress();
-  let imgs = [];
-  for (let f of selectedFiles) {
-    const url = await uploadToImgBB(f);
-    if (url) imgs.push(url);
+  if (editingId) {
+    const ad = ads.find((a) => a.id === editingId);
+    ad.title = title;
+    ad.price = price;
+    ad.cat = document.getElementById("in-cat").value;
+    ad.city = document.getElementById("in-city").value;
+    ad.phone = document.getElementById("in-wa").value;
+    ad.tgNick = document.getElementById("in-tg").value;
+    ad.desc = document.getElementById("in-desc").value;
+    ad.receiveDate = document.getElementById("in-receive-date").value;
+    editingId = null;
+  } else {
+    let imgs = [];
+    for (let f of selectedFiles) {
+      const url = await uploadToImgBB(f);
+      if (url) imgs.push(url);
+    }
+    const newAd = {
+      id: Date.now(),
+      title,
+      price,
+      cat: document.getElementById("in-cat").value,
+      city: document.getElementById("in-city").value,
+      phone: document.getElementById("in-wa").value,
+      tgNick: document.getElementById("in-tg").value,
+      desc: document.getElementById("in-desc").value,
+      receiveDate: document.getElementById("in-receive-date").value,
+      img: imgs.length ? imgs : ["https://via.placeholder.com/300"],
+      status: "active",
+      userId: tg.initDataUnsafe?.user?.id || 0,
+      tariff: selectedTariff,
+    };
+    ads.unshift(newAd);
   }
-
-  const newAd = {
-    id: Date.now(),
-    title,
-    price,
-    cat: document.getElementById("in-cat").value,
-    city: document.getElementById("in-city").value,
-    phone: document.getElementById("in-wa").value,
-    tgNick: document.getElementById("in-tg").value,
-    desc: document.getElementById("in-desc").value,
-    receiveDate: document.getElementById("in-receive-date").value,
-    img: imgs.length ? imgs : ["https://via.placeholder.com/300"],
-    status: "active",
-    userId: tg.initDataUnsafe?.user?.id || 0,
-  };
-
-  ads.unshift(newAd);
   localStorage.setItem("gifts_final_v12", JSON.stringify(ads));
-  tg.MainButton.hide();
   showPage("home");
   renderFeed();
 }
@@ -301,4 +383,11 @@ function showPage(p) {
   if (document.getElementById(`n-${p}`))
     document.getElementById(`n-${p}`).classList.add("active");
   if (p === "favs") renderFavs();
+  if (p === "profile") renderProfile();
+}
+
+function cancelAdd() {
+  editingId = null;
+  document.getElementById("add-title-text").innerText = "Новое объявление";
+  showPage("home");
 }
