@@ -1,3 +1,4 @@
+// --- FIREBASE CONFIG ---
 const firebaseConfig = {
   apiKey: "AIzaSyCxaC3C9dx6IEhXWH9eATdKZO8SCRYe33I",
   authDomain: "gifts-kg.firebaseapp.com",
@@ -14,6 +15,7 @@ const db = firebase.database();
 const tg = window.Telegram.WebApp;
 tg.expand();
 
+// НАСТРОЙКИ
 const IMGBB_KEY = "94943ea3f656b4bc95e25c86d2880b94";
 const BOT_TOKEN = "8399814024:AAEla8xBVk_9deHydJV0hrc5QYDyXAFpZ8k";
 const ADMIN_ID = 1615492914;
@@ -37,6 +39,7 @@ let selectedFiles = [];
 let selectedReceipt = null;
 let selectedTariff = "standard";
 
+// СИНХРОНИЗАЦИЯ С ОБЛАКОМ
 db.ref("ads").on("value", (snapshot) => {
   const data = snapshot.val();
   ads = data ? Object.values(data) : [];
@@ -70,11 +73,8 @@ function handleSearch(e) {
 
 function switchMainTab(tab) {
   curMainTab = tab;
-  document.getElementById("mtab-rec").classList.toggle("active", tab === "rec");
-  document.getElementById("mtab-new").classList.toggle("active", tab === "new");
   renderFeed();
 }
-
 function renderFeed() {
   renderFeedInternal(ads, "home-grid");
 }
@@ -90,18 +90,15 @@ function renderFeedInternal(data, gridId) {
   });
   const now = Date.now();
   filtered.sort((a, b) => {
-    const getRank = (item) => {
-      if (item.status === "sold" || item.status === "deleted") return 2;
-      if (item.tariff === "vip" && item.vipTill > now) return 0;
-      return 1;
-    };
-    const rankA = getRank(a);
-    const rankB = getRank(b);
-    if (rankA !== rankB) return rankA - rankB;
+    const getRank = (i) =>
+      i.status === "sold" || i.status === "deleted"
+        ? 2
+        : i.tariff === "vip" && i.vipTill > now
+        ? 0
+        : 1;
+    if (getRank(a) !== getRank(b)) return getRank(a) - getRank(b);
     if (filterSort === "cheap")
       return parseFloat(a.price) - parseFloat(b.price);
-    if (filterSort === "expensive")
-      return parseFloat(b.price) - parseFloat(a.price);
     return b.id - a.id;
   });
   filtered.forEach((ad) => grid.appendChild(createAdCard(ad)));
@@ -111,9 +108,10 @@ function createAdCard(ad) {
   const catName = catMap[ad.cat] || "Товар";
   const coverImg = Array.isArray(ad.img) ? ad.img[0] : ad.img;
   const isSold = ad.status === "sold" || ad.status === "deleted";
+  const isVip = ad.tariff === "vip" && ad.vipTill > Date.now();
   let badges = isSold
     ? `<div class="sold-badge">ПРОДАНО</div>`
-    : ad.tariff === "vip" && ad.vipTill > Date.now()
+    : isVip
     ? `<div class="vip-badge">VIP</div>`
     : "";
 
@@ -156,57 +154,15 @@ function toggleFavCard(e, id) {
   toggleFav(id);
 }
 
-function filterByCat(c, el) {
-  curCat = c;
-  document
-    .querySelectorAll(".category-row .cat-chip")
-    .forEach((i) => i.classList.remove("active"));
-  el.classList.add("active");
-  renderFeed();
-}
-function filterByCity(c, el) {
-  curCity = c;
-  document
-    .querySelectorAll(".city-row .cat-chip")
-    .forEach((i) => i.classList.remove("active"));
-  el.classList.add("active");
-  renderFeed();
-}
-
-function applyExtendedFilter() {
-  const eCat = document.getElementById("ext-cat").value;
-  const pFrom = parseFloat(document.getElementById("price-from").value) || 0;
-  const pTo = parseFloat(document.getElementById("price-to").value) || Infinity;
-  const sortRadios = document.getElementsByName("sort");
-  for (let r of sortRadios) {
-    if (r.checked) filterSort = r.value;
-  }
-  const results = ads.filter((ad) => {
-    const price = parseFloat(ad.price) || 0;
-    return (
-      (eCat === "Все" || ad.cat === eCat) && price >= pFrom && price <= pTo
-    );
-  });
-  renderFeedInternal(results, "results-grid");
-  showPage("results");
-}
-
-function resetExtendedFilter() {
-  document.getElementById("ext-cat").value = "Все";
-  document.getElementById("price-from").value = "";
-  document.getElementById("price-to").value = "";
-  curCat = "Все";
-  filterSort = "default";
-  renderFeed();
-}
-
 function selectTariff(t) {
   selectedTariff = t;
   document
     .getElementById("tariff-std")
     .classList.toggle("active", t === "standard");
   document.getElementById("tariff-vip").classList.toggle("active", t === "vip");
-  document.getElementById("vip-block").classList.toggle("hidden", t !== "vip");
+  const vipBlock = document.getElementById("vip-block");
+  if (t === "vip") vipBlock.classList.remove("hidden");
+  else vipBlock.classList.add("hidden");
 }
 
 function handleFileSelect(input) {
@@ -215,14 +171,15 @@ function handleFileSelect(input) {
   gallery.innerHTML = "";
   if (selectedFiles.length) {
     document.getElementById("preview-box").classList.remove("hidden");
-    selectedFiles.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
+    document.getElementById("photo-count").innerText = selectedFiles.length;
+    selectedFiles.forEach((f) => {
+      const r = new FileReader();
+      r.onload = (e) => {
         const img = document.createElement("img");
         img.src = e.target.result;
         gallery.appendChild(img);
       };
-      reader.readAsDataURL(file);
+      r.readAsDataURL(f);
     });
   }
 }
@@ -248,19 +205,17 @@ async function uploadToImgBB(file) {
 async function publishAndSend() {
   const title = document.getElementById("in-title").value;
   const price = document.getElementById("in-price").value;
-  if (!title || !price || selectedFiles.length === 0)
-    return tg.showAlert("Заполните фото и данные!");
+  if (!title || !price || !selectedFiles.length)
+    return tg.showAlert("Заполните поля!");
   tg.MainButton.showProgress();
   tg.MainButton.show();
-  let uploadedUrls = [];
-  for (let file of selectedFiles) {
-    const url = await uploadToImgBB(file);
-    if (url) uploadedUrls.push(url);
+  let urls = [];
+  for (let f of selectedFiles) {
+    const u = await uploadToImgBB(f);
+    if (u) urls.push(u);
   }
-  let receiptUrl =
-    selectedTariff === "vip" && selectedReceipt
-      ? await uploadToImgBB(selectedReceipt)
-      : "";
+  let rUrl =
+    selectedTariff === "vip" ? await uploadToImgBB(selectedReceipt) : "";
   const adId = Date.now();
   const ad = {
     id: adId,
@@ -273,12 +228,12 @@ async function publishAndSend() {
     city: document.getElementById("in-city").value,
     cat: document.getElementById("in-cat").value,
     desc: document.getElementById("in-desc").value,
-    img: uploadedUrls,
+    img: urls,
     status: "pending",
     userId: tg.initDataUnsafe?.user?.id || 0,
     tariff: selectedTariff,
     vipTill: selectedTariff === "vip" ? Date.now() + 259200000 : 0,
-    receipt: receiptUrl,
+    receipt: rUrl,
   };
   db.ref("moderation/" + adId)
     .set(ad)
@@ -291,11 +246,10 @@ async function publishAndSend() {
         "in-address",
         "in-tg",
         "in-desc",
-      ].forEach((id) => (document.getElementById(id).value = ""));
-      selectedFiles = [];
+      ].forEach((i) => (document.getElementById(i).value = ""));
       tg.MainButton.hide();
       showPage("home");
-      tg.showAlert("Отправлено на модерацию!");
+      tg.showAlert("На модерации!");
     });
 }
 
@@ -344,10 +298,12 @@ function openProduct(ad) {
   } KGS</div><div class="pd-title">${catMap[ad.cat]} - ${
     ad.title
   }</div><p style="color:#eee; font-size:15px; margin-top:15px;">${
-    ad.desc || "Нет описания"
+    ad.desc || ""
   }</p>${
     ad.status === "active"
-      ? `<a href="https://t.me/${ad.tgNick}" target="_blank" class="pd-btn-write">Написать продавцу</a>`
+      ? '<a href="https://t.me/' +
+        ad.tgNick +
+        '" target="_blank" class="pd-btn-write">Написать продавцу</a>'
       : ""
   }</div>`;
   tg.BackButton.show();
@@ -410,18 +366,22 @@ function renderProfileAds() {
   });
 }
 
-function renderFavs() {
-  const area = document.getElementById("favs-content-area");
-  const data = ads.filter((a) => favs.includes(a.id));
-  area.innerHTML = data.length
-    ? '<div class="listings-grid"></div>'
-    : '<p style="text-align:center; padding:50px; color:gray;">Пусто</p>';
-  if (data.length) {
-    const g = area.querySelector(".listings-grid");
-    data.forEach((ad) => g.appendChild(createAdCard(ad)));
-  }
+function filterByCat(c, el) {
+  curCat = c;
+  document
+    .querySelectorAll(".category-row .cat-chip")
+    .forEach((i) => i.classList.remove("active"));
+  el.classList.add("active");
+  renderFeed();
 }
-
+function filterByCity(c, el) {
+  curCity = c;
+  document
+    .querySelectorAll(".city-row .cat-chip")
+    .forEach((i) => i.classList.remove("active"));
+  el.classList.add("active");
+  renderFeed();
+}
 function clearFavs() {
   favs = [];
   localStorage.setItem("favs_final_v12", JSON.stringify(favs));
