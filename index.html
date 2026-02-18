@@ -115,7 +115,7 @@
       <!-- СТРАНИЦА РЕЗУЛЬТАТОВ -->
       <section id="page-results" class="page hidden">
         <header class="results-header">
-          <button class="back-circle-btn" onclick="showPage('home')">
+          <button class="back-circle-btn-pink" onclick="showPage('home')">
             <i class="fa fa-arrow-left"></i>
           </button>
           <h2>Результаты</h2>
@@ -140,7 +140,7 @@
       <!-- ПРОФИЛЬ -->
       <section id="page-profile" class="page hidden">
         <header class="profile-header-nav">
-          <button class="back-circle-btn" onclick="showPage('home')">
+          <button class="back-circle-btn-pink" onclick="showPage('home')">
             <i class="fa fa-arrow-left"></i>
           </button>
           <span></span>
@@ -196,7 +196,7 @@
             </div>
           </div>
 
-          <div id="vip-block" class="hidden vip-details-yellow">
+          <div id="vip-block" class="hidden vip-details-yellow-glow">
             <div class="vip-top-info">
               VIP объявление будет размещаться в топе 3 дня
             </div>
@@ -223,11 +223,20 @@
           <div class="f-group">
             <label>Фотографии (до 5 шт)</label>
             <div
-              class="upload-zone"
+              class="upload-zone-neat"
               onclick="document.getElementById('file-input').click()"
             >
-              <i class="fa fa-camera"></i>
-              <span id="file-label">Выбрать фото</span>
+              <i
+                class="fa fa-camera"
+                style="
+                  font-size: 24px;
+                  margin-bottom: 8px;
+                  color: var(--yellow-main);
+                "
+              ></i>
+              <span id="file-label" style="display: block; font-weight: 500"
+                >Нажмите для выбора фото</span
+              >
               <input
                 type="file"
                 id="file-input"
@@ -286,7 +295,7 @@
             />
           </div>
           <div class="f-group">
-            <label>Telegram ник</label
+            <label>Telegram ник (без @)</label
             ><input
               type="text"
               id="in-tg"
@@ -313,7 +322,11 @@
           </div>
           <div class="f-group">
             <label>Описание</label
-            ><textarea id="in-desc" class="main-input"></textarea>
+            ><textarea
+              id="in-desc"
+              class="main-input"
+              style="height: 100px"
+            ></textarea>
           </div>
 
           <button
@@ -340,16 +353,18 @@
       <!-- НАВИГАЦИЯ -->
       <nav class="bottom-nav">
         <button class="nav-item active" onclick="showPage('home')" id="n-home">
-          <i class="fa-solid fa-house"></i><span>Главная</span>
+          <i class="fa-solid fa-house"></i>
+          <span>Главная</span>
         </button>
         <div class="nav-center">
           <button class="yellow-plus-main" onclick="showPage('add')">
             <i class="fa-solid fa-plus"></i>
           </button>
-          <p>Подать</p>
+          <p class="podat-label">Подать</p>
         </div>
         <button class="nav-item" onclick="showPage('favs')" id="n-favs">
-          <i class="fa-solid fa-heart"></i><span>Избранное</span>
+          <i class="fa-solid fa-heart"></i>
+          <span>Избранные</span>
         </button>
       </nav>
     </div>

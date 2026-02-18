@@ -142,7 +142,7 @@ function renderProfileControls(ad) {
     return `<div class="profile-actions-triple">
             <button class="btn-mini btn-sold-action" onclick="event.stopPropagation(); setStatus(${ad.id}, 'sold')">Продано</button>
             <button class="btn-mini" style="background:#ff3b30; color:white;" onclick="event.stopPropagation(); setStatus(${ad.id}, 'deleted')">Удалить</button>
-            <button class="btn-mini btn-cancel" style="background:#333; color:white;" onclick="event.stopPropagation(); cancelManage(${ad.id})">Отмена</button>
+            <button class="btn-mini btn-cancel-right" onclick="event.stopPropagation(); cancelManage(${ad.id})">Отмена</button>
         </div>`;
   }
   return `<div class="profile-actions" style="display:flex; gap:5px; padding:0 10px 10px;">
@@ -181,8 +181,6 @@ function openProduct(ad) {
   })"></i>`;
 
   let imgClass = ad.status === "deleted" ? "blur-img" : "";
-
-  // Генерация точек
   let dotsHTML = images
     .map(
       (_, i) =>
@@ -236,7 +234,6 @@ function openProduct(ad) {
         }
     </div>`;
 
-  // Логика переключения точек при скролле
   const slider = document.getElementById("main-slider");
   slider.addEventListener("scroll", () => {
     const index = Math.round(slider.scrollLeft / slider.offsetWidth);
