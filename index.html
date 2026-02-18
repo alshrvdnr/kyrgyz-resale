@@ -75,13 +75,27 @@
       <section id="page-favs" class="page hidden">
         <header class="favs-header-custom">
           <div class="favs-top-line">
-            <span style="width: 60px;"></span>
+            <span style="width: 60px"></span>
             <h2>Избранное</h2>
-            <button class="favs-clear-link" onclick="clearFavs()">Удалить</button>
+            <button class="favs-clear-link" onclick="clearFavs()">
+              Удалить
+            </button>
           </div>
           <div class="favs-tabs-nav">
-            <div class="f-tab active" id="f-tab-ads" onclick="switchFavTab('ads')">Объявления</div>
-            <div class="f-tab" id="f-tab-searches" onclick="switchFavTab('searches')">Поиски</div>
+            <div
+              class="f-tab active"
+              id="f-tab-ads"
+              onclick="switchFavTab('ads')"
+            >
+              Объявления
+            </div>
+            <div
+              class="f-tab"
+              id="f-tab-searches"
+              onclick="switchFavTab('searches')"
+            >
+              Поиски
+            </div>
           </div>
         </header>
         <main id="favs-content-area"></main>
@@ -108,7 +122,7 @@
         <main class="listings-grid" id="my-ads-grid"></main>
       </section>
 
-      <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ -->
+      <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ (ОБНОВЛЕНО ДЛЯ ГАЛЕРЕИ) -->
       <section id="page-add" class="page hidden">
         <header class="page-header-simple">
           <button onclick="showPage('home')" class="icon-btn">✕</button>
@@ -117,23 +131,36 @@
         </header>
         <div class="form-scroll">
           <div class="f-group">
-            <label>Фотография товара</label>
+            <label>Фотографии товара (до 5 шт)</label>
             <div
               class="upload-zone"
               onclick="document.getElementById('file-input').click()"
             >
               <i class="fa fa-camera"></i>
               <span id="file-label">Нажмите для выбора фото</span>
+              <!-- ВАЖНО: добавлен атрибут multiple -->
               <input
                 type="file"
                 id="file-input"
                 accept="image/*"
+                multiple
                 hidden
                 onchange="handleFileSelect(this)"
               />
             </div>
+            <!-- Новый блок для предпросмотра галереи -->
             <div id="preview-box" class="hidden">
-              <img id="img-preview" src="" />
+              <div id="gallery-preview" class="upload-gallery"></div>
+              <p
+                style="
+                  font-size: 12px;
+                  color: gray;
+                  text-align: center;
+                  margin-top: 5px;
+                "
+              >
+                Выбрано фото: <span id="photo-count">0</span>
+              </p>
             </div>
           </div>
 
@@ -148,10 +175,14 @@
             </select>
           </div>
 
-          <!-- НОВОЕ ПОЛЕ АДРЕС -->
           <div class="f-group">
             <label>Адрес (улица, дом)</label>
-            <input type="text" id="in-address" class="main-input" placeholder="Введите адрес">
+            <input
+              type="text"
+              id="in-address"
+              class="main-input"
+              placeholder="Введите адрес"
+            />
           </div>
 
           <div class="f-group">
@@ -238,14 +269,14 @@
         </div>
       </section>
 
-      <!-- ПОДРОБНОСТИ (ОБНОВЛЕНО ДЛЯ УДОБСТВА) -->
+      <!-- ПОДРОБНОСТИ -->
       <div id="product-modal" class="full-view hidden">
         <div class="pv-header">
           <button class="pv-back" onclick="closeProduct()">
             <i class="fa fa-chevron-left"></i>
           </button>
           <div class="pv-top-icons" id="modal-fav-icon">
-             <!-- Сюда вставится сердечко -->
+            <!-- Сюда вставится сердечко -->
           </div>
         </div>
         <div id="pv-content" class="pv-scroll-area"></div>
