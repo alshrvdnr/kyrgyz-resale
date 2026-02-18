@@ -147,14 +147,14 @@
       <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ -->
       <section id="page-add" class="page hidden">
         <header class="page-header-simple">
-          <button onclick="showPage('home')" class="close-circle-btn">
+          <button onclick="cancelEditOrGoHome()" class="close-circle-btn">
             <i class="fa fa-times"></i>
           </button>
-          <h2>Новое объявление</h2>
+          <h2 id="add-page-title">Новое объявление</h2>
           <span></span>
         </header>
         <div class="form-scroll">
-          <div class="tariff-container">
+          <div class="tariff-container" id="add-tariff-block">
             <div
               class="tariff-card active"
               id="tariff-std"
@@ -317,7 +317,7 @@
             ></textarea>
           </div>
 
-          <button class="pink-btn-full" onclick="publishAndSend()">
+          <button class="pink-btn-full" id="btn-publish-main" onclick="publishAndSend()">
             Опубликовать
           </button>
         </div>

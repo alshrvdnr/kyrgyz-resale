@@ -790,7 +790,7 @@ body {
   cursor: pointer;
 }
 
-/* НОВЫЕ ДОБАВЛЕНИЯ ПО ТВОЕМУ ЗАПРОСУ */
+/* НОВЫЕ СТИЛИ ДЛЯ ЯЧЕЕК */
 .card-price-row {
   display: flex;
   justify-content: space-between;
@@ -800,5 +800,28 @@ body {
 .card-time {
   font-size: 11px;
   color: var(--gray);
-  font-weight: normal;
+}
+.info-cell {
+  background: var(--card);
+  border: 1px solid #333;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+.info-cell-label {
+  display: block;
+  font-size: 11px;
+  color: var(--gray);
+  margin-bottom: 4px;
+}
+.info-cell-value {
+  font-size: 15px;
+  color: white;
+  font-weight: 500;
+}
+.desc-header {
+  font-size: 14px;
+  font-weight: bold;
+  margin: 15px 0 8px;
+  color: var(--pink);
 }
