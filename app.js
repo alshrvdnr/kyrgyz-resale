@@ -22,15 +22,13 @@ const catMap = {
 let ads = JSON.parse(localStorage.getItem("gifts_final_v12")) || [];
 let favs = JSON.parse(localStorage.getItem("favs_final_v12")) || [];
 
-// Состояние
 let curCat = "flowers";
 let curCity = "Бишкек";
-let filterSort = "default";
 let currentProfileTab = "active";
-let selectedFiles = [];
-let selectedReceipt = null;
-let selectedTariff = "standard";
-let editingId = null;
+let selectedFiles = [],
+  selectedReceipt = null,
+  selectedTariff = "standard",
+  editingId = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   initUser();
@@ -51,13 +49,20 @@ function initUser() {
     document.getElementById("current-city-label").innerText = curCity;
 }
 
-function changeCity() {
-  const res = prompt("Введите город:", curCity);
-  if (res) {
-    curCity = res;
-    document.getElementById("current-city-label").innerText = curCity;
-    renderFeed();
-  }
+// ---------------------------------------------------------
+// ВЫБОР ГОРОДА
+// ---------------------------------------------------------
+function showCitySelector() {
+  document.getElementById("city-selector-overlay").classList.remove("hidden");
+}
+function hideCitySelector() {
+  document.getElementById("city-selector-overlay").classList.add("hidden");
+}
+function selectCity(city) {
+  curCity = city;
+  document.getElementById("current-city-label").innerText = city;
+  hideCitySelector();
+  renderFeed();
 }
 
 // ---------------------------------------------------------
@@ -100,13 +105,11 @@ function renderFeedInternal(data, gridId) {
   if (!grid) return;
   grid.innerHTML = "";
 
-  let filtered = data.filter((ad) => {
-    const catMatch = ad.cat === curCat;
-    const cityMatch = ad.city === curCity;
-    return catMatch && cityMatch;
-  });
+  let filtered = data.filter(
+    (ad) => (curCat === "Все" || ad.cat === curCat) && ad.city === curCity
+  );
 
-  // Сортировка: активные сверху, свежие в начале
+  // Сортировка: Сначала активные, потом проданные
   filtered.sort((a, b) => {
     if (a.status !== b.status) return a.status === "active" ? -1 : 1;
     return b.id - a.id;
@@ -150,68 +153,15 @@ function createAdCard(ad, isProfile = false) {
 }
 
 function renderProfileControls(ad) {
-  if (ad.userId !== (tg.initDataUnsafe?.user?.id || 0)) return "";
-
   if (ad.managing) {
-    return `
-        <div class="profile-actions-triple">
+    return `<div class="profile-actions-triple">
             <button class="btn-mini btn-sold-action" onclick="event.stopPropagation(); setStatus(${ad.id}, 'sold')">Продано</button>
             <button class="btn-mini" style="background:#ff3b30; color:white;" onclick="event.stopPropagation(); setStatus(${ad.id}, 'deleted')">Удалить</button>
             <button class="btn-mini btn-edit" onclick="event.stopPropagation(); cancelManage(${ad.id})">Отмена</button>
         </div>`;
   }
-
-  return `
-    <div class="profile-actions">
-        <button class="btn-mini btn-edit" onclick="event.stopPropagation(); editAd(${ad.id})">Изменить</button>
-        <button class="btn-mini btn-sold-action" onclick="event.stopPropagation(); startManage(${ad.id})">Управление</button>
-    </div>`;
-}
-
-// ---------------------------------------------------------
-// УПРАВЛЕНИЕ И СТАТУСЫ
-// ---------------------------------------------------------
-function startManage(id) {
-  const ad = ads.find((a) => a.id === id);
-  if (ad) {
-    ad.managing = true;
-    renderProfileAds();
-  }
-}
-function cancelManage(id) {
-  const ad = ads.find((a) => a.id === id);
-  if (ad) {
-    ad.managing = false;
-    renderProfileAds();
-  }
-}
-function setStatus(id, status) {
-  const idx = ads.findIndex((a) => a.id === id);
-  if (idx !== -1) {
-    ads[idx].status = status;
-    ads[idx].managing = false;
-    localStorage.setItem("gifts_final_v12", JSON.stringify(ads));
-    renderProfileAds();
-  }
-}
-
-function editAd(id) {
-  const ad = ads.find((a) => a.id === id);
-  if (!ad) return;
-  editingId = id;
-  showPage("add");
-  document.getElementById("add-title-text").innerText = "Изменение";
-  document.getElementById("publish-btn").innerText = "Сохранить";
-  document.getElementById("tariff-selection-area").style.display = "none";
-  document.getElementById("in-title").value = ad.title;
-  document.getElementById("in-price").value = ad.price;
-  document.getElementById("in-date").value = ad.dateReceived;
-  document.getElementById("in-wa").value = ad.phone;
-  document.getElementById("in-address").value = ad.address;
-  document.getElementById("in-tg").value = ad.tgNick;
-  document.getElementById("in-city").value = ad.city;
-  document.getElementById("in-cat").value = ad.cat;
-  document.getElementById("in-desc").value = ad.desc || "";
+  return `<div class="profile-actions"><button class="btn-mini btn-edit" onclick="event.stopPropagation(); editAd(${ad.id})">Изменить</button>
+    <button class="btn-mini btn-sold-action" onclick="event.stopPropagation(); startManage(${ad.id})">Управление</button></div>`;
 }
 
 // ---------------------------------------------------------
@@ -219,8 +169,8 @@ function editAd(id) {
 // ---------------------------------------------------------
 function openProduct(ad) {
   const modal = document.getElementById("product-modal");
-  const isFav = favs.includes(ad.id);
   const isSold = ad.status === "sold" || ad.status === "deleted";
+  const isFav = favs.includes(ad.id);
 
   document.getElementById("modal-fav-icon").innerHTML = `<i class="${
     isFav ? "fa-solid" : "fa-regular"
@@ -233,29 +183,23 @@ function openProduct(ad) {
     .map((i) => `<img src="${i}" class="${imgClass}">`)
     .join("")}</div>`;
 
-  let contacts = isSold
+  let contactInfo = isSold
     ? ""
     : `
-    <div class="info-cell">
-        <span class="info-cell-label">Адрес</span>
-        <span class="info-cell-value">${ad.address || "Не указан"}</span>
-    </div>
-    <div class="info-cell">
-        <span class="info-cell-label">Связь</span>
-        <span class="info-cell-value">@${ad.tgNick} <br> ${ad.phone}</span>
-    </div>
+    <div class="info-cell"><span class="info-cell-label">Связь</span><span class="info-cell-value">@${
+      ad.tgNick
+    } <br> ${ad.phone}</span></div>
     <a href="https://t.me/${ad.tgNick.replace(
       "@",
       ""
-    )}" target="_blank" class="pd-btn-write">Написать продавцу</a>
-  `;
+    )}" target="_blank" class="pd-btn-write">Написать продавцу</a>`;
 
   document.getElementById("pv-content").innerHTML = `
     ${galleryHTML}
     <div class="pd-body">
         ${
           isSold
-            ? `<div style="color:red; font-weight:bold; font-size:20px; margin-bottom:15px;">ПРОДАНО</div>`
+            ? `<span style="color:red; font-weight:bold; font-size:20px; display:block; margin-bottom:15px;">ПРОДАНО</span>`
             : ""
         }
         <div class="info-cell" style="background: rgba(255, 77, 141, 0.1); border-color: var(--pink);">
@@ -265,32 +209,46 @@ function openProduct(ad) {
               catMap[ad.cat]
             } — ${ad.title}</div>
         </div>
-
-        <div class="pd-desc-label">Описание</div>
-        <div class="info-cell">${ad.desc || "Описание отсутствует"}</div>
-
+        <div class="pd-desc-label">Описание</div><div class="info-cell">${
+          ad.desc || "Нет описания"
+        }</div>
         <div class="info-cell"><span class="info-cell-label">Город</span>${
           ad.city
         }</div>
         <div class="info-cell"><span class="info-cell-label">Дата получения</span>${
           ad.dateReceived
         }</div>
-        ${contacts}
+        ${contactInfo}
     </div>`;
-
   modal.classList.remove("hidden");
   tg.BackButton.show();
   tg.BackButton.onClick(closeProduct);
 }
-
 function closeProduct() {
   document.getElementById("product-modal").classList.add("hidden");
   tg.BackButton.hide();
 }
 
 // ---------------------------------------------------------
-// ИЗБРАННОЕ
+// УПРАВЛЕНИЕ / ИЗБРАННОЕ / ПРОФИЛЬ
 // ---------------------------------------------------------
+function startManage(id) {
+  ads.find((a) => a.id === id).managing = true;
+  renderProfileAds();
+}
+function cancelManage(id) {
+  ads.find((a) => a.id === id).managing = false;
+  renderProfileAds();
+}
+function setStatus(id, s) {
+  const ad = ads.find((a) => a.id === id);
+  ad.status = s;
+  ad.managing = false;
+  localStorage.setItem("gifts_final_v12", JSON.stringify(ads));
+  renderProfileAds();
+  renderFeed();
+}
+
 function toggleFav(id) {
   favs = favs.includes(id) ? favs.filter((f) => f !== id) : [...favs, id];
   localStorage.setItem("favs_final_v12", JSON.stringify(favs));
@@ -298,28 +256,27 @@ function toggleFav(id) {
   renderFavs();
 }
 
+function clearFavs() {
+  favs = [];
+  localStorage.setItem("favs_final_v12", JSON.stringify(favs));
+  renderFavs();
+}
+
 function renderFavs() {
   const container = document.getElementById("favs-content-area");
   const data = ads.filter((a) => favs.includes(a.id));
-
   if (data.length === 0) {
-    container.innerHTML = `
-        <div class="empty-favs-box">
-            <div class="heart-square"><i class="fa-solid fa-heart"></i></div>
-            <p class="empty-text">У вас пока нет избранных объявлений</p>
-            <button class="go-search-btn" onclick="showPage('home')">В поиск</button>
-        </div>`;
+    container.innerHTML = `<div class="empty-favs-box"><div class="heart-square"><i class="fa-solid fa-heart"></i></div><p class="empty-text">У вас пока нет избранных объявлений</p><button class="go-search-btn" onclick="showPage('home')">В поиск</button></div>`;
     return;
   }
-
   container.innerHTML = `<div class="listings-grid"></div>`;
-  const grid = container.querySelector(".listings-grid");
-  data.forEach((ad) => grid.appendChild(createAdCard(ad, false)));
+  data.forEach((ad) =>
+    container
+      .querySelector(".listings-grid")
+      .appendChild(createAdCard(ad, false))
+  );
 }
 
-// ---------------------------------------------------------
-// ПРОФИЛЬ
-// ---------------------------------------------------------
 function switchProfileTab(tab) {
   currentProfileTab = tab;
   document
@@ -351,14 +308,12 @@ function renderProfileAds() {
 // ПУБЛИКАЦИЯ
 // ---------------------------------------------------------
 async function publishAndSend() {
-  const title = document.getElementById("in-title").value;
-  const price = document.getElementById("in-price").value;
-  const date = document.getElementById("in-date").value;
+  const title = document.getElementById("in-title").value,
+    price = document.getElementById("in-price").value,
+    date = document.getElementById("in-date").value;
   if (!title || !price || !date) return tg.showAlert("Заполните поля!");
-
   tg.MainButton.showProgress();
   tg.MainButton.show();
-
   let finalImg = editingId ? ads.find((a) => a.id === editingId).img : [];
   if (selectedFiles.length > 0) {
     finalImg = [];
@@ -367,7 +322,6 @@ async function publishAndSend() {
       if (url) finalImg.push(url);
     }
   }
-
   if (editingId) {
     const idx = ads.findIndex((a) => a.id === editingId);
     ads[idx] = {
@@ -404,11 +358,28 @@ async function publishAndSend() {
     ads.unshift(ad);
     await sendToBot(ad);
   }
-
   localStorage.setItem("gifts_final_v12", JSON.stringify(ads));
   tg.MainButton.hide();
   cancelAdd();
   showPage("home");
+}
+
+function editAd(id) {
+  const ad = ads.find((a) => a.id === id);
+  editingId = id;
+  showPage("add");
+  document.getElementById("add-title-text").innerText = "Изменение";
+  document.getElementById("publish-btn").innerText = "Сохранить";
+  document.getElementById("tariff-selection-area").style.display = "none";
+  document.getElementById("in-title").value = ad.title;
+  document.getElementById("in-price").value = ad.price;
+  document.getElementById("in-date").value = ad.dateReceived;
+  document.getElementById("in-wa").value = ad.phone;
+  document.getElementById("in-address").value = ad.address;
+  document.getElementById("in-tg").value = ad.tgNick;
+  document.getElementById("in-city").value = ad.city;
+  document.getElementById("in-cat").value = ad.cat;
+  document.getElementById("in-desc").value = ad.desc || "";
 }
 
 async function uploadToImgBB(file) {
@@ -425,7 +396,6 @@ async function uploadToImgBB(file) {
     return null;
   }
 }
-
 async function sendToBot(ad) {
   let text = `📦 ${ad.title}\n💰 ${ad.price} KGS\n📍 ${ad.city}`;
   try {
@@ -442,15 +412,11 @@ async function sendToBot(ad) {
   } catch (e) {}
 }
 
-// ---------------------------------------------------------
-// ВСПОМОГАТЕЛЬНЫЕ
-// ---------------------------------------------------------
 function handleFileSelect(input) {
   selectedFiles = Array.from(input.files).slice(0, 5);
   const gallery = document.getElementById("gallery-preview");
   gallery.innerHTML = "";
   document.getElementById("preview-box").classList.remove("hidden");
-  document.getElementById("photo-count").innerText = selectedFiles.length;
   selectedFiles.forEach((f) => {
     const r = new FileReader();
     r.onload = (e) => {
@@ -461,7 +427,6 @@ function handleFileSelect(input) {
     r.readAsDataURL(f);
   });
 }
-
 function selectTariff(t) {
   selectedTariff = t;
   document
@@ -470,18 +435,10 @@ function selectTariff(t) {
   document.getElementById("tariff-vip").classList.toggle("active", t === "vip");
   document.getElementById("vip-block").classList.toggle("hidden", t !== "vip");
 }
-
 function cancelAdd() {
   editingId = null;
-  document.querySelectorAll(".main-input").forEach((i) => (i.value = ""));
-  document.getElementById("gallery-preview").innerHTML = "";
-  document.getElementById("preview-box").classList.add("hidden");
-  document.getElementById("add-title-text").innerText = "Новое объявление";
-  document.getElementById("publish-btn").innerText = "Опубликовать";
-  document.getElementById("tariff-selection-area").style.display = "flex";
   showPage("home");
 }
-
 function showPage(p) {
   document.querySelectorAll(".page").forEach((s) => s.classList.add("hidden"));
   document.getElementById(`page-${p}`).classList.remove("hidden");
@@ -496,15 +453,9 @@ function showPage(p) {
   if (p === "profile") renderProfileAds();
   if (p === "favs") renderFavs();
 }
-
 function handleReceiptSelect(input) {
   if (input.files[0])
     document.getElementById("receipt-label").innerText = "Чек добавлен ✅";
-}
-function clearFavs() {
-  favs = [];
-  localStorage.setItem("favs_final_v12", JSON.stringify(favs));
-  renderFavs();
 }
 function applyExtendedFilter() {
   showPage("home");

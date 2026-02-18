@@ -19,8 +19,8 @@
       <!-- ГЛАВНАЯ -->
       <section id="page-home" class="page">
         <header class="main-header">
-          <!-- Верхняя часть: Геолокация -->
-          <div class="top-location-bar" onclick="changeCity()">
+          <!-- Геолокация -->
+          <div class="top-location-bar" onclick="showCitySelector()">
             <div class="location-text">
               <i class="fa-solid fa-location-dot"></i>
               <span id="current-city-label">Бишкек</span>
@@ -31,7 +31,7 @@
             </div>
           </div>
 
-          <!-- Поле поиска и Аватар -->
+          <!-- Поиск и Аватар -->
           <div class="search-profile-row">
             <div class="search-wrapper">
               <i class="fa fa-search"></i>
@@ -51,7 +51,7 @@
             </div>
           </div>
 
-          <!-- Разделы категорий -->
+          <!-- Категории -->
           <div class="categories-container">
             <div
               class="cat-card active"
@@ -96,11 +96,23 @@
           </h2>
           <main class="listings-grid" id="home-grid"></main>
         </div>
-
-        <div id="search-error" class="error-container hidden">
-          <p>Ничего не найдено</p>
-        </div>
       </section>
+
+      <!-- МЕНЮ ВЫБОРА ГОРОДА -->
+      <div
+        id="city-selector-overlay"
+        class="city-overlay hidden"
+        onclick="hideCitySelector()"
+      >
+        <div class="city-modal" onclick="event.stopPropagation()">
+          <h3>Выберите город</h3>
+          <div class="city-option" onclick="selectCity('Бишкек')">Бишкек</div>
+          <div class="city-option" onclick="selectCity('Ош')">Ош</div>
+          <div class="city-option" onclick="selectCity('Манас')">Манас</div>
+          <div class="city-option" onclick="selectCity('Токмок')">Токмок</div>
+          <div class="city-option" onclick="selectCity('Каракол')">Каракол</div>
+        </div>
+      </div>
 
       <!-- СТРАНИЦА РЕЗУЛЬТАТОВ -->
       <section id="page-results" class="page hidden">
@@ -111,18 +123,15 @@
           <h2>Результаты</h2>
           <span style="width: 24px"></span>
         </header>
-        <div style="padding-top: 10px">
-          <main class="listings-grid" id="results-grid"></main>
-        </div>
+        <main class="listings-grid" id="results-grid"></main>
       </section>
 
       <!-- ИЗБРАННОЕ -->
       <section id="page-favs" class="page hidden">
         <header class="favs-header-custom">
           <div class="favs-top-line">
-            <span style="width: 60px"></span>
             <h2>Избранное</h2>
-            <button class="favs-clear-link" onclick="clearFavs()">
+            <button class="favs-clear-btn" onclick="clearFavs()">
               Очистить
             </button>
           </div>
@@ -132,9 +141,12 @@
 
       <!-- ПРОФИЛЬ -->
       <section id="page-profile" class="page hidden">
-        <div class="profile-hero">
-          <div class="avatar-circle" id="u-avatar-big">?</div>
-          <h2 id="u-name">Загрузка...</h2>
+        <div class="profile-new-hero">
+          <div class="profile-hero-content">
+            <div class="avatar-circle-profile" id="u-avatar-big">?</div>
+          </div>
+          <h2 id="u-name" class="profile-nick">Никнейм</h2>
+          <div class="profile-separator"></div>
         </div>
         <div class="profile-tabs-nav">
           <div
@@ -163,7 +175,7 @@
         <div class="form-scroll">
           <div class="tariff-container" id="tariff-selection-area">
             <div
-              class="tariff-card active"
+              class="tariff-card tariff-std active"
               id="tariff-std"
               onclick="selectTariff('standard')"
             >
@@ -171,39 +183,29 @@
               <div class="tariff-price">Бесплатно</div>
             </div>
             <div
-              class="tariff-card"
+              class="tariff-card tariff-vip"
               id="tariff-vip"
               onclick="selectTariff('vip')"
             >
-              <div class="tariff-title vip-gold-text">VIP</div>
+              <div class="tariff-title">VIP</div>
               <div class="tariff-price">100 сом</div>
             </div>
           </div>
 
-          <div id="vip-block" class="hidden vip-details">
-            <div class="tariff-title vip-gold-text">VIP размещение</div>
-            <p style="font-size: 12px; color: gray; margin-bottom: 10px">
-              Объявление будет в топе 3 дня.
-            </p>
-            <div class="qr-placeholder">
-              <!-- Твой QR код -->
+          <div id="vip-block" class="hidden vip-details-yellow">
+            <div class="vip-top-info">
+              VIP объявление будет размещаться в топе 3 дня
+            </div>
+            <div class="qr-container-small">
               <img
                 src="https://i.ibb.co/v487YmS6/photo-2025-02-18-19-14-11.jpg"
-                style="width: 100%; border-radius: 10px"
               />
             </div>
             <div
-              class="upload-zone"
-              style="padding: 15px; border-color: var(--vip-gold)"
+              class="upload-zone-yellow"
               onclick="document.getElementById('receipt-input').click()"
             >
-              <i
-                class="fa fa-file-invoice-dollar"
-                style="color: var(--vip-gold)"
-              ></i>
-              <span id="receipt-label" style="color: white; font-size: 13px"
-                >Добавить чек</span
-              >
+              <span id="receipt-label">Добавить чек</span>
               <input
                 type="file"
                 id="receipt-input"
@@ -221,7 +223,7 @@
               onclick="document.getElementById('file-input').click()"
             >
               <i class="fa fa-camera"></i>
-              <span id="file-label">Нажмите для выбора фото</span>
+              <span id="file-label">Выбрать фото</span>
               <input
                 type="file"
                 id="file-input"
@@ -233,16 +235,6 @@
             </div>
             <div id="preview-box" class="hidden">
               <div id="gallery-preview" class="upload-gallery"></div>
-              <p
-                style="
-                  font-size: 12px;
-                  color: gray;
-                  text-align: center;
-                  margin-top: 5px;
-                "
-              >
-                Выбрано: <span id="photo-count">0</span>
-              </p>
             </div>
           </div>
 
@@ -280,7 +272,7 @@
             />
           </div>
           <div class="f-group">
-            <label>Telegram ник (без собачки)</label
+            <label>Telegram ник</label
             ><input
               type="text"
               id="in-tg"
@@ -299,29 +291,15 @@
           </div>
           <div class="f-group">
             <label>Название товара</label
-            ><input
-              type="text"
-              id="in-title"
-              class="main-input"
-              placeholder="Например: 101 Роза"
-            />
+            ><input type="text" id="in-title" class="main-input" />
           </div>
           <div class="f-group">
             <label>Цена (KGS)</label
-            ><input
-              type="number"
-              id="in-price"
-              class="main-input"
-              placeholder="0"
-            />
+            ><input type="number" id="in-price" class="main-input" />
           </div>
           <div class="f-group">
-            <label>Описание (необязательно)</label
-            ><textarea
-              id="in-desc"
-              class="main-input"
-              placeholder="Детали..."
-            ></textarea>
+            <label>Описание</label
+            ><textarea id="in-desc" class="main-input"></textarea>
           </div>
 
           <button
@@ -330,101 +308,6 @@
             onclick="publishAndSend()"
           >
             Опубликовать
-          </button>
-        </div>
-      </section>
-
-      <!-- ФИЛЬТР -->
-      <section id="page-filter" class="page hidden">
-        <header class="filter-header">
-          <button class="filter-close" onclick="showPage('home')">✕</button>
-          <h2>Фильтр</h2>
-          <button class="filter-reset" onclick="resetExtendedFilter()">
-            Очистить
-          </button>
-        </header>
-
-        <div class="filter-body">
-          <div class="filter-section">
-            <label class="filter-label">Категория</label>
-            <select id="ext-cat" class="filter-select">
-              <option value="Все">Выбрать</option>
-              <option value="flowers">Цветы</option>
-              <option value="jewelry">Ювелирка</option>
-              <option value="gifts">Подарки</option>
-              <option value="certs">Сертификаты</option>
-            </select>
-          </div>
-
-          <div class="filter-section">
-            <label class="filter-label">Местоположение</label>
-            <select id="ext-city" class="filter-select">
-              <option value="Все">Кыргызстан (Все)</option>
-              <option value="Бишкек">Бишкек</option>
-              <option value="Ош">Ош</option>
-              <option value="Манас">Манас</option>
-              <option value="Токмок">Токмок</option>
-              <option value="Каракол">Каракол</option>
-            </select>
-          </div>
-
-          <div class="filter-section">
-            <label class="filter-label">Цена (KGS)</label>
-            <div class="price-row">
-              <input
-                type="number"
-                id="price-from"
-                class="price-input"
-                placeholder="От 0"
-              />
-              <input
-                type="number"
-                id="price-to"
-                class="price-input"
-                placeholder="До ..."
-              />
-            </div>
-          </div>
-
-          <div class="filter-section">
-            <label class="filter-label">Сортировать</label>
-            <label class="sort-option">
-              <span class="sort-label">По умолчанию</span>
-              <input
-                type="radio"
-                name="sort"
-                value="default"
-                class="sort-input"
-                checked
-              />
-              <div class="custom-radio"></div>
-            </label>
-            <label class="sort-option">
-              <span class="sort-label">Сначала дешевле</span>
-              <input
-                type="radio"
-                name="sort"
-                value="cheap"
-                class="sort-input"
-              />
-              <div class="custom-radio"></div>
-            </label>
-            <label class="sort-option">
-              <span class="sort-label">Сначала дороже</span>
-              <input
-                type="radio"
-                name="sort"
-                value="expensive"
-                class="sort-input"
-              />
-              <div class="custom-radio"></div>
-            </label>
-          </div>
-        </div>
-
-        <div class="filter-bottom-fixed">
-          <button class="green-btn" onclick="applyExtendedFilter()">
-            Показать результаты
           </button>
         </div>
       </section>
