@@ -15,8 +15,7 @@
   </head>
   <body>
     <div id="app">
-      
-      <!-- ГЛАВНАЯ СТРАНИЦА -->
+      <!-- ГЛАВНАЯ -->
       <section id="page-home" class="page">
         <header class="main-header">
           <div class="search-row">
@@ -55,23 +54,17 @@
           <main class="listings-grid" id="home-grid"></main>
         </div>
 
-        <div id="search-error" class="error-container hidden">
-          <p>Ничего не найдено</p>
-        </div>
+        <div id="search-error" class="error-container hidden"><p>Ничего не найдено</p></div>
       </section>
 
-      <!-- СТРАНИЦА РЕЗУЛЬТАТОВ -->
+      <!-- РЕЗУЛЬТАТЫ -->
       <section id="page-results" class="page hidden">
         <header class="results-header">
-          <button class="back-circle-btn" onclick="showPage('home')">
-            <i class="fa fa-arrow-left"></i>
-          </button>
+          <button class="back-circle-btn" onclick="showPage('home')"><i class="fa fa-arrow-left"></i></button>
           <h2>Результаты</h2>
           <span style="width: 24px"></span>
         </header>
-        <div style="padding-top: 10px">
-          <main class="listings-grid" id="results-grid"></main>
-        </div>
+        <div style="padding-top: 10px"><main class="listings-grid" id="results-grid"></main></div>
       </section>
 
       <!-- ИЗБРАННОЕ -->
@@ -108,21 +101,14 @@
         </header>
         <div class="form-scroll">
           <div class="tariff-container">
-            <div class="tariff-card active" id="tariff-std" onclick="selectTariff('standard')">
-              <div class="tariff-title">Стандарт</div>
-              <div class="tariff-price">Бесплатно</div>
-            </div>
-            <div class="tariff-card" id="tariff-vip" onclick="selectTariff('vip')">
-              <div class="tariff-title vip-gold-text">VIP</div>
-              <div class="tariff-price">100 сом</div>
-            </div>
+            <div class="tariff-card active" id="tariff-std" onclick="selectTariff('standard')">Стандарт</div>
+            <div class="tariff-card" id="tariff-vip" onclick="selectTariff('vip')">VIP (100 сом)</div>
           </div>
 
           <div id="vip-block" class="hidden vip-details">
             <div class="tariff-title vip-gold-text">VIP размещение</div>
-            <p style="font-size: 12px; color: gray; margin-bottom: 10px">Объявление будет в топе 3 дня.</p>
+            <p style="font-size: 12px; color: gray;">Объявление будет в топе 3 дня.</p>
             <div class="qr-placeholder">
-              <!-- Твой QR-код -->
               <img src="https://i.ibb.co/XRs6vY57/photo-2025-05-18-17-53-48.jpg" style="width: 100%; border-radius: 10px" id="vip-qr-img" />
             </div>
             <div class="upload-zone" onclick="document.getElementById('receipt-input').click()">
@@ -135,14 +121,10 @@
           <div class="f-group">
             <label>Фотографии (до 5 шт)</label>
             <div class="upload-zone" onclick="document.getElementById('file-input').click()">
-              <i class="fa fa-camera"></i>
-              <span id="file-label">Нажмите для выбора фото</span>
-              <input type="file" id="file-input" accept="image/*" multiple hidden onchange="handleFileSelect(this)" />
+              <i class="fa fa-camera"></i> <span id="file-label">Нажмите для выбора фото</span>
+              <input type="file" id="file-input" multiple hidden onchange="handleFileSelect(this)" />
             </div>
-            <div id="preview-box" class="hidden">
-              <div id="gallery-preview" class="upload-gallery"></div>
-              <p style="font-size: 12px; color: gray; text-align: center; margin-top: 5px;">Выбрано: <span id="photo-count">0</span></p>
-            </div>
+            <div id="preview-box" class="hidden"><div id="gallery-preview" class="upload-gallery"></div></div>
           </div>
 
           <div class="f-group">
@@ -156,7 +138,6 @@
           </div>
 
           <div class="f-group"><label>Дата получения</label><input type="date" id="in-date" class="main-input" /></div>
-          
           <div class="f-group">
             <label>Город</label>
             <select id="in-city" class="main-input">
@@ -167,7 +148,6 @@
               <option value="Каракол">Каракол</option>
             </select>
           </div>
-
           <div class="f-group"><label>Адрес</label><input type="text" id="in-address" class="main-input" placeholder="Улица, дом" /></div>
           <div class="f-group"><label>Telegram ник (без собачки)</label><input type="text" id="in-tg" class="main-input" placeholder="username" /></div>
           <div class="f-group"><label>Телефон</label><input type="tel" id="in-wa" class="main-input" placeholder="996..." /></div>
@@ -198,14 +178,6 @@
             </select>
           </div>
           <div class="filter-section">
-            <label class="filter-label">Местоположение</label>
-            <select id="ext-city" class="filter-select">
-              <option value="Все">Кыргызстан (Все)</option>
-              <option value="Бишкек">Бишкек</option>
-              <option value="Ош">Ош</option>
-            </select>
-          </div>
-          <div class="filter-section">
             <label class="filter-label">Цена (KGS)</label>
             <div class="price-row">
               <input type="number" id="price-from" class="price-input" placeholder="От 0" />
@@ -214,26 +186,22 @@
           </div>
           <div class="filter-section">
             <label class="filter-label">Сортировать</label>
-            <label class="sort-option"><span class="sort-label">Сначала дешевле</span><input type="radio" name="sort" value="cheap" class="sort-input" /><div class="custom-radio"></div></label>
-            <label class="sort-option"><span class="sort-label">Сначала дороже</span><input type="radio" name="sort" value="expensive" class="sort-input" /><div class="custom-radio"></div></label>
+            <label class="sort-option"><span class="sort-label">Дешевле</span><input type="radio" name="sort" value="cheap" class="sort-input" /><div class="custom-radio"></div></label>
+            <label class="sort-option"><span class="sort-label">Дороже</span><input type="radio" name="sort" value="expensive" class="sort-input" /><div class="custom-radio"></div></label>
           </div>
         </div>
         <div class="filter-bottom-fixed"><button class="green-btn" onclick="applyExtendedFilter()">Показать результаты</button></div>
       </section>
 
-      <!-- МОДАЛКА РЕДАКТИРОВАНИЯ В ПРОФИЛЕ -->
+      <!-- МОДАЛКА РЕДАКТИРОВАНИЯ -->
       <div id="edit-modal" class="full-view hidden">
-        <div class="pv-header">
-            <button class="pv-back" onclick="closeEditModal()">✕</button>
-            <h2 style="font-size: 18px;">Изменить объявление</h2>
-            <span></span>
-        </div>
+        <div class="pv-header"><button class="pv-back" onclick="closeEditModal()">✕</button><h2>Изменить</h2><span></span></div>
         <div class="form-scroll">
-            <div class="f-group"><label>Изменить имя (название)</label><input type="text" id="edit-in-title" class="main-input"></div>
-            <div class="f-group"><label>Изменить цену (KGS)</label><input type="number" id="edit-in-price" class="main-input"></div>
-            <div class="f-group"><label>Изменить номер телефона</label><input type="tel" id="edit-in-wa" class="main-input"></div>
-            <div class="f-group"><label>Изменить описание</label><textarea id="edit-in-desc" class="main-input" style="height: 150px;"></textarea></div>
-            <button class="pink-btn-full" id="save-edit-btn" style="margin-top: 20px;">Сохранить изменения</button>
+            <div class="f-group"><label>Изменить имя</label><input type="text" id="edit-in-title" class="main-input"></div>
+            <div class="f-group"><label>Изменить цену</label><input type="number" id="edit-in-price" class="main-input"></div>
+            <div class="f-group"><label>Номер телефона</label><input type="tel" id="edit-in-wa" class="main-input"></div>
+            <div class="f-group"><label>Описание</label><textarea id="edit-in-desc" class="main-input" style="height: 150px;"></textarea></div>
+            <button class="pink-btn-full" id="save-edit-btn">Сохранить</button>
         </div>
       </div>
 
