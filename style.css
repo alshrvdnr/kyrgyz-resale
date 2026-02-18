@@ -8,7 +8,6 @@
   --radius: 12px;
 }
 
-/* Весь твой оригинальный CSS ниже... */
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
@@ -134,7 +133,6 @@ body {
   flex-direction: column;
 }
 
-/* Новые правки в CSS */
 .card-price-row {
   display: flex;
   justify-content: space-between;
@@ -576,32 +574,6 @@ body {
   font-size: 13px;
 }
 
-/* Ячейки контента модалки */
-.info-cell {
-  background: var(--card);
-  border: 1px solid #333;
-  padding: 12px;
-  border-radius: 10px;
-  margin-bottom: 10px;
-}
-.info-cell-label {
-  display: block;
-  font-size: 11px;
-  color: var(--gray);
-  margin-bottom: 4px;
-}
-.info-cell-value {
-  font-size: 15px;
-  color: white;
-  font-weight: 500;
-}
-.pd-desc-label {
-  font-size: 14px;
-  font-weight: bold;
-  color: var(--pink);
-  margin: 15px 0 8px;
-}
-
 /* Общие стили */
 .form-scroll {
   padding: 20px 20px 120px;
@@ -828,4 +800,86 @@ body {
   color: white;
   font-size: 20px;
   cursor: pointer;
+}
+
+/* Ячейки контента модалки */
+.info-cell {
+  background: var(--card);
+  border: 1px solid #333;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+.info-cell-label {
+  display: block;
+  font-size: 11px;
+  color: var(--gray);
+  margin-bottom: 4px;
+}
+.info-cell-value {
+  font-size: 15px;
+  color: white;
+  font-weight: 500;
+}
+.pd-desc-label {
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--pink);
+  margin: 15px 0 8px;
+}
+
+/* НОВЫЕ СТИЛИ */
+.info-cell-red-label {
+  color: #ff3b30;
+  font-weight: bold;
+  font-size: 18px;
+  margin-bottom: 10px;
+  display: block;
+}
+.blur-img {
+  filter: blur(12px);
+}
+.profile-actions-triple {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 5px;
+  margin-top: 10px;
+  width: 100%;
+}
+.empty-favs-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 80px;
+}
+.heart-square {
+  width: 100px;
+  height: 100px;
+  background: rgba(255, 143, 177, 0.1);
+  border: 2px solid var(--pink);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+.heart-square i {
+  color: var(--pink);
+  font-size: 40px;
+}
+.empty-text {
+  color: var(--gray);
+  font-size: 14px;
+  margin-bottom: 20px;
+  text-align: center;
+  padding: 0 40px;
+}
+.go-search-btn {
+  background: var(--pink);
+  color: #000;
+  border: none;
+  padding: 12px 40px;
+  border-radius: 10px;
+  font-weight: bold;
 }
