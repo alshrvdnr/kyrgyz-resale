@@ -113,16 +113,16 @@
             id="p-tab-active"
             onclick="switchProfileTab('active')"
           >
-            Активно
+            Активные
           </div>
           <div class="p-tab" id="p-tab-sold" onclick="switchProfileTab('sold')">
-            Проданные / Удаленные
+            Архив (Проданные/Удаленные)
           </div>
         </div>
         <main class="listings-grid" id="my-ads-grid"></main>
       </section>
 
-      <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ (ОБНОВЛЕНО ДЛЯ ГАЛЕРЕИ) -->
+      <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ -->
       <section id="page-add" class="page hidden">
         <header class="page-header-simple">
           <button onclick="showPage('home')" class="icon-btn">✕</button>
@@ -138,7 +138,6 @@
             >
               <i class="fa fa-camera"></i>
               <span id="file-label">Нажмите для выбора фото</span>
-              <!-- ВАЖНО: добавлен атрибут multiple -->
               <input
                 type="file"
                 id="file-input"
@@ -148,7 +147,6 @@
                 onchange="handleFileSelect(this)"
               />
             </div>
-            <!-- Новый блок для предпросмотра галереи -->
             <div id="preview-box" class="hidden">
               <div id="gallery-preview" class="upload-gallery"></div>
               <p
@@ -176,18 +174,18 @@
           </div>
 
           <div class="f-group">
-            <label>Адрес (улица, дом)</label>
+            <label>Адрес</label>
             <input
               type="text"
               id="in-address"
               class="main-input"
-              placeholder="Введите адрес"
+              placeholder="Улица, дом"
             />
           </div>
 
           <div class="f-group">
-            <label>Telegram ник (без @)</label
-            ><input
+            <label>Telegram ник (без @)</label>
+            <input
               type="text"
               id="in-tg"
               class="main-input"
@@ -195,8 +193,8 @@
             />
           </div>
           <div class="f-group">
-            <label>Номер телефона</label
-            ><input
+            <label>Номер телефона</label>
+            <input
               type="tel"
               id="in-wa"
               class="main-input"
@@ -204,17 +202,17 @@
             />
           </div>
           <div class="f-group">
-            <label>Название</label
-            ><input
+            <label>Название товара</label>
+            <input
               type="text"
               id="in-title"
               class="main-input"
-              placeholder="Что продаете?"
+              placeholder="Пример: Золотое кольцо"
             />
           </div>
           <div class="f-group">
-            <label>Цена (KGS)</label
-            ><input
+            <label>Цена (KGS)</label>
+            <input
               type="number"
               id="in-price"
               class="main-input"
@@ -231,11 +229,11 @@
             </select>
           </div>
           <div class="f-group">
-            <label>Описание</label
-            ><textarea
+            <label>Краткое описание</label>
+            <textarea
               id="in-desc"
               class="main-input"
-              placeholder="Описание..."
+              placeholder="Опишите товар..."
             ></textarea>
           </div>
 
@@ -269,15 +267,13 @@
         </div>
       </section>
 
-      <!-- ПОДРОБНОСТИ -->
+      <!-- ПРОДУКТ (МОДАЛКА) -->
       <div id="product-modal" class="full-view hidden">
         <div class="pv-header">
           <button class="pv-back" onclick="closeProduct()">
             <i class="fa fa-chevron-left"></i>
           </button>
-          <div class="pv-top-icons" id="modal-fav-icon">
-            <!-- Сюда вставится сердечко -->
-          </div>
+          <div class="pv-top-icons" id="modal-fav-icon"></div>
         </div>
         <div id="pv-content" class="pv-scroll-area"></div>
       </div>
