@@ -2,300 +2,240 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
-    <title>Gifts KG</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Кыргызстан Подарки</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <div id="app">
+      <!-- ГЛАВНАЯ -->
       <section id="page-home" class="page">
         <header class="main-header">
           <div class="search-row">
             <div class="search-bar">
-              <i class="fa fa-search"></i
-              ><input
-                type="text"
-                placeholder="Я ищу..."
-                onkeypress="handleSearch(event)"
-              />
+              <i class="fa fa-search"></i>
+              <input type="text" id="main-search" placeholder="Я ищу..." onkeypress="handleSearch(event)" />
             </div>
-            <button class="filter-pink-btn" onclick="showPage('filter')">
-              Фильтр
-            </button>
+            <button class="filter-pink-btn" onclick="showPage('filter')">Фильтр</button>
           </div>
+
           <div class="category-row">
-            <div class="cat-chip active" onclick="filterByCat('Все', this)">
-              Все
-            </div>
-            <div class="cat-chip" onclick="filterByCat('flowers', this)">
-              Цветы
-            </div>
-            <div class="cat-chip" onclick="filterByCat('jewelry', this)">
-              Ювелирка
-            </div>
-            <div class="cat-chip" onclick="filterByCat('gifts', this)">
-              Подарки
-            </div>
-            <div class="cat-chip" onclick="filterByCat('certs', this)">
-              Сертификаты
-            </div>
+            <div class="cat-chip active" onclick="filterByCat('Все', this)">Все</div>
+            <div class="cat-chip" onclick="filterByCat('flowers', this)">Цветы</div>
+            <div class="cat-chip" onclick="filterByCat('jewelry', this)">Ювелирка</div>
+            <div class="cat-chip" onclick="filterByCat('gifts', this)">Подарки</div>
+            <div class="cat-chip" onclick="filterByCat('certs', this)">Сертификаты</div>
           </div>
-        </header>
-        <div class="capsule-container">
-          <div class="capsule-tabs">
-            <div
-              class="cap-tab active"
-              id="mtab-rec"
-              onclick="switchMainTab('rec')"
-            >
-              Рекомендуемые
-            </div>
-            <div class="cap-tab" id="mtab-new" onclick="switchMainTab('new')">
-              Новые
-            </div>
-          </div>
-        </div>
-        <main class="listings-grid" id="home-grid"></main>
-      </section>
 
-      <section id="page-filter" class="page hidden">
-        <header class="filter-header">
-          <button class="filter-close" onclick="showPage('home')">✕</button>
-          <h2>Фильтр</h2>
-          <button class="filter-reset" onclick="resetExtendedFilter()">
-            Очистить
-          </button>
+          <div class="city-row">
+            <div class="cat-chip active" onclick="filterByCity('Все', this)">Все</div>
+            <div class="cat-chip" onclick="filterByCity('Бишкек', this)">Бишкек</div>
+            <div class="cat-chip" onclick="filterByCity('Ош', this)">Ош</div>
+            <div class="cat-chip" onclick="filterByCity('Манас', this)">Манас</div>
+            <div class="cat-chip" onclick="filterByCity('Токмок', this)">Токмок</div>
+            <div class="cat-chip" onclick="filterByCity('Каракол', this)">Каракол</div>
+          </div>
         </header>
-        <div class="filter-body">
-          <label class="filter-label">Категория</label>
-          <select id="ext-cat" class="filter-select">
-            <option value="Все">Все категории</option>
-            <option value="flowers">Цветы</option>
-            <option value="jewelry">Ювелирка</option>
-            <option value="gifts">Подарки</option>
-            <option value="certs">Сертификаты</option>
-          </select>
-          <label class="filter-label">Город</label>
-          <select id="ext-city" class="filter-select">
-            <option value="Все">Весь Кыргызстан</option>
-            <option value="Бишкек">Бишкек</option>
-            <option value="Ош">Ош</option>
-          </select>
-          <label class="filter-label">Цена (KGS)</label>
-          <div class="price-row">
-            <input
-              type="number"
-              id="price-from"
-              class="price-input"
-              placeholder="От"
-            />
-            <input
-              type="number"
-              id="price-to"
-              class="price-input"
-              placeholder="До"
-            />
+
+        <div id="home-tabs-wrapper">
+          <div class="capsule-container">
+            <div class="capsule-tabs">
+              <div class="cap-tab active" id="mtab-rec" onclick="switchMainTab('rec')">Рекомендуемые</div>
+              <div class="cap-tab" id="mtab-new" onclick="switchMainTab('new')">Новые</div>
+            </div>
           </div>
-          <label class="filter-label">Сортировка</label>
-          <div class="sort-list">
-            <label class="sort-option"
-              >Сначала новые
-              <input type="radio" name="sort" value="default" checked
-            /></label>
-            <label class="sort-option"
-              >Сначала дешевые <input type="radio" name="sort" value="cheap"
-            /></label>
-            <label class="sort-option"
-              >Сначала дорогие
-              <input type="radio" name="sort" value="expensive"
-            /></label>
-          </div>
-        </div>
-        <div class="filter-bottom-fixed">
-          <button class="green-btn" onclick="applyExtendedFilter()">
-            Показать результаты
-          </button>
+          <main class="listings-grid" id="home-grid"></main>
         </div>
       </section>
 
+      <!-- СТРАНИЦА РЕЗУЛЬТАТОВ -->
       <section id="page-results" class="page hidden">
         <header class="results-header">
-          <button onclick="showPage('home')">
-            <i class="fa fa-arrow-left"></i>
-          </button>
+          <button class="back-circle-btn" onclick="showPage('home')"><i class="fa fa-arrow-left"></i></button>
           <h2>Результаты</h2>
-          <span></span>
+          <span style="width: 24px"></span>
         </header>
-        <main class="listings-grid" id="results-grid"></main>
-      </section>
-
-      <section id="page-add" class="page hidden">
-        <header class="page-header-simple"><h2>Новое объявление</h2></header>
-        <div class="form-scroll">
-          <div class="tariff-container">
-            <div
-              class="tariff-card active"
-              id="tariff-std"
-              onclick="selectTariff('standard')"
-            >
-              Стандарт
-            </div>
-            <div
-              class="tariff-card"
-              id="tariff-vip"
-              onclick="selectTariff('vip')"
-            >
-              VIP (100 сом)
-            </div>
-          </div>
-          <div id="vip-block" class="hidden vip-details">
-            <p>Оплата через QR (3 дня в топе)</p>
-            <div class="qr-placeholder">
-              <img
-                src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=PAY"
-              />
-            </div>
-            <button
-              class="btn-mini"
-              onclick="document.getElementById('receipt-input').click()"
-              id="receipt-label"
-            >
-              Добавить чек
-            </button>
-            <input
-              type="file"
-              id="receipt-input"
-              hidden
-              onchange="handleReceiptSelect(this)"
-            />
-          </div>
-          <div class="f-group">
-            <label>Фото (до 5)</label>
-            <div
-              class="upload-zone"
-              onclick="document.getElementById('file-input').click()"
-              id="file-label"
-            >
-              Выбрать фото
-            </div>
-            <input
-              type="file"
-              id="file-input"
-              multiple
-              hidden
-              onchange="handleFileSelect(this)"
-            />
-            <div id="preview-box" class="hidden">
-              <div id="gallery-preview" class="upload-gallery"></div>
-            </div>
-          </div>
-          <input
-            type="text"
-            id="in-title"
-            class="main-input"
-            placeholder="Название"
-          />
-          <input
-            type="number"
-            id="in-price"
-            class="main-input"
-            placeholder="Цена KGS"
-          />
-          <input type="date" id="in-date" class="main-input" />
-          <select id="in-city" class="main-input">
-            <option value="Бишкек">Бишкек</option>
-            <option value="Ош">Ош</option>
-          </select>
-          <select id="in-cat" class="main-input">
-            <option value="flowers">Цветы</option>
-            <option value="jewelry">Ювелирка</option>
-          </select>
-          <input
-            type="text"
-            id="in-address"
-            class="main-input"
-            placeholder="Адрес"
-          />
-          <input
-            type="text"
-            id="in-tg"
-            class="main-input"
-            placeholder="Telegram (без @)"
-          />
-          <input
-            type="tel"
-            id="in-wa"
-            class="main-input"
-            placeholder="Телефон"
-          />
-          <textarea
-            id="in-desc"
-            class="main-input"
-            placeholder="Описание"
-          ></textarea>
-          <button class="pink-btn-full" onclick="publishAndSend()">
-            Опубликовать
-          </button>
+        <div style="padding-top: 10px">
+          <main class="listings-grid" id="results-grid"></main>
         </div>
       </section>
 
+      <!-- ИЗБРАННОЕ -->
       <section id="page-favs" class="page hidden">
-        <header class="results-header">
-          <h2>Избранное</h2>
-          <button onclick="clearFavs()">Очистить</button>
+        <header class="favs-header-custom">
+          <div class="favs-top-line">
+            <span style="width: 60px"></span>
+            <h2>Избранное</h2>
+            <button class="favs-clear-link" onclick="clearFavs()">Очистить</button>
+          </div>
         </header>
         <main id="favs-content-area"></main>
       </section>
 
+      <!-- ПРОФИЛЬ -->
       <section id="page-profile" class="page hidden">
         <div class="profile-hero">
           <div class="avatar-circle" id="u-avatar">?</div>
-          <h2 id="u-name">Загрузка</h2>
+          <h2 id="u-name">Загрузка...</h2>
         </div>
         <div class="profile-tabs-nav">
-          <div
-            class="p-tab active"
-            id="p-tab-active"
-            onclick="switchProfileTab('active')"
-          >
-            Активные
-          </div>
-          <div class="p-tab" id="p-tab-sold" onclick="switchProfileTab('sold')">
-            Архив
-          </div>
+          <div class="p-tab active" id="p-tab-active" onclick="switchProfileTab('active')">Активные</div>
+          <div class="p-tab" id="p-tab-sold" onclick="switchProfileTab('sold')">Архив</div>
         </div>
         <main class="listings-grid" id="my-ads-grid"></main>
       </section>
 
+      <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ -->
+      <section id="page-add" class="page hidden">
+        <header class="page-header-simple">
+          <button onclick="showPage('home')" class="close-circle-btn"><i class="fa fa-times"></i></button>
+          <h2>Новое объявление</h2>
+          <span></span>
+        </header>
+        <div class="form-scroll">
+          <div class="tariff-container">
+            <div class="tariff-card active" id="tariff-std" onclick="selectTariff('standard')">
+              <div class="tariff-title">Стандарт</div>
+              <div class="tariff-price">Бесплатно</div>
+            </div>
+            <div class="tariff-card" id="tariff-vip" onclick="selectTariff('vip')">
+              <div class="tariff-title vip-gold-text">VIP</div>
+              <div class="tariff-price">100 сом</div>
+            </div>
+          </div>
+
+          <div id="vip-block" class="hidden vip-details">
+            <div class="tariff-title vip-gold-text">VIP размещение</div>
+            <p style="font-size: 12px; color: gray; margin-bottom: 10px">Объявление будет в топе 3 дня.</p>
+            <div class="qr-placeholder">
+              <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=0000000000" style="width: 100%; border-radius: 10px" />
+            </div>
+            <div class="upload-zone" style="padding: 15px; border-color: var(--vip-gold)" onclick="document.getElementById('receipt-input').click()">
+              <i class="fa fa-file-invoice-dollar" style="color: var(--vip-gold)"></i>
+              <span id="receipt-label" style="color: white; font-size: 13px">Добавить чек</span>
+              <input type="file" id="receipt-input" accept="image/*" hidden onchange="handleReceiptSelect(this)" />
+            </div>
+          </div>
+
+          <div class="f-group">
+            <label>Фотографии (до 5 шт)</label>
+            <div class="upload-zone" onclick="document.getElementById('file-input').click()">
+              <i class="fa fa-camera"></i>
+              <span id="file-label">Нажмите для выбора фото</span>
+              <input type="file" id="file-input" accept="image/*" multiple hidden onchange="handleFileSelect(this)" />
+            </div>
+            <div id="preview-box" class="hidden">
+              <div id="gallery-preview" class="upload-gallery"></div>
+              <p style="font-size: 12px; color: gray; text-align: center; margin-top: 5px;">Выбрано: <span id="photo-count">0</span></p>
+            </div>
+          </div>
+
+          <div class="f-group">
+            <label>Отдел (Категория)</label>
+            <select id="in-cat" class="main-input">
+              <option value="flowers">Цветы</option>
+              <option value="jewelry">Ювелирка</option>
+              <option value="gifts">Подарки</option>
+              <option value="certs">Сертификаты</option>
+            </select>
+          </div>
+
+          <div class="f-group"><label>Дата получения</label><input type="date" id="in-date" class="main-input" /></div>
+          <div class="f-group">
+            <label>Город</label>
+            <select id="in-city" class="main-input">
+              <option value="Бишкек">Бишкек</option>
+              <option value="Ош">Ош</option>
+              <option value="Манас">Манас</option>
+              <option value="Токмок">Токмок</option>
+              <option value="Каракол">Каракол</option>
+            </select>
+          </div>
+          <div class="f-group"><label>Адрес</label><input type="text" id="in-address" class="main-input" placeholder="Улица, дом" /></div>
+          <div class="f-group"><label>Telegram (без @)</label><input type="text" id="in-tg" class="main-input" placeholder="username" /></div>
+          <div class="f-group"><label>Телефон</label><input type="tel" id="in-wa" class="main-input" placeholder="996..." /></div>
+          <div class="f-group"><label>Название товара</label><input type="text" id="in-title" class="main-input" placeholder="Например: 101 Роза" /></div>
+          <div class="f-group"><label>Цена (KGS)</label><input type="number" id="in-price" class="main-input" placeholder="0" /></div>
+          <div class="f-group"><label>Описание (необязательно)</label><textarea id="in-desc" class="main-input" placeholder="Детали..."></textarea></div>
+
+          <button class="pink-btn-full" onclick="publishAndSend()">Опубликовать</button>
+        </div>
+      </section>
+
+      <!-- ФИЛЬТР (ИСПРАВЛЕННЫЙ) -->
+      <section id="page-filter" class="page hidden">
+        <header class="filter-header">
+          <button class="filter-close" onclick="showPage('home')">✕</button>
+          <h2>Фильтр</h2>
+          <button class="filter-reset" onclick="resetExtendedFilter()">Очистить</button>
+        </header>
+
+        <div class="filter-body">
+          <div class="filter-section">
+            <label class="filter-label">Категория</label>
+            <select id="ext-cat" class="filter-select">
+              <option value="Все">Выбрать</option>
+              <option value="flowers">Цветы</option>
+              <option value="jewelry">Ювелирка</option>
+              <option value="gifts">Подарки</option>
+              <option value="certs">Сертификаты</option>
+            </select>
+          </div>
+
+          <div class="filter-section">
+            <label class="filter-label">Местоположение</label>
+            <select id="ext-city" class="filter-select">
+              <option value="Все">Кыргызстан (Все)</option>
+              <option value="Бишкек">Бишкек</option>
+              <option value="Ош">Ош</option>
+              <option value="Манас">Манас</option>
+              <option value="Токмок">Токмок</option>
+              <option value="Каракол">Каракол</option>
+            </select>
+          </div>
+
+          <div class="filter-section">
+            <label class="filter-label">Цена (KGS)</label>
+            <div class="price-row">
+              <input type="number" id="price-from" class="price-input" placeholder="От 0" />
+              <input type="number" id="price-to" class="price-input" placeholder="До ..." />
+            </div>
+          </div>
+
+          <div class="filter-section">
+            <label class="filter-label">Сортировать</label>
+            <label class="sort-option"><span class="sort-label">По умолчанию</span><input type="radio" name="sort" value="default" class="sort-input" checked /><div class="custom-radio"></div></label>
+            <label class="sort-option"><span class="sort-label">Сначала новые</span><input type="radio" name="sort" value="new" class="sort-input" /><div class="custom-radio"></div></label>
+            <label class="sort-option"><span class="sort-label">Сначала дешевле</span><input type="radio" name="sort" value="cheap" class="sort-input" /><div class="custom-radio"></div></label>
+            <label class="sort-option"><span class="sort-label">Сначала дороже</span><input type="radio" name="sort" value="expensive" class="sort-input" /><div class="custom-radio"></div></label>
+          </div>
+        </div>
+
+        <div class="filter-bottom-fixed">
+          <button class="green-btn" onclick="applyExtendedFilter()">Показать результаты</button>
+        </div>
+      </section>
+
+      <!-- МОДАЛКА -->
       <div id="product-modal" class="full-view hidden">
         <div class="pv-header">
-          <button class="pv-back" onclick="closeProduct()">✕</button>
-          <div id="modal-fav-icon"></div>
+          <button class="pv-back" onclick="closeProduct()"><i class="fa fa-chevron-left"></i></button>
+          <div class="pv-top-icons" id="modal-fav-icon"></div>
         </div>
-        <div id="pv-content"></div>
+        <div id="pv-content" class="pv-scroll-area"></div>
       </div>
 
+      <!-- НАВИГАЦИЯ -->
       <nav class="bottom-nav">
-        <button class="nav-item active" onclick="showPage('home')" id="n-home">
-          <i class="fa fa-home"></i>
-        </button>
+        <button class="nav-item active" onclick="showPage('home')" id="n-home"><i class="fa fa-home"></i><span>Главная</span></button>
         <div class="nav-center">
           <button class="pink-plus" onclick="showPage('add')">+</button>
+          <p>Подать</p>
         </div>
-        <button class="nav-item" onclick="showPage('favs')" id="n-favs">
-          <i class="fa fa-heart"></i>
-        </button>
-        <button class="nav-item" onclick="showPage('profile')" id="n-profile">
-          <i class="fa fa-user"></i>
-        </button>
+        <button class="nav-item" onclick="showPage('favs')" id="n-favs"><i class="fa fa-heart"></i><span>Избранное</span></button>
+        <button class="nav-item" onclick="showPage('profile')" id="n-profile"><i class="fa fa-user"></i><span>Профиль</span></button>
       </nav>
     </div>
     <script src="app.js"></script>
