@@ -7,6 +7,7 @@
   --gray: #8e8e93;
   --card-gray: #2c2c2e;
   --input-bg: #1c1c1e;
+  --premium-grad: linear-gradient(135deg, #ffcc00 0%, #ffdb4d 100%);
 }
 
 body {
@@ -63,67 +64,32 @@ body {
   box-shadow: 0 4px 15px rgba(255, 204, 0, 0.4);
 }
 
-/* 1. Выбор города (Центральный блок) */
-.city-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.8);
-  z-index: 5000;
+/* Локация */
+.top-location-bar {
   display: flex;
   align-items: center;
-  justify-content: center;
-}
-.city-modal {
-  background: var(--card-gray);
-  width: 85%;
-  max-width: 300px;
+  gap: 5px;
+  background: #2c2c2e;
+  width: fit-content;
+  padding: 6px 12px;
   border-radius: 20px;
-  padding: 25px;
-  position: relative;
-  text-align: center;
-}
-.city-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 20px;
-}
-.city-box {
-  background: #3a3a3c;
-  padding: 15px 5px;
-  border-radius: 12px;
-  font-weight: bold;
+  margin-bottom: 15px;
   cursor: pointer;
-  font-size: 14px;
-}
-.city-box:active {
-  background: var(--yellow-main);
-  color: #000;
-}
-.close-city-btn {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  color: var(--yellow-main);
-  font-size: 20px;
 }
 
-/* 2. Категории (Меньше и аккуратнее) */
+/* Категории */
 .categories-container {
   display: flex;
   overflow-x: auto;
-  gap: 8px;
+  gap: 10px;
   padding: 10px 0;
   scrollbar-width: none;
 }
 .cat-card {
-  min-width: 70px;
+  min-width: 80px;
   background: var(--card-gray);
-  border-radius: 10px;
-  padding: 8px 4px;
+  border-radius: 12px;
+  padding: 10px;
   text-align: center;
   flex-shrink: 0;
   border: 1px solid transparent;
@@ -132,104 +98,93 @@ body {
   border-color: var(--yellow-main);
   color: var(--yellow-main);
 }
-.cat-card i {
-  font-size: 14px;
-  display: block;
-  margin-bottom: 4px;
+
+/* VIP Блок */
+.vip-details-box {
+  border: 2px solid var(--yellow-main);
+  border-radius: 15px;
+  padding: 15px;
+  margin-bottom: 20px;
+  text-align: center;
+  box-shadow: 0 0 15px rgba(255, 204, 0, 0.2);
 }
-.cat-card span {
-  font-size: 10px;
-  font-weight: 600;
+.qr-image {
+  width: 140px;
+  height: 140px;
+  margin: 10px 0;
+  border-radius: 10px;
 }
 
-/* 3. Профиль: Активные / Архив */
-.profile-tabs-nav {
-  display: flex;
-  gap: 20px;
-  padding: 10px 15px;
-  border-bottom: 1px solid #333;
+/* Солидная кнопка Опубликовать */
+.premium-btn {
+  width: 100%;
+  background: var(--premium-grad);
+  color: #000;
+  border: none;
+  padding: 18px;
+  border-radius: 15px;
+  font-size: 18px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 5px 15px rgba(255, 204, 0, 0.3);
+  margin-top: 20px;
+  transition: 0.3s;
 }
-.p-tab {
-  color: var(--gray);
-  font-weight: bold;
-  padding-bottom: 8px;
+.premium-btn:active {
+  transform: scale(0.98);
+  box-shadow: none;
+}
+
+/* Избранное */
+.favs-header-full {
+  padding: 20px 15px;
+  border-bottom: 1px solid #333;
   position: relative;
 }
-.p-tab.active {
-  color: var(--yellow-main);
-}
-.p-tab.active::after {
-  content: "";
+.favs-clear-btn {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: var(--yellow-main);
-}
-.ad-actions {
-  display: flex;
-  gap: 5px;
-  padding: 5px;
-}
-.btn-edit {
-  background: #444;
-  color: #fff;
-  border: none;
-  flex: 1;
-  padding: 6px;
-  border-radius: 6px;
-  font-size: 12px;
-}
-.btn-manage {
-  background: var(--yellow-main);
-  color: #000;
-  border: none;
-  flex: 1;
-  padding: 6px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: bold;
-}
-.blur-img {
-  filter: blur(10px);
-}
-
-/* 4. Страница объявления */
-.pd-price {
-  font-size: 26px;
-  font-weight: 800;
+  top: 25px;
+  right: 15px;
   color: var(--yellow-main);
-  margin-bottom: 10px;
+  font-weight: 600;
 }
-.pd-cat-tag {
-  background: #3a3a3c;
-  color: var(--gray);
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-size: 11px;
-  vertical-align: middle;
+.empty-favs-block {
+  text-align: center;
+  padding: 50px 20px;
 }
-.yellow-btn-small {
-  background: var(--yellow-main);
-  color: #000;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 10px;
-  font-weight: bold;
-  width: fit-content;
-  margin: 10px 0;
-  text-decoration: none;
-  display: inline-block;
-}
-.pd-desc-block {
-  background: var(--card-gray);
-  padding: 15px;
-  border-radius: 12px;
-  margin: 15px 0;
+.fav-big-heart {
+  width: 80px;
+  height: 80px;
+  background: #2c2c2e;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  color: var(--yellow-main);
+  font-size: 32px;
 }
 
-/* 5. Карточки ленты и сердечки */
+/* Форма */
+.form-scroll {
+  padding: 15px 20px 120px 20px;
+}
+.f-group {
+  margin-bottom: 18px;
+}
+.main-input {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid #333;
+  padding: 14px;
+  border-radius: 12px;
+  color: #fff;
+  box-sizing: border-box;
+  font-size: 15px;
+}
+
+/* Карточки */
 .listings-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -252,54 +207,14 @@ body {
   top: 8px;
   left: 8px;
   z-index: 10;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   color: #fff;
+  font-size: 18px;
 }
 .fav-heart-btn.active {
   color: var(--yellow-main);
 }
 
-/* 6. Форма Подать объявление (Отступы 5мм ≈ 20px) */
-.form-scroll {
-  padding: 15px 20px 120px 20px;
-}
-.f-group {
-  margin-bottom: 15px;
-}
-.main-input {
-  width: 100%;
-  background: var(--input-bg);
-  border: 1px solid #333;
-  padding: 14px;
-  border-radius: 12px;
-  color: #fff;
-  font-size: 16px;
-  box-sizing: border-box;
-}
-
-/* Старые стили карусели и тарифов */
-.tariff-container-split {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-.tariff-card-half {
-  flex: 1;
-  padding: 15px;
-  border-radius: 12px;
-  background: var(--input-bg);
-  text-align: center;
-  border: 2px solid transparent;
-}
-.tariff-card-half.active {
-  border-color: var(--yellow-main);
-}
+/* Модалка карусель */
 .modal-carousel-container {
   position: relative;
   width: 100%;
