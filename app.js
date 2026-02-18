@@ -85,26 +85,21 @@ function renderFeedInternal(data, gridId) {
   // 2. СОРТИРОВКА (VIP -> Активные -> Проданные)
   const now = Date.now();
   filtered.sort((a, b) => {
-    // Ранг: 0 - VIP Активный, 1 - Обычный Активный, 2 - Проданный/Удаленный
     const getRank = (item) => {
       if (item.status === "sold" || item.status === "deleted") return 2;
       if (item.tariff === "vip" && item.vipTill > now) return 0;
       return 1;
     };
-
     const rankA = getRank(a);
     const rankB = getRank(b);
 
     if (rankA !== rankB) return rankA - rankB;
 
-    // Если ранги равны, применяем фильтры сортировки
-    if (filterSort === "cheap") {
+    if (filterSort === "cheap")
       return parseFloat(a.price) - parseFloat(b.price);
-    } else if (filterSort === "expensive") {
+    if (filterSort === "expensive")
       return parseFloat(b.price) - parseFloat(a.price);
-    } else {
-      return b.id - a.id; // Сначала новые
-    }
+    return b.id - a.id;
   });
 
   filtered.forEach((ad) => {
@@ -116,45 +111,36 @@ function renderFeedInternal(data, gridId) {
 function createAdCard(ad) {
   const catName = catMap[ad.cat] || "Товар";
   let coverImg = Array.isArray(ad.img) ? ad.img[0] : ad.img;
-
-  const showSoldBadge = ad.status === "sold" || ad.status === "deleted";
+  const isSold = ad.status === "sold" || ad.status === "deleted";
   let badgeHTML = "";
-  if (showSoldBadge) {
-    badgeHTML = `<div class="sold-badge">ПРОДАНО</div>`;
-  } else if (ad.tariff === "vip" && ad.vipTill > Date.now()) {
+  if (isSold) badgeHTML = `<div class="sold-badge">ПРОДАНО</div>`;
+  else if (ad.tariff === "vip" && ad.vipTill > Date.now())
     badgeHTML = `<div class="vip-badge">VIP</div>`;
-  }
 
-  let imageHTML = "";
-  if (ad.status === "deleted") {
-    imageHTML = `${badgeHTML}<div class="deleted-placeholder"><span class="deleted-text">Фото скрыто<br>конфиденциально</span></div>`;
-  } else {
-    imageHTML = `${badgeHTML}<img src="${coverImg}" loading="lazy" style="height:140px; object-fit:cover; width:100%;">`;
-  }
+  let imageHTML =
+    ad.status === "deleted"
+      ? `${badgeHTML}<div class="deleted-placeholder"><span class="deleted-text">Фото скрыто<br>конфиденциально</span></div>`
+      : `${badgeHTML}<img src="${coverImg}" loading="lazy" style="height:140px; object-fit:cover; width:100%;">`;
 
   const isFav = favs.includes(ad.id);
   const heartColor = isFav ? "var(--pink)" : "white";
   const heartClass = isFav ? "fa-solid" : "fa-regular";
 
-  let dateStr = "-";
-  if (ad.dateReceived) {
-    const d = new Date(ad.dateReceived);
-    dateStr = d.toLocaleDateString("ru-RU", {
-      day: "numeric",
-      month: "numeric",
-      year: "2-digit",
-    });
-  }
+  let dateStr = ad.dateReceived
+    ? new Date(ad.dateReceived).toLocaleDateString("ru-RU", {
+        day: "numeric",
+        month: "numeric",
+        year: "2-digit",
+      })
+    : "-";
 
   const card = document.createElement("div");
   card.className = "card";
   card.onclick = () => openProduct(ad);
-
   card.innerHTML = `
       <button class="card-fav-btn" onclick="toggleFavCard(event, ${ad.id})">
          <i class="${heartClass} fa-heart" style="color:${heartColor}"></i>
       </button>
-
       ${imageHTML}
       <div class="card-body">
         <span class="card-price">${ad.price} KGS</span>
@@ -166,7 +152,6 @@ function createAdCard(ad) {
             <span class="date-value">${dateStr}</span>
         </div>
       </div>`;
-
   return card;
 }
 
@@ -175,9 +160,6 @@ function toggleFavCard(e, id) {
   toggleFav(id);
 }
 
-// ---------------------------------------------------------
-// ФИЛЬТРЫ
-// ---------------------------------------------------------
 function filterByCat(c, el) {
   curCat = c;
   document
@@ -200,26 +182,25 @@ function applyExtendedFilter() {
   const eCity = document.getElementById("ext-city").value;
   const pFrom = parseFloat(document.getElementById("price-from").value) || 0;
   const pTo = parseFloat(document.getElementById("price-to").value) || Infinity;
-
   const sortRadios = document.getElementsByName("sort");
   let sortVal = "default";
   for (let r of sortRadios) {
     if (r.checked) sortVal = r.value;
   }
 
-  if (eCat !== "Все") curCat = eCat;
-  else curCat = "Все";
+  curCat = eCat;
   curCity = eCity;
   filterSort = sortVal;
 
   const results = ads.filter((ad) => {
     const price = parseFloat(ad.price) || 0;
-    const catMatch = eCat === "Все" || ad.cat === eCat;
-    const cityMatch = eCity === "Все" || ad.city === eCity;
-    const priceMatch = price >= pFrom && price <= pTo;
-    return catMatch && cityMatch && priceMatch;
+    return (
+      (eCat === "Все" || ad.cat === eCat) &&
+      (eCity === "Все" || ad.city === eCity) &&
+      price >= pFrom &&
+      price <= pTo
+    );
   });
-
   renderFeedInternal(results, "results-grid");
   showPage("results");
 }
@@ -236,16 +217,12 @@ function resetExtendedFilter() {
   renderFeed();
 }
 
-// ---------------------------------------------------------
-// ЗАГРУЗКА И ПУБЛИКАЦИЯ
-// ---------------------------------------------------------
 function selectTariff(t) {
   selectedTariff = t;
   document
     .getElementById("tariff-std")
     .classList.toggle("active", t === "standard");
   document.getElementById("tariff-vip").classList.toggle("active", t === "vip");
-
   const vipBlock = document.getElementById("vip-block");
   if (t === "vip") vipBlock.classList.remove("hidden");
   else vipBlock.classList.add("hidden");
@@ -288,10 +265,7 @@ async function uploadToImgBB(file) {
   try {
     const response = await fetch(
       `https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`,
-      {
-        method: "POST",
-        body: formData,
-      }
+      { method: "POST", body: formData }
     );
     const data = await response.json();
     return data.success ? data.data.url : null;
@@ -301,25 +275,22 @@ async function uploadToImgBB(file) {
 }
 
 async function publishAndSend() {
-  const title = document.getElementById("in-title").value;
-  const price = document.getElementById("in-price").value;
-  const dateReceived = document.getElementById("in-date").value;
-  const phone = document.getElementById("in-wa").value;
-  const address = document.getElementById("in-address").value;
-  const tgNick = document.getElementById("in-tg").value;
-  const city = document.getElementById("in-city").value;
-  const cat = document.getElementById("in-cat").value;
-  const desc = document.getElementById("in-desc").value;
+  const titleInput = document.getElementById("in-title");
+  const priceInput = document.getElementById("in-price");
+  const dateInput = document.getElementById("in-date");
+  const waInput = document.getElementById("in-wa");
+  const addrInput = document.getElementById("in-address");
+  const tgInput = document.getElementById("in-tg");
+  const cityInput = document.getElementById("in-city");
+  const catInput = document.getElementById("in-cat");
+  const descInput = document.getElementById("in-desc");
 
-  if (!title || !price) return tg.showAlert("Заполните название и цену!");
-  if (!dateReceived) return tg.showAlert("Укажите дату получения!");
+  if (!titleInput.value || !priceInput.value)
+    return tg.showAlert("Заполните название и цену!");
+  if (!dateInput.value) return tg.showAlert("Укажите дату получения!");
   if (selectedFiles.length === 0) return tg.showAlert("Нужно хотя бы 1 фото!");
 
-  if (selectedTariff === "vip" && !selectedReceipt)
-    return tg.showAlert("Для VIP нужно прикрепить чек!");
-
   tg.MainButton.showProgress();
-  tg.MainButton.text = "Создание записи...";
   tg.MainButton.show();
 
   let uploadedUrls = [];
@@ -328,85 +299,71 @@ async function publishAndSend() {
     if (url) uploadedUrls.push(url);
   }
 
-  let receiptUrl = "";
-  if (selectedTariff === "vip" && selectedReceipt) {
-    receiptUrl = await uploadToImgBB(selectedReceipt);
-  }
-
-  if (uploadedUrls.length === 0) {
-    tg.MainButton.hideProgress();
-    tg.MainButton.hide();
-    return tg.showAlert("Ошибка загрузки фото");
-  }
-
-  const vipTill =
-    selectedTariff === "vip" ? Date.now() + 3 * 24 * 60 * 60 * 1000 : 0;
+  let receiptUrl =
+    selectedTariff === "vip" && selectedReceipt
+      ? await uploadToImgBB(selectedReceipt)
+      : "";
 
   const ad = {
     id: Date.now(),
-    title,
-    price,
-    dateReceived,
-    phone,
-    address,
-    tgNick,
-    city,
-    cat,
-    desc,
+    title: titleInput.value,
+    price: priceInput.value,
+    dateReceived: dateInput.value,
+    phone: waInput.value,
+    address: addrInput.value,
+    tgNick: tgInput.value,
+    city: cityInput.value,
+    cat: catInput.value,
+    desc: descInput.value,
     img: uploadedUrls,
     status: "active",
     userId: tg.initDataUnsafe?.user?.id || 0,
     tariff: selectedTariff,
-    vipTill: vipTill,
+    vipTill: selectedTariff === "vip" ? Date.now() + 259200000 : 0,
     receipt: receiptUrl,
   };
 
   await sendToBot(ad);
-
   ads.unshift(ad);
   localStorage.setItem("gifts_final_v12", JSON.stringify(ads));
 
-  // ОЧИСТКА ВСЕХ ПОЛЕЙ
-  document.getElementById("in-title").value = "";
-  document.getElementById("in-price").value = "";
-  document.getElementById("in-date").value = "";
-  document.getElementById("in-wa").value = "";
-  document.getElementById("in-address").value = "";
-  document.getElementById("in-tg").value = "";
-  document.getElementById("in-desc").value = "";
-  document.getElementById("in-city").selectedIndex = 0;
-  document.getElementById("in-cat").selectedIndex = 0;
-
+  // ПОЛНАЯ ОЧИСТКА ВСЕХ ПОЛЕЙ
+  titleInput.value = "";
+  priceInput.value = "";
+  dateInput.value = "";
+  waInput.value = "";
+  addrInput.value = "";
+  tgInput.value = "";
+  descInput.value = "";
+  cityInput.selectedIndex = 0;
+  catInput.selectedIndex = 0;
   selectedFiles = [];
   selectedReceipt = null;
-  selectTariff("standard");
   document.getElementById("gallery-preview").innerHTML = "";
   document.getElementById("preview-box").classList.add("hidden");
   document.getElementById("file-label").innerText = "Нажмите для выбора фото";
   document.getElementById("receipt-label").innerText = "Добавить чек";
+  selectTariff("standard");
 
-  tg.MainButton.hideProgress();
   tg.MainButton.hide();
-  tg.showAlert("Объявление создано!");
   showPage("home");
 }
 
 async function sendToBot(ad) {
   let text = `📦 ${ad.title}\n💰 ${ad.price} KGS\n📅 ${ad.dateReceived}\n📍 ${ad.city}`;
-  if (ad.tariff === "vip") text += `\n🌟 VIP ЗАЯВКА (Чек прикреплен)`;
-
   const urlGroup = `https://api.telegram.org/bot${BOT_TOKEN}/sendMediaGroup`;
   try {
-    let mediaGroup = ad.img.map((imgUrl, index) => {
-      return { type: "photo", media: imgUrl, caption: index === 0 ? text : "" };
-    });
-    if (ad.receipt) {
+    let mediaGroup = ad.img.map((imgUrl, index) => ({
+      type: "photo",
+      media: imgUrl,
+      caption: index === 0 ? text : "",
+    }));
+    if (ad.receipt)
       mediaGroup.push({
         type: "photo",
         media: ad.receipt,
         caption: "🧾 ЧЕК ОПЛАТЫ",
       });
-    }
     await fetch(urlGroup, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -417,109 +374,49 @@ async function sendToBot(ad) {
   }
 }
 
-// ---------------------------------------------------------
-// ПРОДУКТ
-// ---------------------------------------------------------
 function openProduct(ad) {
   const modal = document.getElementById("product-modal");
   const favIconArea = document.getElementById("modal-fav-icon");
   const isFav = favs.includes(ad.id);
   const catName = catMap[ad.cat] || "Товар";
-
   const images = Array.isArray(ad.img) ? ad.img : [ad.img];
+
   favIconArea.innerHTML = `<i class="${
     isFav ? "fa-solid" : "fa-regular"
   } fa-heart" style="color:var(--pink); font-size:22px;" onclick="toggleFav(${
     ad.id
   })"></i>`;
 
-  let galleryHTML = "";
-  if (ad.status === "deleted") {
-    galleryHTML = `<div class="deleted-placeholder" style="height:250px;"><span class="deleted-text" style="font-size:14px;">Фото скрыто<br>для конфиденциальности</span></div>`;
-  } else {
-    let imagesHtml = images.map((src) => `<img src="${src}">`).join("");
-    let dotsHtml =
-      images.length > 1
-        ? images
-            .map((_, i) => `<div class="dot ${i === 0 ? "active" : ""}"></div>`)
-            .join("")
-        : "";
-    galleryHTML = `<div class="product-gallery">${imagesHtml}</div>${
-      images.length > 1 ? `<div class="gallery-dots">${dotsHtml}</div>` : ""
-    }`;
-  }
+  let galleryHTML =
+    ad.status === "deleted"
+      ? `<div class="deleted-placeholder">Фото скрыто</div>`
+      : `<div class="product-gallery">${images
+          .map((s) => `<img src="${s}">`)
+          .join("")}</div>`;
 
-  let contactInfoHTML = "";
-  if (ad.status === "active") {
-    contactInfoHTML = `
-        <a href="https://t.me/${ad.tgNick.replace(
-          "@",
-          ""
-        )}" target="_blank" class="pd-btn-write">Написать продавцу</a>
-        <div class="contact-info-block"><div class="contact-label">📍 ГОРОД</div><div class="contact-value">${
-          ad.city
-        }</div></div>
-        <div class="contact-info-block"><div class="contact-label">🏠 АДРЕС</div><div class="contact-value">${
-          ad.address || "Не указан"
-        }</div></div>
-        <div class="contact-info-block"><div class="contact-label">📅 ДАТА ПОЛУЧЕНИЯ</div><div class="contact-value">${
-          ad.dateReceived || "-"
-        }</div></div>
-        <div class="contact-info-block"><div class="contact-label">📱 ТЕЛЕФОН</div><div class="contact-value">${
-          ad.phone
-        }</div></div>
-      `;
-  } else {
-    contactInfoHTML = `<div class="hidden-contacts-msg"><i class="fa fa-lock" style="margin-bottom:5px;"></i><br>Контактные данные скрыты,<br>так как товар продан.</div>`;
-  }
-
-  document.getElementById("pv-content").innerHTML = `
-        ${galleryHTML}
-        <div class="pd-body">
-            <div class="pd-price">${ad.price} KGS</div>
-            <div class="pd-title" style="font-size:18px; color:#aaa; margin-bottom:5px;">
-                ${catName} - <span style="color:white;">${ad.title}</span>
-            </div>
-            <p style="color:#eee; font-size:15px; margin-bottom:20px; line-height:1.5;">${
-              ad.desc || "Без описания"
-            }</p>
-            ${contactInfoHTML}
-        </div>
-    `;
+  document.getElementById(
+    "pv-content"
+  ).innerHTML = `${galleryHTML}<div class="pd-body"><div class="pd-price">${
+    ad.price
+  } KGS</div><div class="pd-title">${catName} - ${ad.title}</div><p>${
+    ad.desc || ""
+  }</p></div>`;
   modal.classList.remove("hidden");
-
-  const galleryDiv = document.querySelector(".product-gallery");
-  if (galleryDiv && images.length > 1) {
-    galleryDiv.addEventListener("scroll", () => {
-      const index = Math.round(galleryDiv.scrollLeft / galleryDiv.offsetWidth);
-      document
-        .querySelectorAll(".dot")
-        .forEach((d, i) => d.classList.toggle("active", i === index));
-    });
-  }
   tg.BackButton.show();
   tg.BackButton.onClick(closeProduct);
 }
-
 function closeProduct() {
   document.getElementById("product-modal").classList.add("hidden");
   tg.BackButton.hide();
 }
 
 function toggleFav(id) {
-  if (favs.includes(id)) {
-    favs = favs.filter((f) => f !== id);
-  } else {
-    favs.push(id);
-  }
+  favs = favs.includes(id) ? favs.filter((f) => f !== id) : [...favs, id];
   localStorage.setItem("favs_final_v12", JSON.stringify(favs));
   renderFeed();
   renderFavs();
 }
 
-// ---------------------------------------------------------
-// ПРОФИЛЬ
-// ---------------------------------------------------------
 function switchProfileTab(tab) {
   currentProfileTab = tab;
   document
@@ -534,113 +431,27 @@ function switchProfileTab(tab) {
 function renderProfileAds() {
   const grid = document.getElementById("my-ads-grid");
   const myId = tg.initDataUnsafe?.user?.id || 0;
-
-  let myAds;
-  if (currentProfileTab === "active") {
-    myAds = ads.filter((a) => a.userId === myId && a.status === "active");
-  } else {
-    myAds = ads.filter(
-      (a) =>
-        a.userId === myId && (a.status === "sold" || a.status === "deleted")
-    );
-  }
-
+  const myAds = ads.filter(
+    (a) =>
+      a.userId === myId &&
+      (currentProfileTab === "active"
+        ? a.status === "active"
+        : a.status !== "active")
+  );
   grid.innerHTML = myAds.length
     ? ""
     : '<p style="text-align:center; padding:50px; color:gray;">Пусто</p>';
-
-  myAds.forEach((ad) => {
-    const cardWrapper = document.createElement("div");
-    cardWrapper.className = "card";
-    const catName = catMap[ad.cat] || "Товар";
-    let cover = Array.isArray(ad.img) ? ad.img[0] : ad.img;
-    let imgBlock = "";
-    if (ad.status === "deleted") {
-      imgBlock = `<div class="deleted-placeholder" style="height:140px; font-size:10px; padding:10px;">Фото скрыто</div>`;
-    } else {
-      const badge =
-        ad.status === "sold" ? `<div class="sold-badge">ПРОДАНО</div>` : "";
-      imgBlock = `${badge}<img src="${cover}" style="height:140px; width:100%; object-fit:cover;">`;
-    }
-
-    let buttonsHTML = "";
-    if (ad.status === "active") {
-      buttonsHTML = `
-        <div class="profile-actions">
-            <button class="btn-mini btn-edit" onclick="tg.showAlert('Скоро')">Изменить</button>
-            <button class="btn-mini btn-sold-action" onclick="showActionPopup(${ad.id})">Продано</button>
-        </div>`;
-    } else {
-      buttonsHTML = `<div style="text-align:center; font-size:12px; color:gray; margin-top:10px; font-weight:bold;">Статус: Продано</div>`;
-    }
-
-    let dateStr = "-";
-    if (ad.dateReceived) {
-      const d = new Date(ad.dateReceived);
-      dateStr = d.toLocaleDateString("ru-RU", {
-        day: "numeric",
-        month: "numeric",
-        year: "2-digit",
-      });
-    }
-
-    cardWrapper.innerHTML = `
-        ${imgBlock}
-        <div class="card-body">
-            <span class="card-price">${ad.price} KGS</span>
-            <div class="card-cat-row">
-                <span class="card-category">${catName}</span> ${ad.title}
-            </div>
-            <div class="card-date-block">
-                <span class="date-label">Дата получения</span>
-                <span class="date-value">${dateStr}</span>
-            </div>
-            ${buttonsHTML}
-        </div>`;
-    grid.appendChild(cardWrapper);
-  });
+  myAds.forEach((ad) => grid.appendChild(createAdCard(ad)));
 }
 
-function showActionPopup(id) {
-  tg.showPopup(
-    {
-      title: "Завершение сделки",
-      message: "Выберите действие:",
-      buttons: [
-        { id: "sold", type: "default", text: "Продано" },
-        { id: "delete", type: "destructive", text: "Удалить" },
-        { id: "cancel", type: "cancel" },
-      ],
-    },
-    (btnId) => {
-      if (btnId === "sold") changeStatus(id, "sold");
-      if (btnId === "delete") changeStatus(id, "deleted");
-    }
-  );
-}
-
-function changeStatus(id, newStatus) {
-  const ad = ads.find((a) => a.id === id);
-  if (ad) {
-    ad.status = newStatus;
-    localStorage.setItem("gifts_final_v12", JSON.stringify(ads));
-    renderProfileAds();
-    renderFeed();
-    renderFavs();
-  }
-}
-
-// ---------------------------------------------------------
-// НАВИГАЦИЯ
-// ---------------------------------------------------------
 function showPage(p) {
   document.querySelectorAll(".page").forEach((s) => s.classList.add("hidden"));
   document.getElementById(`page-${p}`).classList.remove("hidden");
   document
     .querySelectorAll(".nav-item")
     .forEach((i) => i.classList.remove("active"));
-  const navBtn = document.getElementById(`n-${p}`);
-  if (navBtn) navBtn.classList.add("active");
+  if (document.getElementById(`n-${p}`))
+    document.getElementById(`n-${p}`).classList.add("active");
 
   const navBar = document.querySelector(".bottom-nav");
   if (p === "filter" || p === "add") {
@@ -649,9 +460,7 @@ function showPage(p) {
     navBar.style.display = "flex";
   }
 
-  if (p === "home") {
-    renderFeed();
-  }
+  if (p === "home") renderFeed();
   if (p === "favs") renderFavs();
   if (p === "profile") renderProfileAds();
 }
@@ -659,14 +468,13 @@ function showPage(p) {
 function renderFavs() {
   const container = document.getElementById("favs-content-area");
   const data = ads.filter((a) => favs.includes(a.id));
-  if (data.length === 0)
-    return (container.innerHTML = `<div style="text-align:center; padding:50px; color:gray;">Пусто</div>`);
-  container.innerHTML = `<div class="listings-grid"></div>`;
-  const grid = container.querySelector(".listings-grid");
-  data.forEach((ad) => {
-    const card = createAdCard(ad);
-    grid.appendChild(card);
-  });
+  container.innerHTML = data.length
+    ? `<div class="listings-grid"></div>`
+    : `<p style="text-align:center; padding:50px; color:gray;">Пусто</p>`;
+  if (data.length) {
+    const grid = container.querySelector(".listings-grid");
+    data.forEach((ad) => grid.appendChild(createAdCard(ad)));
+  }
 }
 
 function clearFavs() {

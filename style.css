@@ -69,24 +69,23 @@ body {
   display: flex;
   gap: 8px;
   overflow-x: auto;
+  white-space: nowrap;
   padding-bottom: 10px;
   scrollbar-width: none;
-  flex-wrap: nowrap; /* Строго в одну линию */
+  flex-wrap: nowrap;
 }
 .category-row::-webkit-scrollbar,
 .city-row::-webkit-scrollbar {
   display: none;
 }
-
 .cat-chip {
   background: var(--card);
   padding: 8px 16px;
   border-radius: 20px;
   font-size: 13px;
-  white-space: nowrap;
   color: var(--gray);
   border: 1px solid #333;
-  flex-shrink: 0; /* Не сжиматься */
+  flex-shrink: 0;
 }
 .cat-chip.active {
   background: var(--pink);
@@ -96,14 +95,12 @@ body {
 }
 
 /* ВКЛАДКИ */
-.capsule-container {
-  padding: 15px 15px 5px;
-}
 .capsule-tabs {
   background: #232325;
   border-radius: 10px;
   display: flex;
   padding: 4px;
+  margin: 15px;
 }
 .cap-tab {
   flex: 1;
@@ -119,14 +116,13 @@ body {
   font-weight: bold;
 }
 
+/* СЕТКА */
 .listings-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
-  padding: 10px 15px 100px;
+  padding: 10px 15px 120px;
 }
-
-/* КАРТОЧКА */
 .card {
   background: var(--card);
   border-radius: var(--radius);
@@ -232,7 +228,6 @@ body {
   font-style: italic;
 }
 
-/* Сердечко */
 .card-fav-btn {
   position: absolute;
   top: 8px;
@@ -257,7 +252,7 @@ body {
   transform: scale(1.2);
 }
 
-/* ФИЛЬТР */
+/* ФИЛЬТР (ФИКСИРОВАННАЯ КНОПКА) */
 .filter-header,
 .results-header {
   display: flex;
@@ -380,7 +375,7 @@ body {
   padding: 20px;
   background: var(--bg);
   border-top: 1px solid #222;
-  z-index: 9999; /* Поверх всего */
+  z-index: 9999;
   padding-bottom: calc(20px + env(safe-area-inset-bottom));
 }
 .green-btn {
@@ -715,6 +710,8 @@ body {
   color: var(--pink);
   font-size: 15px;
 }
+
+/* NAV */
 .bottom-nav {
   position: fixed;
   bottom: 0;
