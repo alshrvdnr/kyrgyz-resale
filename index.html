@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>Gifts KG</title>
+    <title>Gifts Kyrgyzstan</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link
       rel="stylesheet"
@@ -16,7 +16,7 @@
   </head>
   <body>
     <div id="app">
-      <!-- ГЛАВНАЯ СТРАНИЦА -->
+      <!-- ГЛАВНАЯ -->
       <section id="page-home" class="page">
         <header class="main-header">
           <div class="top-location-bar" onclick="toggleCitySelector()">
@@ -30,18 +30,14 @@
               style="font-size: 10px; margin-left: 4px"
             ></i>
           </div>
-          <div
-            class="search-profile-row"
-            style="
-              display: flex;
-              gap: 10px;
-              align-items: center;
-              margin-bottom: 5px;
-            "
-          >
+          <div class="search-profile-row">
             <div class="search-wrapper">
               <i class="fa fa-search" style="color: var(--gray)"></i>
-              <input type="text" id="main-search" placeholder="Поиск..." />
+              <input
+                type="text"
+                id="main-search"
+                placeholder="Поиск подарков..."
+              />
             </div>
             <div
               id="u-avatar-top"
@@ -55,22 +51,14 @@
                 justify-content: center;
                 color: #000;
                 font-weight: bold;
+                cursor: pointer;
               "
               onclick="showPage('profile')"
             >
               ?
             </div>
           </div>
-          <div
-            class="categories-container"
-            style="
-              display: flex;
-              overflow-x: auto;
-              gap: 10px;
-              padding: 10px 0;
-              scrollbar-width: none;
-            "
-          >
+          <div class="categories-container">
             <div class="cat-card active" onclick="filterByCat('Все', this)">
               <i class="fa-solid fa-border-all"></i><span>Все</span>
             </div>
@@ -146,31 +134,56 @@
           >
             <div
               onclick="selectCity('Бишкек')"
-              style="background: #333; padding: 15px; border-radius: 12px"
+              style="
+                background: #333;
+                padding: 15px;
+                border-radius: 12px;
+                cursor: pointer;
+              "
             >
               Бишкек
             </div>
             <div
               onclick="selectCity('Ош')"
-              style="background: #333; padding: 15px; border-radius: 12px"
+              style="
+                background: #333;
+                padding: 15px;
+                border-radius: 12px;
+                cursor: pointer;
+              "
             >
               Ош
             </div>
             <div
               onclick="selectCity('Манас')"
-              style="background: #333; padding: 15px; border-radius: 12px"
+              style="
+                background: #333;
+                padding: 15px;
+                border-radius: 12px;
+                cursor: pointer;
+              "
             >
               Манас
             </div>
             <div
               onclick="selectCity('Токмок')"
-              style="background: #333; padding: 15px; border-radius: 12px"
+              style="
+                background: #333;
+                padding: 15px;
+                border-radius: 12px;
+                cursor: pointer;
+              "
             >
               Токмок
             </div>
             <div
               onclick="selectCity('Каракол')"
-              style="background: #333; padding: 15px; border-radius: 12px"
+              style="
+                background: #333;
+                padding: 15px;
+                border-radius: 12px;
+                cursor: pointer;
+              "
             >
               Каракол
             </div>
@@ -178,7 +191,7 @@
         </div>
       </div>
 
-      <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ (ПОЛНЫЙ ВИД) -->
+      <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ (ВЕРНУТ ВСЕ ПОЛЯ) -->
       <section id="page-add" class="page hidden">
         <header
           style="
@@ -191,7 +204,7 @@
           <i
             class="fa fa-times"
             onclick="cancelAdd()"
-            style="font-size: 24px"
+            style="font-size: 24px; cursor: pointer"
           ></i>
           <h2 id="add-title-text" style="font-size: 18px; margin: 0">
             Новое объявление
@@ -262,7 +275,7 @@
           </div>
 
           <div class="f-group">
-            <label>Фотографии (макс. 5 фото)</label>
+            <label>Фотографии (до 5 штук)</label>
             <div
               class="main-input"
               onclick="document.getElementById('file-input').click()"
@@ -301,6 +314,7 @@
               <option value="certs">Сертификаты</option>
             </select>
           </div>
+
           <div class="f-group">
             <label>Город</label>
             <select id="in-city" class="main-input">
@@ -310,44 +324,50 @@
               <option value="Каракол">Каракол</option>
             </select>
           </div>
+
           <div class="f-group">
-            <label>Название товара</label
-            ><input
+            <label>Название товара</label>
+            <input
               type="text"
               id="in-title"
               class="main-input"
               placeholder="Например: Букет из 25 роз"
             />
           </div>
+
           <div class="f-group">
-            <label>Цена (KGS)</label
-            ><input type="number" id="in-price" class="main-input" />
+            <label>Цена (KGS)</label>
+            <input type="number" id="in-price" class="main-input" />
           </div>
+
           <div class="f-group">
-            <label>Дата получения товара</label
-            ><input type="date" id="in-receive-date" class="main-input" />
+            <label>Дата получения товара</label>
+            <input type="date" id="in-receive-date" class="main-input" />
           </div>
+
           <div class="f-group">
-            <label>Telegram (@nick)</label
-            ><input
+            <label>Telegram (@nick)</label>
+            <input
               type="text"
               id="in-tg"
               class="main-input"
               placeholder="@nickname"
             />
           </div>
+
           <div class="f-group">
-            <label>Телефон / WhatsApp</label
-            ><input
+            <label>Телефон / WhatsApp</label>
+            <input
               type="tel"
               id="in-wa"
               class="main-input"
               placeholder="0XXXXXXXXX"
             />
           </div>
+
           <div class="f-group">
-            <label>Описание</label
-            ><textarea id="in-desc" class="main-input" rows="4"></textarea>
+            <label>Описание</label>
+            <textarea id="in-desc" class="main-input" rows="4"></textarea>
           </div>
 
           <button class="btn-premium-unity" onclick="publishAndSend()">
@@ -392,6 +412,7 @@
               border: none;
               font-size: 18px;
               font-weight: bold;
+              cursor: pointer;
             "
           >
             <i class="fa fa-arrow-left"></i> Назад
@@ -418,22 +439,11 @@
           </div>
           <h2 id="u-name" style="margin-top: 10px">Никнейм</h2>
         </div>
-        <div
-          class="profile-tabs"
-          style="display: flex; border-bottom: 1px solid #333"
-        >
+        <div class="profile-tabs">
           <div
             class="p-tab active"
             id="tab-active"
             onclick="switchProfileTab('active')"
-            style="
-              flex: 1;
-              text-align: center;
-              padding: 15px;
-              color: var(--gray);
-              font-weight: bold;
-              cursor: pointer;
-            "
           >
             Активные
           </div>
@@ -441,14 +451,6 @@
             class="p-tab"
             id="tab-archive"
             onclick="switchProfileTab('archive')"
-            style="
-              flex: 1;
-              text-align: center;
-              padding: 15px;
-              color: var(--gray);
-              font-weight: bold;
-              cursor: pointer;
-            "
           >
             Архив
           </div>

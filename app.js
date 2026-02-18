@@ -127,6 +127,7 @@ function toggleFav(id, event) {
 
 function renderFavs() {
   const container = document.getElementById("favs-content-area");
+  if (!container) return;
   const filtered = ads.filter((ad) => favs.includes(ad.id));
   if (filtered.length === 0) {
     container.innerHTML = `
@@ -180,7 +181,7 @@ function openProduct(ad) {
       <a href="https://t.me/${ad.tgNick?.replace(
         "@",
         ""
-      )}" class="btn-premium-unity">Написать продавцу</a>
+      )}" class="btn-premium-unity" style="text-decoration:none;">Написать продавцу</a>
       <div style="color:var(--gray); font-size:12px; margin-top:10px;">Дата публикации: ${dateStr}</div>
       ${
         ad.receiveDate
@@ -223,6 +224,60 @@ function closeProduct() {
   tg.BackButton.hide();
 }
 
+function switchProfileTab(tab) {
+  profTab = tab;
+  document
+    .getElementById("tab-active")
+    .classList.toggle("active", tab === "active");
+  document
+    .getElementById("tab-archive")
+    .classList.toggle("active", tab === "archive");
+  renderProfile();
+}
+
+function renderProfile() {
+  const grid = document.getElementById("my-ads-grid");
+  if (!grid) return;
+  grid.innerHTML = "";
+  const myId = tg.initDataUnsafe?.user?.id || 0;
+  const filtered = ads.filter((ad) => {
+    const isMine = ad.userId === myId;
+    if (!isMine) return false;
+    return profTab === "active"
+      ? ad.status === "active"
+      : ad.status === "sold" || ad.status === "deleted";
+  });
+  filtered.forEach((ad) => grid.appendChild(createAdCard(ad, true)));
+}
+
+function manageAd(id) {
+  const res = prompt("Управление:\n1 - Продано\n2 - Удалить\n3 - Отмена");
+  const ad = ads.find((a) => a.id === id);
+  if (!ad) return;
+  if (res === "1") ad.status = "sold";
+  else if (res === "2") ad.status = "deleted";
+  else return;
+  localStorage.setItem("gifts_final_v12", JSON.stringify(ads));
+  renderProfile();
+  renderFeed();
+}
+
+function editAd(id) {
+  const ad = ads.find((a) => a.id === id);
+  if (!ad) return;
+  editingId = id;
+  showPage("add");
+  document.getElementById("add-title-text").innerText = "Изменить объявление";
+  document.getElementById("in-title").value = ad.title || "";
+  document.getElementById("in-price").value = ad.price || "";
+  document.getElementById("in-wa").value = ad.phone || "";
+  document.getElementById("in-tg").value = ad.tgNick || "";
+  document.getElementById("in-desc").value = ad.desc || "";
+  document.getElementById("in-cat").value = ad.cat;
+  document.getElementById("in-city").value = ad.city;
+  document.getElementById("in-receive-date").value = ad.receiveDate || "";
+}
+
 function selectTariff(t) {
   selectedTariff = t;
   document.getElementById("tariff-std").className =
@@ -232,6 +287,11 @@ function selectTariff(t) {
   document.getElementById("vip-block").classList.toggle("hidden", t !== "vip");
 }
 
+function handleReceiptSelect(input) {
+  if (input.files[0])
+    document.getElementById("receipt-label").innerText = "Чек добавлен ✅";
+}
+
 async function publishAndSend() {
   const title = document.getElementById("in-title").value;
   const price = document.getElementById("in-price").value;
@@ -239,14 +299,16 @@ async function publishAndSend() {
 
   if (editingId) {
     const ad = ads.find((a) => a.id === editingId);
-    ad.title = title;
-    ad.price = price;
-    ad.cat = document.getElementById("in-cat").value;
-    ad.city = document.getElementById("in-city").value;
-    ad.phone = document.getElementById("in-wa").value;
-    ad.tgNick = document.getElementById("in-tg").value;
-    ad.desc = document.getElementById("in-desc").value;
-    ad.receiveDate = document.getElementById("in-receive-date").value;
+    if (ad) {
+      ad.title = title;
+      ad.price = price;
+      ad.cat = document.getElementById("in-cat").value;
+      ad.city = document.getElementById("in-city").value;
+      ad.phone = document.getElementById("in-wa").value;
+      ad.tgNick = document.getElementById("in-tg").value;
+      ad.desc = document.getElementById("in-desc").value;
+      ad.receiveDate = document.getElementById("in-receive-date").value;
+    }
     editingId = null;
   } else {
     let imgs = [];
@@ -286,7 +348,7 @@ async function uploadToImgBB(file) {
     });
     const data = await res.json();
     return data.success ? data.data.url : null;
-  } catch {
+  } catch (e) {
     return null;
   }
 }
@@ -294,6 +356,7 @@ async function uploadToImgBB(file) {
 function handleFileSelect(input) {
   selectedFiles = Array.from(input.files).slice(0, 5);
   const prev = document.getElementById("gallery-preview");
+  if (!prev) return;
   prev.innerHTML = "";
   selectedFiles.forEach((f) => {
     const reader = new FileReader();
@@ -312,69 +375,25 @@ function handleFileSelect(input) {
 
 function showPage(p) {
   document.querySelectorAll(".page").forEach((s) => s.classList.add("hidden"));
-  document.getElementById(`page-${p}`).classList.remove("hidden");
+  const target = document.getElementById(`page-${p}`);
+  if (target) target.classList.remove("hidden");
+
   document
     .querySelectorAll(".nav-item")
     .forEach((i) => i.classList.remove("active"));
-  if (document.getElementById(`n-${p}`))
-    document.getElementById(`n-${p}`).classList.add("active");
+  const navItem = document.getElementById(`n-${p}`);
+  if (navItem) navItem.classList.add("active");
+
   if (p === "favs") renderFavs();
   if (p === "profile") renderProfile();
 }
 
-function switchProfileTab(t) {
-  profTab = t;
-  document
-    .getElementById("tab-active")
-    .classList.toggle("active", t === "active");
-  document
-    .getElementById("tab-archive")
-    .classList.toggle("active", t === "archive");
-  renderProfile();
-}
-function renderProfile() {
-  const grid = document.getElementById("my-ads-grid");
-  if (!grid) return;
-  grid.innerHTML = "";
-  const myId = tg.initDataUnsafe?.user?.id || 0;
-  const filtered = ads.filter(
-    (ad) =>
-      ad.userId === myId &&
-      (profTab === "active"
-        ? ad.status === "active"
-        : ad.status === "sold" || ad.status === "deleted")
-  );
-  filtered.forEach((ad) => grid.appendChild(createAdCard(ad, true)));
-}
-function manageAd(id) {
-  const res = prompt("1-Продано, 2-Удалить, 3-Отмена");
-  const ad = ads.find((a) => a.id === id);
-  if (res === "1") ad.status = "sold";
-  else if (res === "2") ad.status = "deleted";
-  localStorage.setItem("gifts_final_v12", JSON.stringify(ads));
-  renderProfile();
-  renderFeed();
-}
-function editAd(id) {
-  const ad = ads.find((a) => a.id === id);
-  editingId = id;
-  showPage("add");
-  document.getElementById("in-title").value = ad.title;
-  document.getElementById("in-price").value = ad.price;
-  document.getElementById("in-wa").value = ad.phone || "";
-  document.getElementById("in-tg").value = ad.tgNick || "";
-  document.getElementById("in-desc").value = ad.desc || "";
-  document.getElementById("in-cat").value = ad.cat;
-  document.getElementById("in-city").value = ad.city;
-}
-function handleReceiptSelect(i) {
-  if (i.files[0])
-    document.getElementById("receipt-label").innerText = "Чек добавлен ✅";
-}
 function cancelAdd() {
   editingId = null;
+  document.getElementById("add-title-text").innerText = "Новое объявление";
   showPage("home");
 }
+
 function clearFavs() {
   favs = [];
   localStorage.setItem("favs_final_v12", "[]");

@@ -18,30 +18,12 @@ body {
   overflow-x: hidden;
   width: 100%;
 }
+
 .hidden {
   display: none !important;
 }
 
-/* ЕДИНЫЙ ДИЗАЙН КНОПОК */
-.btn-premium-unity {
-  display: block;
-  width: 100%;
-  box-sizing: border-box;
-  background: var(--premium-grad);
-  color: #000;
-  border: none;
-  padding: 18px;
-  border-radius: 15px;
-  font-weight: 800;
-  font-size: 16px;
-  text-align: center;
-  text-decoration: none;
-  text-transform: uppercase;
-  cursor: pointer;
-  box-shadow: 0 4px 15px rgba(255, 204, 0, 0.3);
-}
-
-/* ХЕДЕР (Подтянут вверх) */
+/* ХЕДЕР И ПОИСК (ПОДТЯНУТЫ) */
 .main-header {
   padding: 5px 15px 10px;
   position: sticky;
@@ -76,9 +58,47 @@ body {
   margin-left: 10px;
   outline: none;
   width: 100%;
+  font-size: 15px;
 }
 
-/* КАРТОЧКИ И VIP СВЕЧЕНИЕ */
+/* КАТЕГОРИИ (КВАДРАТНЫЕ КОРОБОЧКИ) */
+.categories-container {
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
+  padding: 10px 0;
+  scrollbar-width: none;
+}
+.categories-container::-webkit-scrollbar {
+  display: none;
+}
+.cat-card {
+  min-width: 80px;
+  background: var(--card-gray);
+  border-radius: 12px;
+  padding: 10px;
+  text-align: center;
+  flex-shrink: 0;
+  border: 1px solid #333;
+  transition: 0.3s;
+  color: var(--gray);
+}
+.cat-card.active {
+  border-color: var(--yellow-main);
+  color: var(--yellow-main);
+  background: rgba(255, 204, 0, 0.1);
+}
+.cat-card i {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 18px;
+}
+.cat-card span {
+  font-size: 11px;
+  font-weight: bold;
+}
+
+/* СЕТКА И КАРТОЧКИ (ФОТО 150PX) */
 .listings-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -91,9 +111,17 @@ body {
   overflow: hidden;
   position: relative;
   border: 1px solid transparent;
+  transition: 0.3s;
 }
+.card img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+}
+
+/* VIP СВЕЧЕНИЕ КАРТОЧЕК */
 .card-vip {
-  border: 1px solid var(--yellow-main);
+  border: 1px solid var(--yellow-main) !important;
   animation: vipGlowEffect 1.5s infinite alternate;
 }
 @keyframes vipGlowEffect {
@@ -104,6 +132,7 @@ body {
     box-shadow: 0 0 15px rgba(255, 204, 0, 0.6);
   }
 }
+
 .fav-heart-btn {
   position: absolute;
   top: 10px;
@@ -111,7 +140,7 @@ body {
   z-index: 10;
   color: #fff;
   font-size: 22px;
-  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.8));
+  filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.8));
   cursor: pointer;
 }
 .fav-heart-btn.active {
@@ -133,7 +162,7 @@ body {
   filter: blur(12px);
 }
 
-/* НИЖНЯЯ ПАНЕЛЬ И КРУГЛЫЙ ПЛЮС */
+/* НИЖНЯЯ ПАНЕЛЬ И КРУГЛЫЙ ПЛЮС (ИСПРАВЛЕНО) */
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -156,6 +185,7 @@ body {
   align-items: center;
   gap: 5px;
   width: 30%;
+  transition: 0.3s;
 }
 .nav-item i {
   font-size: 32px;
@@ -184,7 +214,10 @@ body {
 
 .yellow-plus-main {
   width: 65px !important;
-  height: 65px !important; /* Строгий круг */
+  height: 65px !important;
+  min-width: 65px;
+  min-height: 65px;
+  border-radius: 50% !important;
   background: var(--yellow-main);
   border: 5px solid var(--bg);
   color: #000;
@@ -192,12 +225,31 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50% !important;
   box-shadow: 0 4px 15px rgba(255, 204, 0, 0.4);
   flex-shrink: 0;
 }
 
-/* ИЗБРАННОЕ (ЦЕНТРОВКА) */
+/* ПРОФИЛЬ ТАБЫ (ЯРКОЕ ВЫДЕЛЕНИЕ) */
+.profile-tabs {
+  display: flex;
+  border-bottom: 1px solid #333;
+}
+.p-tab {
+  flex: 1;
+  text-align: center;
+  padding: 15px;
+  color: var(--gray);
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.p-tab.active {
+  color: var(--yellow-main) !important;
+  border-bottom: 3px solid var(--yellow-main) !important;
+  background: rgba(255, 204, 0, 0.05);
+}
+
+/* ИЗБРАННОЕ (ИДЕАЛЬНЫЙ ЦЕНТР) */
 .empty-favs-center {
   display: flex;
   flex-direction: column;
@@ -205,10 +257,10 @@ body {
   justify-content: center;
   text-align: center;
   width: 100%;
-  height: 60vh;
+  padding: 100px 0;
 }
 
-/* ФОРМА ПОДАЧИ (СТАРЫЙ ВИД) */
+/* ФОРМА (ПОЛНЫЙ ВИД) */
 .form-scroll {
   padding: 10px 20px 120px 20px;
 }
@@ -233,7 +285,7 @@ body {
   box-sizing: border-box;
 }
 
-/* ТАРИФЫ СО СВЕЧЕНИЕМ */
+/* ТАРИФЫ (ЖЕЛТОЕ СВЕЧЕНИЕ VIP) */
 .tariff-card-box {
   flex: 1;
   padding: 15px;
@@ -242,18 +294,38 @@ body {
   text-align: center;
   border: 2px solid transparent;
   transition: 0.3s;
+  cursor: pointer;
 }
 .tariff-card-box.active-std {
   border-color: var(--yellow-main);
   background: rgba(255, 204, 0, 0.1);
 }
 .tariff-card-box.active-vip {
-  border-color: var(--yellow-vip);
-  background: rgba(255, 215, 0, 0.15);
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.7); /* Сильное свечение */
+  border-color: var(--yellow-vip) !important;
+  background: rgba(255, 215, 0, 0.15) !important;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8) !important; /* ЯРКОЕ СВЕЧЕНИЕ */
 }
 
-/* МОДАЛКА */
+/* ОБЩАЯ КНОПКА */
+.btn-premium-unity {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--premium-grad);
+  color: #000;
+  border: none;
+  padding: 18px;
+  border-radius: 15px;
+  font-weight: 800;
+  font-size: 16px;
+  text-align: center;
+  text-decoration: none;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(255, 204, 0, 0.3);
+}
+
+/* МОДАЛКА И КАРУСЕЛЬ */
 .modal-carousel-container {
   position: relative;
   width: 100%;
@@ -266,6 +338,9 @@ body {
   scroll-snap-type: x mandatory;
   height: 100%;
   scrollbar-width: none;
+}
+.product-gallery-slider::-webkit-scrollbar {
+  display: none;
 }
 .product-gallery-slider img {
   min-width: 100%;
