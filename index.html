@@ -13,11 +13,13 @@
       <!-- ГЛАВНАЯ -->
       <section id="page-home" class="page">
         <header class="main-header">
+          <!-- Поиск и Кнопка Фильтр справа -->
           <div class="search-row">
             <div class="search-bar">
               <i class="fa fa-search"></i>
               <input type="text" id="main-search" placeholder="Я ищу..." onkeypress="handleSearch(event)"/>
             </div>
+            <button class="filter-pink-btn" onclick="showPage('filter')">Фильтр</button>
           </div>
           
           <!-- КАТЕГОРИИ -->
@@ -41,7 +43,6 @@
         </header>
 
         <div id="home-tabs-wrapper">
-          <!-- ВКЛАДКИ: Рекомендуемые (1), Новые (2) -->
           <div class="capsule-container">
             <div class="capsule-tabs">
               <div class="cap-tab active" id="mtab-rec" onclick="switchMainTab('rec')">Рекомендуемые</div>
@@ -84,7 +85,6 @@
       <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ -->
       <section id="page-add" class="page hidden">
         <header class="page-header-simple">
-          <!-- НОРМАЛЬНЫЙ КРУГЛЫЙ КРЕСТИК -->
           <button onclick="showPage('home')" class="close-circle-btn"><i class="fa fa-times"></i></button>
           <h2>Новое объявление</h2>
           <span></span>
@@ -134,13 +134,96 @@
           <div class="f-group"><label>Телефон</label><input type="tel" id="in-wa" class="main-input" placeholder="996..."/></div>
           <div class="f-group"><label>Название товара</label><input type="text" id="in-title" class="main-input" placeholder="Например: 101 Роза"/></div>
           <div class="f-group"><label>Цена (KGS)</label><input type="number" id="in-price" class="main-input" placeholder="0"/></div>
-          
-          <div class="f-group">
-            <label>Описание (необязательно)</label>
-            <textarea id="in-desc" class="main-input" placeholder="Детали..."></textarea>
-          </div>
+          <div class="f-group"><label>Описание (необязательно)</label><textarea id="in-desc" class="main-input" placeholder="Детали..."></textarea></div>
 
           <button class="pink-btn-full" onclick="publishAndSend()">Опубликовать</button>
+        </div>
+      </section>
+
+      <!-- НОВАЯ СТРАНИЦА ФИЛЬТРА (Как на скрине) -->
+      <section id="page-filter" class="page hidden">
+        <header class="filter-header">
+            <!-- Кнопка закрыть слева -->
+            <button class="filter-close" onclick="showPage('home')">✕</button>
+            <h2>Фильтр</h2>
+            <!-- Очистить справа -->
+            <button class="filter-reset" onclick="resetExtendedFilter()">Очистить</button>
+        </header>
+
+        <div class="filter-body">
+            <!-- Категория -->
+            <div class="filter-section">
+                <label class="filter-label">Категория</label>
+                <select id="ext-cat" class="filter-select">
+                    <option value="Все">Выбрать</option>
+                    <option value="flowers">Цветы</option>
+                    <option value="jewelry">Ювелирка</option>
+                    <option value="gifts">Подарки</option>
+                    <option value="certs">Сертификаты</option>
+                </select>
+            </div>
+
+            <!-- Местоположение -->
+            <div class="filter-section">
+                <label class="filter-label">Местоположение</label>
+                <select id="ext-city" class="filter-select">
+                    <option value="Все">Кыргызстан (Все)</option>
+                    <option value="Бишкек">Бишкек</option>
+                    <option value="Ош">Ош</option>
+                    <option value="Манас">Манас</option>
+                    <option value="Токмок">Токмок</option>
+                    <option value="Каракол">Каракол</option>
+                </select>
+            </div>
+
+            <!-- Цена -->
+            <div class="filter-section">
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    <label class="filter-label" style="margin:0;">Цена</label>
+                    <div style="display:flex; gap:5px;">
+                        <span style="background:var(--pink); color:black; padding:2px 6px; border-radius:4px; font-size:12px; font-weight:bold;">KGS</span>
+                        <span style="background:#333; color:gray; padding:2px 6px; border-radius:4px; font-size:12px;">USD</span>
+                    </div>
+                </div>
+                <div class="price-row">
+                    <input type="number" id="price-from" class="price-input" placeholder="От 0">
+                    <input type="number" id="price-to" class="price-input" placeholder="До ...">
+                </div>
+            </div>
+
+            <!-- Сортировать -->
+            <div class="filter-section">
+                <label class="filter-label">Сортировать</label>
+                
+                <label class="sort-option">
+                    <span class="sort-label">По умолчанию</span>
+                    <input type="radio" name="sort" value="default" class="sort-input" checked>
+                    <div class="custom-radio"></div>
+                </label>
+
+                <label class="sort-option">
+                    <span class="sort-label">Сначала новые</span>
+                    <input type="radio" name="sort" value="new" class="sort-input">
+                    <div class="custom-radio"></div>
+                </label>
+
+                <label class="sort-option">
+                    <span class="sort-label">Сначала дешевле</span>
+                    <input type="radio" name="sort" value="cheap" class="sort-input">
+                    <div class="custom-radio"></div>
+                </label>
+
+                <label class="sort-option">
+                    <span class="sort-label">Сначала дороже</span>
+                    <input type="radio" name="sort" value="expensive" class="sort-input">
+                    <div class="custom-radio"></div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Кнопка Показать (Фиксированная) -->
+        <div class="filter-bottom-fixed">
+            <button class="green-btn" onclick="applyExtendedFilter()">Показать результаты</button>
         </div>
       </section>
 

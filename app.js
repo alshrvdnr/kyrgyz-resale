@@ -21,9 +21,17 @@ const catMap = {
 // ---------------------------------------------------------
 let ads = JSON.parse(localStorage.getItem("gifts_final_v12")) || [];
 let favs = JSON.parse(localStorage.getItem("favs_final_v12")) || [];
+
+// Состояние фильтров
 let curCat = "Все";
 let curCity = "Все";
-let curMainTab = "rec"; // ПО УМОЛЧАНИЮ - РЕКОМЕНДУЕМЫЕ
+let curMainTab = "rec"; // rec (Рекомендуемые) или new (Новые)
+
+// Дополнительные фильтры
+let filterPriceFrom = null;
+let filterPriceTo = null;
+let filterSort = "default"; // default, new, cheap, expensive
+
 let currentProfileTab = "active";
 let selectedFiles = []; 
 
@@ -45,7 +53,8 @@ function handleSearch(e) {
   if (e.key === "Enter") {
     const query = e.target.value.toLowerCase();
     const results = ads.filter((a) => a.title.toLowerCase().includes(query));
-    renderFeedInternal(results);
+    // При поиске игнорируем остальные фильтры для простоты, или можно комбинировать
+    renderFeedInternal(results, true);
     e.target.blur();
   }
 }
@@ -59,25 +68,43 @@ function switchMainTab(tab) {
 
 function renderFeed(data = ads) { renderFeedInternal(data); }
 
-function renderFeedInternal(data) {
+function renderFeedInternal(data, isSearch = false) {
   const grid = document.getElementById("home-grid");
   if(!grid) return;
   grid.innerHTML = "";
   
-  // 1. Фильтрация
+  // 1. Применяем фильтры (Категория, Город, Цена)
   let filtered = data.filter(ad => {
+      // Если это поиск, то фильтры пропускаем (или можно добавить логику)
+      if (isSearch) return true;
+
       const catMatch = (curCat === "Все") || (ad.cat === curCat);
       const cityMatch = (curCity === "Все") || (ad.city === curCity);
-      return catMatch && cityMatch;
+      
+      let priceMatch = true;
+      const price = parseFloat(ad.price);
+      if (filterPriceFrom !== null && price < filterPriceFrom) priceMatch = false;
+      if (filterPriceTo !== null && price > filterPriceTo) priceMatch = false;
+
+      return catMatch && cityMatch && priceMatch;
   });
 
   // 2. Сортировка
-  if (curMainTab === 'new') {
-      // Новые сверху
+  // Сначала учитываем сортировку из расширенного фильтра
+  if (filterSort === 'cheap') {
+      filtered.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+  } else if (filterSort === 'expensive') {
+      filtered.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+  } else if (filterSort === 'new') {
       filtered.sort((a, b) => b.id - a.id);
   } else {
-      // Рекомендуемые - перемешаем для примера
-      filtered.sort(() => Math.random() - 0.5);
+      // Если "По умолчанию" или "Default", смотрим на табы
+      if (curMainTab === 'new') {
+          filtered.sort((a, b) => b.id - a.id);
+      } else {
+          // Рекомендуемые - рандом
+          filtered.sort(() => Math.random() - 0.5);
+      }
   }
 
   filtered.forEach((ad) => {
@@ -86,11 +113,11 @@ function renderFeedInternal(data) {
   });
 }
 
+// СОЗДАНИЕ КАРТОЧКИ
 function createAdCard(ad) {
     const catName = catMap[ad.cat] || "Товар";
     let coverImg = Array.isArray(ad.img) ? ad.img[0] : ad.img;
     
-    // Статусы
     const showSoldBadge = (ad.status === 'sold' || ad.status === 'deleted');
     const badgeHTML = showSoldBadge ? `<div class="sold-badge">ПРОДАНО</div>` : '';
     
@@ -105,11 +132,10 @@ function createAdCard(ad) {
     const heartColor = isFav ? "var(--pink)" : "white";
     const heartClass = isFav ? "fa-solid" : "fa-regular";
     
-    // Дата
-    let dateStr = "";
+    let dateStr = "-";
     if (ad.dateReceived) {
         const d = new Date(ad.dateReceived);
-        dateStr = "Дата получения: " + d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'numeric', year: '2-digit' });
+        dateStr = d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'numeric', year: '2-digit' });
     }
 
     const card = document.createElement("div");
@@ -127,8 +153,12 @@ function createAdCard(ad) {
         <div class="card-cat-row">
             <span class="card-category">${catName}</span> ${ad.title}
         </div>
-        <!-- ДАТА ВНИЗУ СЛЕВА -->
-        <span class="card-date">${dateStr}</span>
+        
+        <!-- ДАТА СЛЕВА ВНИЗУ ПОД НАЗВАНИЕМ -->
+        <div class="card-date-block">
+            <span class="date-label">Дата получения</span>
+            <span class="date-value">${dateStr}</span>
+        </div>
       </div>`;
       
     return card;
@@ -140,7 +170,7 @@ function toggleFavCard(e, id) {
 }
 
 // ---------------------------------------------------------
-// ФИЛЬТРЫ
+// ФИЛЬТРЫ (БЫСТРЫЕ)
 // ---------------------------------------------------------
 function filterByCat(c, el) { 
     curCat = c; 
@@ -152,6 +182,55 @@ function filterByCity(c, el) {
     curCity = c;
     document.querySelectorAll(".city-row .cat-chip").forEach((i) => i.classList.remove("active")); 
     el.classList.add("active"); 
+    renderFeed();
+}
+
+// ---------------------------------------------------------
+// РАСШИРЕННЫЙ ФИЛЬТР
+// ---------------------------------------------------------
+function applyExtendedFilter() {
+    // Считываем значения из формы
+    const eCat = document.getElementById("ext-cat").value;
+    const eCity = document.getElementById("ext-city").value;
+    const pFrom = document.getElementById("price-from").value;
+    const pTo = document.getElementById("price-to").value;
+    
+    // Сортировка
+    const sortRadios = document.getElementsByName("sort");
+    let sortVal = "default";
+    for (let r of sortRadios) { if(r.checked) sortVal = r.value; }
+
+    // Применяем глобально
+    if (eCat !== "Все") curCat = eCat; // Можно оставить "Все" как сброс
+    else curCat = "Все"; // Если выбрали "Выбрать" считаем как сброс
+
+    curCity = eCity; // Аналогично
+    
+    filterPriceFrom = pFrom ? parseFloat(pFrom) : null;
+    filterPriceTo = pTo ? parseFloat(pTo) : null;
+    filterSort = sortVal;
+
+    // Обновляем визуально верхние чипы (для синхронизации)
+    // (Упрощенно: просто сбрасываем активные классы наверху, т.к. фильтр сложный)
+    document.querySelectorAll(".cat-chip").forEach(i => i.classList.remove("active"));
+    
+    renderFeed();
+    showPage('home');
+}
+
+function resetExtendedFilter() {
+    document.getElementById("ext-cat").value = "Все";
+    document.getElementById("ext-city").value = "Все";
+    document.getElementById("price-from").value = "";
+    document.getElementById("price-to").value = "";
+    document.getElementsByName("sort")[0].checked = true; // Default
+    
+    curCat = "Все";
+    curCity = "Все";
+    filterPriceFrom = null;
+    filterPriceTo = null;
+    filterSort = "default";
+    
     renderFeed();
 }
 
@@ -273,7 +352,6 @@ function openProduct(ad) {
   const images = Array.isArray(ad.img) ? ad.img : [ad.img];
   favIconArea.innerHTML = `<i class="${isFav ? 'fa-solid' : 'fa-regular'} fa-heart" style="color:var(--pink); font-size:22px;" onclick="toggleFav(${ad.id})"></i>`;
 
-  // ГАЛЕРЕЯ
   let galleryHTML = "";
   if (ad.status === 'deleted') {
       galleryHTML = `<div class="deleted-placeholder" style="height:250px;"><span class="deleted-text" style="font-size:14px;">Фото скрыто<br>для конфиденциальности</span></div>`;
@@ -283,7 +361,6 @@ function openProduct(ad) {
       galleryHTML = `<div class="product-gallery">${imagesHtml}</div>${images.length > 1 ? `<div class="gallery-dots">${dotsHtml}</div>` : ''}`;
   }
 
-  // КОНТАКТЫ
   let contactInfoHTML = "";
   if (ad.status === 'active') {
       contactInfoHTML = `
@@ -368,11 +445,9 @@ function renderProfileAds() {
   myAds.forEach((ad) => {
     const cardWrapper = document.createElement("div");
     cardWrapper.className = "card";
-    
     const catName = catMap[ad.cat] || "Товар";
     let cover = Array.isArray(ad.img) ? ad.img[0] : ad.img;
     let imgBlock = "";
-    
     if (ad.status === 'deleted') {
         imgBlock = `<div class="deleted-placeholder" style="height:140px; font-size:10px; padding:10px;">Фото скрыто</div>`;
     } else {
@@ -391,10 +466,10 @@ function renderProfileAds() {
         buttonsHTML = `<div style="text-align:center; font-size:12px; color:gray; margin-top:10px; font-weight:bold;">Статус: Продано</div>`;
     }
 
-    let dateStr = "";
+    let dateStr = "-";
     if (ad.dateReceived) {
         const d = new Date(ad.dateReceived);
-        dateStr = "Дата получения: " + d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'numeric', year: '2-digit' });
+        dateStr = d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'numeric', year: '2-digit' });
     }
 
     cardWrapper.innerHTML = `
@@ -404,10 +479,12 @@ function renderProfileAds() {
             <div class="card-cat-row">
                 <span class="card-category">${catName}</span> ${ad.title}
             </div>
-            <span class="card-date">${dateStr}</span>
+            <div class="card-date-block">
+                <span class="date-label">Дата получения</span>
+                <span class="date-value">${dateStr}</span>
+            </div>
             ${buttonsHTML}
         </div>`;
-    
     grid.appendChild(cardWrapper);
   });
 }
