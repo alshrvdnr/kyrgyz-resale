@@ -147,14 +147,14 @@
       <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ -->
       <section id="page-add" class="page hidden">
         <header class="page-header-simple">
-          <button onclick="cancelEditOrGoHome()" class="close-circle-btn">
+          <button onclick="cancelAdd()" class="close-circle-btn">
             <i class="fa fa-times"></i>
           </button>
-          <h2 id="add-page-title">Новое объявление</h2>
+          <h2 id="add-title-text">Новое объявление</h2>
           <span></span>
         </header>
         <div class="form-scroll">
-          <div class="tariff-container" id="add-tariff-block">
+          <div class="tariff-container" id="tariff-selection-area">
             <div
               class="tariff-card active"
               id="tariff-std"
@@ -179,7 +179,7 @@
               Объявление будет в топе 3 дня.
             </p>
             <div class="qr-placeholder">
-              <!-- ОБНОВЛЕННЫЙ QR КОД -->
+              <!-- Твой ПРАВИЛЬНЫЙ QR код -->
               <img
                 src="https://i.ibb.co/v487YmS6/photo-2025-02-18-19-14-11.jpg"
                 style="width: 100%; border-radius: 10px"
@@ -317,7 +317,11 @@
             ></textarea>
           </div>
 
-          <button class="pink-btn-full" id="btn-publish-main" onclick="publishAndSend()">
+          <button
+            class="pink-btn-full"
+            id="publish-btn"
+            onclick="publishAndSend()"
+          >
             Опубликовать
           </button>
         </div>

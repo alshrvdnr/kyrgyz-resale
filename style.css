@@ -8,6 +8,7 @@
   --radius: 12px;
 }
 
+/* Весь твой оригинальный CSS ниже... */
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
@@ -132,6 +133,19 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+/* Новые правки в CSS */
+.card-price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+.card-time {
+  font-size: 11px;
+  color: var(--gray);
+}
+
 .card-body {
   padding: 10px;
   display: flex;
@@ -562,6 +576,32 @@ body {
   font-size: 13px;
 }
 
+/* Ячейки контента модалки */
+.info-cell {
+  background: var(--card);
+  border: 1px solid #333;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+.info-cell-label {
+  display: block;
+  font-size: 11px;
+  color: var(--gray);
+  margin-bottom: 4px;
+}
+.info-cell-value {
+  font-size: 15px;
+  color: white;
+  font-weight: 500;
+}
+.pd-desc-label {
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--pink);
+  margin: 15px 0 8px;
+}
+
 /* Общие стили */
 .form-scroll {
   padding: 20px 20px 120px;
@@ -788,40 +828,4 @@ body {
   color: white;
   font-size: 20px;
   cursor: pointer;
-}
-
-/* НОВЫЕ СТИЛИ ДЛЯ ЯЧЕЕК */
-.card-price-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-.card-time {
-  font-size: 11px;
-  color: var(--gray);
-}
-.info-cell {
-  background: var(--card);
-  border: 1px solid #333;
-  padding: 12px;
-  border-radius: 10px;
-  margin-bottom: 8px;
-}
-.info-cell-label {
-  display: block;
-  font-size: 11px;
-  color: var(--gray);
-  margin-bottom: 4px;
-}
-.info-cell-value {
-  font-size: 15px;
-  color: white;
-  font-weight: 500;
-}
-.desc-header {
-  font-size: 14px;
-  font-weight: bold;
-  margin: 15px 0 8px;
-  color: var(--pink);
 }
