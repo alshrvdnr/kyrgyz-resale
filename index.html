@@ -116,7 +116,7 @@
             Активные
           </div>
           <div class="p-tab" id="p-tab-sold" onclick="switchProfileTab('sold')">
-            Архив (Проданные/Удаленные)
+            Архив
           </div>
         </div>
         <main class="listings-grid" id="my-ads-grid"></main>
@@ -207,7 +207,7 @@
               type="text"
               id="in-title"
               class="main-input"
-              placeholder="Пример: Золотое кольцо"
+              placeholder="Что продаете?"
             />
           </div>
           <div class="f-group">
@@ -229,11 +229,11 @@
             </select>
           </div>
           <div class="f-group">
-            <label>Краткое описание</label>
+            <label>Описание</label>
             <textarea
               id="in-desc"
               class="main-input"
-              placeholder="Опишите товар..."
+              placeholder="Описание..."
             ></textarea>
           </div>
 
@@ -273,6 +273,7 @@
           <button class="pv-back" onclick="closeProduct()">
             <i class="fa fa-chevron-left"></i>
           </button>
+          <!-- Контейнер для сердечка справа сверху -->
           <div class="pv-top-icons" id="modal-fav-icon"></div>
         </div>
         <div id="pv-content" class="pv-scroll-area"></div>
@@ -283,10 +284,13 @@
         <button class="nav-item active" onclick="showPage('home')" id="n-home">
           <i class="fa fa-home"></i><span>Главная</span>
         </button>
+
+        <!-- Кнопка "Подать" (Идеальный круг через CSS) -->
         <div class="nav-center">
           <button class="pink-plus" onclick="showPage('add')">+</button>
           <p>Подать</p>
         </div>
+
         <button class="nav-item" onclick="showPage('favs')" id="n-favs">
           <i class="fa fa-heart"></i><span>Избранное</span>
         </button>

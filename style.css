@@ -594,3 +594,76 @@ body {
   background: var(--pink);
   color: black;
 }
+
+/* --- ВСТАВИТЬ В КОНЕЦ style.css --- */
+
+/* 1. Исправление кнопки "Подать" (Идеальный круг) */
+.nav-center {
+  position: relative;
+  top: -22px; /* Чуть выше */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 70px; /* Фиксируем ширину контейнера */
+}
+
+.pink-plus {
+  width: 54px !important; /* Жесткий размер */
+  height: 54px !important; /* Жесткий размер */
+  border-radius: 50% !important; /* Идеальный круг */
+  background: var(--pink);
+  border: 4px solid var(--bg);
+  color: white;
+  font-size: 28px;
+  font-weight: 400;
+  padding: 0;
+  margin: 0;
+  display: flex; /* Flexbox для центровки */
+  align-items: center; /* Вертикально по центру */
+  justify-content: center; /* Горизонтально по центру */
+  line-height: 1; /* Убираем смещение текста */
+  box-shadow: 0 4px 10px rgba(255, 143, 177, 0.3);
+}
+.nav-center p {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--gray);
+}
+
+/* 2. Сердечко в карточке (Слева сверху) */
+.card-fav-btn {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 10;
+  width: 28px;
+  height: 28px;
+  background: rgba(0, 0, 0, 0.5); /* Полупрозрачный фон */
+  backdrop-filter: blur(4px);
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.card-fav-btn i {
+  font-size: 14px;
+  transition: transform 0.2s;
+}
+.card-fav-btn:active i {
+  transform: scale(1.2);
+}
+
+/* 3. Стили для скрытых контактов */
+.hidden-contacts-msg {
+  background: #2c2c2e;
+  color: #888;
+  padding: 15px;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 13px;
+  margin-top: 15px;
+  border: 1px dashed #444;
+}
