@@ -75,39 +75,36 @@ function renderFeedInternal(data, gridId) {
   if (!grid) return;
   grid.innerHTML = "";
 
-  // 1. Фильтрация (для главной)
-  let filtered = [...data];
-  if (gridId === "home-grid") {
-    filtered = data.filter((ad) => {
-      const catMatch = curCat === "Все" || ad.cat === curCat;
-      const cityMatch = curCity === "Все" || ad.city === curCity;
-      return catMatch && cityMatch;
-    });
-  }
+  // 1. Фильтрация
+  let filtered = data.filter((ad) => {
+    const catMatch = curCat === "Все" || ad.cat === curCat;
+    const cityMatch = curCity === "Все" || ad.city === curCity;
+    return catMatch && cityMatch;
+  });
 
-  // 2. ГЛОБАЛЬНАЯ СОРТИРОВКА (VIP -> Активные -> Проданные)
+  // 2. СОРТИРОВКА (VIP -> Активные -> Проданные)
   const now = Date.now();
   filtered.sort((a, b) => {
-    // Определяем приоритет: 0 - VIP, 1 - Обычный активный, 2 - Продан/Удален
-    const getPriority = (ad) => {
-      if (ad.status === "sold" || ad.status === "deleted") return 2;
-      if (ad.tariff === "vip" && ad.vipTill > now) return 0;
+    // Ранг: 0 - VIP Активный, 1 - Обычный Активный, 2 - Проданный/Удаленный
+    const getRank = (item) => {
+      if (item.status === "sold" || item.status === "deleted") return 2;
+      if (item.tariff === "vip" && item.vipTill > now) return 0;
       return 1;
     };
 
-    const prioA = getPriority(a);
-    const prioB = getPriority(b);
+    const rankA = getRank(a);
+    const rankB = getRank(b);
 
-    if (prioA !== prioB) return prioA - prioB;
+    if (rankA !== rankB) return rankA - rankB;
 
-    // Внутри одной группы приоритета применяем выбранную сортировку
-    if (filterSort === "cheap")
+    // Если ранги равны, применяем фильтры сортировки
+    if (filterSort === "cheap") {
       return parseFloat(a.price) - parseFloat(b.price);
-    if (filterSort === "expensive")
+    } else if (filterSort === "expensive") {
       return parseFloat(b.price) - parseFloat(a.price);
-
-    // По умолчанию или "Новые": самые свежие ID сверху
-    return b.id - a.id;
+    } else {
+      return b.id - a.id; // Сначала новые
+    }
   });
 
   filtered.forEach((ad) => {
@@ -116,7 +113,6 @@ function renderFeedInternal(data, gridId) {
   });
 }
 
-// СОЗДАНИЕ КАРТОЧКИ (БЕЗ ИЗМЕНЕНИЙ)
 function createAdCard(ad) {
   const catName = catMap[ad.cat] || "Товар";
   let coverImg = Array.isArray(ad.img) ? ad.img[0] : ad.img;
@@ -140,13 +136,15 @@ function createAdCard(ad) {
   const heartColor = isFav ? "var(--pink)" : "white";
   const heartClass = isFav ? "fa-solid" : "fa-regular";
 
-  let dateStr = ad.dateReceived
-    ? new Date(ad.dateReceived).toLocaleDateString("ru-RU", {
-        day: "numeric",
-        month: "numeric",
-        year: "2-digit",
-      })
-    : "-";
+  let dateStr = "-";
+  if (ad.dateReceived) {
+    const d = new Date(ad.dateReceived);
+    dateStr = d.toLocaleDateString("ru-RU", {
+      day: "numeric",
+      month: "numeric",
+      year: "2-digit",
+    });
+  }
 
   const card = document.createElement("div");
   card.className = "card";
@@ -204,15 +202,20 @@ function applyExtendedFilter() {
   const pTo = parseFloat(document.getElementById("price-to").value) || Infinity;
 
   const sortRadios = document.getElementsByName("sort");
+  let sortVal = "default";
   for (let r of sortRadios) {
-    if (r.checked) filterSort = r.value;
+    if (r.checked) sortVal = r.value;
   }
 
-  // Фильтруем данные специально для страницы результатов
+  if (eCat !== "Все") curCat = eCat;
+  else curCat = "Все";
+  curCity = eCity;
+  filterSort = sortVal;
+
   const results = ads.filter((ad) => {
+    const price = parseFloat(ad.price) || 0;
     const catMatch = eCat === "Все" || ad.cat === eCat;
     const cityMatch = eCity === "Все" || ad.city === eCity;
-    const price = parseFloat(ad.price) || 0;
     const priceMatch = price >= pFrom && price <= pTo;
     return catMatch && cityMatch && priceMatch;
   });
@@ -242,6 +245,7 @@ function selectTariff(t) {
     .getElementById("tariff-std")
     .classList.toggle("active", t === "standard");
   document.getElementById("tariff-vip").classList.toggle("active", t === "vip");
+
   const vipBlock = document.getElementById("vip-block");
   if (t === "vip") vipBlock.classList.remove("hidden");
   else vipBlock.classList.add("hidden");
@@ -284,7 +288,10 @@ async function uploadToImgBB(file) {
   try {
     const response = await fetch(
       `https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`,
-      { method: "POST", body: formData }
+      {
+        method: "POST",
+        body: formData,
+      }
     );
     const data = await response.json();
     return data.success ? data.data.url : null;
@@ -307,6 +314,7 @@ async function publishAndSend() {
   if (!title || !price) return tg.showAlert("Заполните название и цену!");
   if (!dateReceived) return tg.showAlert("Укажите дату получения!");
   if (selectedFiles.length === 0) return tg.showAlert("Нужно хотя бы 1 фото!");
+
   if (selectedTariff === "vip" && !selectedReceipt)
     return tg.showAlert("Для VIP нужно прикрепить чек!");
 
@@ -354,6 +362,7 @@ async function publishAndSend() {
   };
 
   await sendToBot(ad);
+
   ads.unshift(ad);
   localStorage.setItem("gifts_final_v12", JSON.stringify(ads));
 
@@ -365,8 +374,8 @@ async function publishAndSend() {
   document.getElementById("in-address").value = "";
   document.getElementById("in-tg").value = "";
   document.getElementById("in-desc").value = "";
-  document.getElementById("in-city").value = "Бишкек";
-  document.getElementById("in-cat").value = "flowers";
+  document.getElementById("in-city").selectedIndex = 0;
+  document.getElementById("in-cat").selectedIndex = 0;
 
   selectedFiles = [];
   selectedReceipt = null;
@@ -385,13 +394,12 @@ async function publishAndSend() {
 async function sendToBot(ad) {
   let text = `📦 ${ad.title}\n💰 ${ad.price} KGS\n📅 ${ad.dateReceived}\n📍 ${ad.city}`;
   if (ad.tariff === "vip") text += `\n🌟 VIP ЗАЯВКА (Чек прикреплен)`;
+
   const urlGroup = `https://api.telegram.org/bot${BOT_TOKEN}/sendMediaGroup`;
   try {
-    let mediaGroup = ad.img.map((imgUrl, index) => ({
-      type: "photo",
-      media: imgUrl,
-      caption: index === 0 ? text : "",
-    }));
+    let mediaGroup = ad.img.map((imgUrl, index) => {
+      return { type: "photo", media: imgUrl, caption: index === 0 ? text : "" };
+    });
     if (ad.receipt) {
       mediaGroup.push({
         type: "photo",
@@ -410,15 +418,15 @@ async function sendToBot(ad) {
 }
 
 // ---------------------------------------------------------
-// ПРОДУКТ (БЕЗ ИЗМЕНЕНИЙ)
+// ПРОДУКТ
 // ---------------------------------------------------------
 function openProduct(ad) {
   const modal = document.getElementById("product-modal");
   const favIconArea = document.getElementById("modal-fav-icon");
   const isFav = favs.includes(ad.id);
   const catName = catMap[ad.cat] || "Товар";
-  const images = Array.isArray(ad.img) ? ad.img : [ad.img];
 
+  const images = Array.isArray(ad.img) ? ad.img : [ad.img];
   favIconArea.innerHTML = `<i class="${
     isFav ? "fa-solid" : "fa-regular"
   } fa-heart" style="color:var(--pink); font-size:22px;" onclick="toggleFav(${
@@ -465,16 +473,30 @@ function openProduct(ad) {
     contactInfoHTML = `<div class="hidden-contacts-msg"><i class="fa fa-lock" style="margin-bottom:5px;"></i><br>Контактные данные скрыты,<br>так как товар продан.</div>`;
   }
 
-  document.getElementById(
-    "pv-content"
-  ).innerHTML = `${galleryHTML}<div class="pd-body"><div class="pd-price">${
-    ad.price
-  } KGS</div><div class="pd-title" style="font-size:18px; color:#aaa; margin-bottom:5px;">${catName} - <span style="color:white;">${
-    ad.title
-  }</span></div><p style="color:#eee; font-size:15px; margin-bottom:20px; line-height:1.5;">${
-    ad.desc || "Без описания"
-  }</p>${contactInfoHTML}</div>`;
+  document.getElementById("pv-content").innerHTML = `
+        ${galleryHTML}
+        <div class="pd-body">
+            <div class="pd-price">${ad.price} KGS</div>
+            <div class="pd-title" style="font-size:18px; color:#aaa; margin-bottom:5px;">
+                ${catName} - <span style="color:white;">${ad.title}</span>
+            </div>
+            <p style="color:#eee; font-size:15px; margin-bottom:20px; line-height:1.5;">${
+              ad.desc || "Без описания"
+            }</p>
+            ${contactInfoHTML}
+        </div>
+    `;
   modal.classList.remove("hidden");
+
+  const galleryDiv = document.querySelector(".product-gallery");
+  if (galleryDiv && images.length > 1) {
+    galleryDiv.addEventListener("scroll", () => {
+      const index = Math.round(galleryDiv.scrollLeft / galleryDiv.offsetWidth);
+      document
+        .querySelectorAll(".dot")
+        .forEach((d, i) => d.classList.toggle("active", i === index));
+    });
+  }
   tg.BackButton.show();
   tg.BackButton.onClick(closeProduct);
 }
@@ -485,15 +507,18 @@ function closeProduct() {
 }
 
 function toggleFav(id) {
-  if (favs.includes(id)) favs = favs.filter((f) => f !== id);
-  else favs.push(id);
+  if (favs.includes(id)) {
+    favs = favs.filter((f) => f !== id);
+  } else {
+    favs.push(id);
+  }
   localStorage.setItem("favs_final_v12", JSON.stringify(favs));
   renderFeed();
   renderFavs();
 }
 
 // ---------------------------------------------------------
-// ПРОФИЛЬ (БЕЗ ИЗМЕНЕНИЙ)
+// ПРОФИЛЬ
 // ---------------------------------------------------------
 function switchProfileTab(tab) {
   currentProfileTab = tab;
@@ -509,34 +534,69 @@ function switchProfileTab(tab) {
 function renderProfileAds() {
   const grid = document.getElementById("my-ads-grid");
   const myId = tg.initDataUnsafe?.user?.id || 0;
-  let myAds =
-    currentProfileTab === "active"
-      ? ads.filter((a) => a.userId === myId && a.status === "active")
-      : ads.filter(
-          (a) =>
-            a.userId === myId && (a.status === "sold" || a.status === "deleted")
-        );
+
+  let myAds;
+  if (currentProfileTab === "active") {
+    myAds = ads.filter((a) => a.userId === myId && a.status === "active");
+  } else {
+    myAds = ads.filter(
+      (a) =>
+        a.userId === myId && (a.status === "sold" || a.status === "deleted")
+    );
+  }
 
   grid.innerHTML = myAds.length
     ? ""
     : '<p style="text-align:center; padding:50px; color:gray;">Пусто</p>';
+
   myAds.forEach((ad) => {
     const cardWrapper = document.createElement("div");
     cardWrapper.className = "card";
     const catName = catMap[ad.cat] || "Товар";
     let cover = Array.isArray(ad.img) ? ad.img[0] : ad.img;
-    let imgBlock =
-      ad.status === "deleted"
-        ? `<div class="deleted-placeholder" style="height:140px; font-size:10px; padding:10px;">Фото скрыто</div>`
-        : `${
-            ad.status === "sold" ? `<div class="sold-badge">ПРОДАНО</div>` : ""
-          }<img src="${cover}" style="height:140px; width:100%; object-fit:cover;">`;
-    let buttonsHTML =
-      ad.status === "active"
-        ? `<div class="profile-actions"><button class="btn-mini btn-edit" onclick="tg.showAlert('Скоро')">Изменить</button><button class="btn-mini btn-sold-action" onclick="showActionPopup(${ad.id})">Продано</button></div>`
-        : `<div style="text-align:center; font-size:12px; color:gray; margin-top:10px; font-weight:bold;">Статус: Продано</div>`;
+    let imgBlock = "";
+    if (ad.status === "deleted") {
+      imgBlock = `<div class="deleted-placeholder" style="height:140px; font-size:10px; padding:10px;">Фото скрыто</div>`;
+    } else {
+      const badge =
+        ad.status === "sold" ? `<div class="sold-badge">ПРОДАНО</div>` : "";
+      imgBlock = `${badge}<img src="${cover}" style="height:140px; width:100%; object-fit:cover;">`;
+    }
 
-    cardWrapper.innerHTML = `${imgBlock}<div class="card-body"><span class="card-price">${ad.price} KGS</span><div class="card-cat-row"><span class="card-category">${catName}</span> ${ad.title}</div>${buttonsHTML}</div>`;
+    let buttonsHTML = "";
+    if (ad.status === "active") {
+      buttonsHTML = `
+        <div class="profile-actions">
+            <button class="btn-mini btn-edit" onclick="tg.showAlert('Скоро')">Изменить</button>
+            <button class="btn-mini btn-sold-action" onclick="showActionPopup(${ad.id})">Продано</button>
+        </div>`;
+    } else {
+      buttonsHTML = `<div style="text-align:center; font-size:12px; color:gray; margin-top:10px; font-weight:bold;">Статус: Продано</div>`;
+    }
+
+    let dateStr = "-";
+    if (ad.dateReceived) {
+      const d = new Date(ad.dateReceived);
+      dateStr = d.toLocaleDateString("ru-RU", {
+        day: "numeric",
+        month: "numeric",
+        year: "2-digit",
+      });
+    }
+
+    cardWrapper.innerHTML = `
+        ${imgBlock}
+        <div class="card-body">
+            <span class="card-price">${ad.price} KGS</span>
+            <div class="card-cat-row">
+                <span class="card-category">${catName}</span> ${ad.title}
+            </div>
+            <div class="card-date-block">
+                <span class="date-label">Дата получения</span>
+                <span class="date-value">${dateStr}</span>
+            </div>
+            ${buttonsHTML}
+        </div>`;
     grid.appendChild(cardWrapper);
   });
 }
@@ -570,6 +630,9 @@ function changeStatus(id, newStatus) {
   }
 }
 
+// ---------------------------------------------------------
+// НАВИГАЦИЯ
+// ---------------------------------------------------------
 function showPage(p) {
   document.querySelectorAll(".page").forEach((s) => s.classList.add("hidden"));
   document.getElementById(`page-${p}`).classList.remove("hidden");
@@ -578,7 +641,17 @@ function showPage(p) {
     .forEach((i) => i.classList.remove("active"));
   const navBtn = document.getElementById(`n-${p}`);
   if (navBtn) navBtn.classList.add("active");
-  if (p === "home") renderFeed();
+
+  const navBar = document.querySelector(".bottom-nav");
+  if (p === "filter" || p === "add") {
+    navBar.style.display = "none";
+  } else {
+    navBar.style.display = "flex";
+  }
+
+  if (p === "home") {
+    renderFeed();
+  }
   if (p === "favs") renderFavs();
   if (p === "profile") renderProfileAds();
 }
@@ -590,7 +663,10 @@ function renderFavs() {
     return (container.innerHTML = `<div style="text-align:center; padding:50px; color:gray;">Пусто</div>`);
   container.innerHTML = `<div class="listings-grid"></div>`;
   const grid = container.querySelector(".listings-grid");
-  data.forEach((ad) => grid.appendChild(createAdCard(ad)));
+  data.forEach((ad) => {
+    const card = createAdCard(ad);
+    grid.appendChild(card);
+  });
 }
 
 function clearFavs() {
