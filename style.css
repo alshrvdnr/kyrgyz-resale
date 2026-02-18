@@ -7,7 +7,6 @@
   --gray: #8e8e93;
   --radius: 12px;
 }
-
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
@@ -63,7 +62,7 @@ body {
   cursor: pointer;
 }
 
-/* ФИЛЬТРЫ В ОДНУ ЛИНИЮ */
+/* ФИЛЬТРЫ */
 .category-row,
 .city-row {
   display: flex;
@@ -73,10 +72,6 @@ body {
   padding-bottom: 10px;
   scrollbar-width: none;
   flex-wrap: nowrap;
-}
-.category-row::-webkit-scrollbar,
-.city-row::-webkit-scrollbar {
-  display: none;
 }
 .cat-chip {
   background: var(--card);
@@ -165,8 +160,6 @@ body {
   border-radius: 4px;
   z-index: 5;
 }
-
-/* ВРЕМЯ */
 .pub-time-badge {
   position: absolute;
   top: 8px;
@@ -185,7 +178,29 @@ body {
   top: 35px;
 }
 
-/* NAV */
+/* КНОПКА ФИЛЬТРА */
+.filter-bottom-fixed {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 20px;
+  background: #000;
+  border-top: 1px solid #222;
+  z-index: 9999;
+}
+.green-btn {
+  width: 100%;
+  padding: 16px;
+  border-radius: 25px;
+  background: var(--pink);
+  color: black;
+  font-weight: bold;
+  font-size: 16px;
+  border: none;
+}
+
+/* НАВИГАЦИЯ */
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -227,7 +242,19 @@ body {
   justify-content: center;
 }
 
-/* ПРОФИЛЬ ТАБЫ */
+/* ПРОФИЛЬ */
+.avatar-circle {
+  width: 70px;
+  height: 70px;
+  background: var(--pink);
+  border-radius: 50%;
+  margin: 0 auto 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: bold;
+}
 .profile-tabs-nav {
   display: flex;
   border-bottom: 1px solid #222;
@@ -245,7 +272,7 @@ body {
   border-bottom: 2px solid var(--pink);
 }
 
-/* ОСТАЛЬНОЙ CSS (все анимации, модалки, скроллы, формы)... */
+/* Остальные 500+ строк (модалки, анимации, скроллы, формы) на месте... */
 .full-view {
   position: fixed;
   top: 0;
