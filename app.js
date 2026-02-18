@@ -16,7 +16,7 @@ const catMap = {
 let ads = JSON.parse(localStorage.getItem("gifts_final_v12")) || [];
 let favs = JSON.parse(localStorage.getItem("favs_final_v12")) || [];
 
-let curCat = "flowers",
+let curCat = "Все",
   curCity = "Бишкек",
   currentProfileTab = "active";
 let selectedFiles = [],
@@ -42,7 +42,6 @@ function initUser() {
     document.getElementById("current-city-label").innerText = curCity;
 }
 
-// ГОРОДА
 function showCitySelector() {
   document.getElementById("city-selector-overlay").classList.remove("hidden");
 }
@@ -56,32 +55,13 @@ function selectCity(city) {
   renderFeed();
 }
 
-// ЛЕНТА
 function filterByCat(cat, el) {
   curCat = cat;
   document
     .querySelectorAll(".cat-card")
     .forEach((i) => i.classList.remove("active"));
   el.classList.add("active");
-  const titles = {
-    flowers: "Свежие букеты",
-    gifts: "Свежие подарки",
-    jewelry: "Свежая ювелирка",
-    certs: "Свежие сертификаты",
-  };
-  document.getElementById("dynamic-feed-title").innerText =
-    titles[cat] || "Свежие предложения";
   renderFeed();
-}
-
-function handleSearch(e) {
-  if (e.key === "Enter") {
-    const query = e.target.value.toLowerCase();
-    const results = ads.filter((a) => a.title.toLowerCase().includes(query));
-    renderFeedInternal(results, "results-grid");
-    showPage("results");
-    e.target.blur();
-  }
 }
 
 function renderFeed(data = ads) {
@@ -92,13 +72,28 @@ function renderFeedInternal(data, gridId) {
   const grid = document.getElementById(gridId);
   if (!grid) return;
   grid.innerHTML = "";
-  let filtered = data.filter(
-    (ad) => (curCat === "Все" || ad.cat === curCat) && ad.city === curCity
-  );
-  filtered.sort((a, b) => {
-    if (a.status !== b.status) return a.status === "active" ? -1 : 1;
-    return b.id - a.id;
+
+  let filtered = data.filter((ad) => {
+    const catMatch = curCat === "Все" || ad.cat === curCat;
+    const cityMatch = ad.city === curCity;
+    return catMatch && cityMatch;
   });
+
+  // ГРАМОТНАЯ СОРТИРОВКА: VIP -> Обычные -> Проданные
+  filtered.sort((a, b) => {
+    const getRank = (item) => {
+      const isSold = item.status === "sold" || item.status === "deleted";
+      const isVip = item.tariff === "vip" && item.vipTill > Date.now();
+      if (isSold) return 2;
+      if (isVip) return 0;
+      return 1;
+    };
+    const rankA = getRank(a);
+    const rankB = getRank(b);
+    if (rankA !== rankB) return rankA - rankB;
+    return b.id - a.id; // Внутри ранга самые новые сверху
+  });
+
   filtered.forEach((ad) => grid.appendChild(createAdCard(ad, false)));
 }
 
@@ -115,21 +110,19 @@ function createAdCard(ad, isProfile = false) {
   else if (isVip) badge = `<div class="vip-badge">VIP</div>`;
 
   const isFav = favs.includes(ad.id);
-  const heartColor = isFav ? "var(--yellow-main)" : "white";
+  const favClass = isFav ? "active" : "";
 
   card.innerHTML = `
       ${badge}
-      <button class="card-fav-btn" onclick="event.stopPropagation(); toggleFav(${
-        ad.id
-      })">
-         <i class="${
-           isFav ? "fa-solid" : "fa-regular"
-         } fa-heart" style="color:${heartColor}"></i>
+      <button class="card-fav-btn ${favClass}" onclick="event.stopPropagation(); toggleFav(${
+    ad.id
+  })">
+         <i class="fa-solid fa-heart"></i>
       </button>
       <img src="${ad.img[0]}" loading="lazy">
-      <div class="card-body" style="padding:10px;">
-        <span class="card-cat-row">${ad.title}</span>
+      <div class="card-body">
         <span class="card-price">${ad.price} KGS</span>
+        <span class="card-title-text">${ad.title}</span>
       </div>
       ${isProfile ? renderProfileControls(ad) : ""}
   `;
@@ -146,7 +139,7 @@ function renderProfileControls(ad) {
         </div>`;
   }
   return `<div class="profile-actions" style="display:flex; gap:5px; padding:0 10px 10px;">
-    <button class="btn-mini btn-edit" style="flex:1; background:#333; color:white;" onclick="event.stopPropagation(); editAd(${ad.id})">Изменить</button>
+    <button class="btn-mini" style="flex:1; background:#333; color:white;" onclick="event.stopPropagation(); editAd(${ad.id})">Изменить</button>
     <button class="btn-mini btn-sold-action" style="flex:1;" onclick="event.stopPropagation(); startManage(${ad.id})">Управление</button></div>`;
 }
 
@@ -167,19 +160,16 @@ function setStatus(id, s) {
   renderFeed();
 }
 
-// МОДАЛКА (КАРУСЕЛЬ С ТОЧКАМИ)
 function openProduct(ad) {
   const modal = document.getElementById("product-modal");
   const isSold = ad.status === "sold" || ad.status === "deleted";
   const isFav = favs.includes(ad.id);
   const images = ad.img;
-
   document.getElementById("modal-fav-icon").innerHTML = `<i class="${
     isFav ? "fa-solid" : "fa-regular"
-  } fa-heart" style="color:var(--yellow-main); font-size:22px;" onclick="toggleFav(${
+  } fa-heart" style="color:var(--pink); font-size:22px;" onclick="toggleFav(${
     ad.id
   })"></i>`;
-
   let imgClass = ad.status === "deleted" ? "blur-img" : "";
   let dotsHTML = images
     .map(
@@ -197,11 +187,10 @@ function openProduct(ad) {
         </div>
     </div>
     <div class="carousel-dots">${dotsHTML}</div>
-
     <div class="pd-body" style="padding:20px;">
         ${
           isSold
-            ? `<span style="color:red; font-weight:bold; font-size:20px; display:block; margin-bottom:15px;">ПРОДАНО</span>`
+            ? `<span style="color:#ff3b30; font-weight:bold; font-size:20px; display:block; margin-bottom:15px;">ПРОДАНО</span>`
             : ""
         }
         <div class="info-cell" style="background: rgba(255, 204, 0, 0.1); border-color: var(--yellow-main);">
@@ -235,7 +224,7 @@ function openProduct(ad) {
     </div>`;
 
   const slider = document.getElementById("main-slider");
-  slider.addEventListener("scroll", () => {
+  slider?.addEventListener("scroll", () => {
     const index = Math.round(slider.scrollLeft / slider.offsetWidth);
     document
       .querySelectorAll(".dot")
@@ -246,13 +235,11 @@ function openProduct(ad) {
   tg.BackButton.show();
   tg.BackButton.onClick(closeProduct);
 }
-
 function closeProduct() {
   document.getElementById("product-modal").classList.add("hidden");
   tg.BackButton.hide();
 }
 
-// ИЗБРАННОЕ
 function toggleFav(id) {
   favs = favs.includes(id) ? favs.filter((f) => f !== id) : [...favs, id];
   localStorage.setItem("favs_final_v12", JSON.stringify(favs));
@@ -268,7 +255,7 @@ function renderFavs() {
   const container = document.getElementById("favs-content-area");
   const data = ads.filter((a) => favs.includes(a.id));
   if (data.length === 0) {
-    container.innerHTML = `<div class="empty-favs-box"><div class="heart-square"><i class="fa-solid fa-heart"></i></div><p class="empty-text">У вас пока нет избранных объявлений</p><button class="go-search-btn" style="background:var(--yellow-main); color:#000;" onclick="showPage('home')">В поиск</button></div>`;
+    container.innerHTML = `<div class="empty-favs-box"><div class="heart-square"><i class="fa-solid fa-heart"></i></div><p class="empty-text">У вас пока нет избранных объявлений</p><button class="go-search-btn" onclick="showPage('home')">В поиск</button></div>`;
     return;
   }
   container.innerHTML = `<div class="listings-grid"></div>`;
@@ -279,7 +266,6 @@ function renderFavs() {
   );
 }
 
-// ПРОФИЛЬ
 function switchProfileTab(tab) {
   currentProfileTab = tab;
   document
@@ -300,13 +286,15 @@ function renderProfileAds() {
         ? a.status === "active"
         : a.status !== "active")
   );
-  grid.innerHTML = myAds.length
-    ? ""
-    : '<p style="text-align:center; padding:50px; color:gray;">Пусто</p>';
-  myAds.forEach((ad) => grid.appendChild(createAdCard(ad, true)));
+
+  if (myAds.length === 0) {
+    grid.innerHTML = '<p class="empty-profile-msg">Пусто</p>';
+  } else {
+    grid.innerHTML = "";
+    myAds.forEach((ad) => grid.appendChild(createAdCard(ad, true)));
+  }
 }
 
-// ПОДАЧА
 async function publishAndSend() {
   const title = document.getElementById("in-title").value,
     price = document.getElementById("in-price").value,
@@ -396,7 +384,6 @@ async function uploadToImgBB(file) {
     return null;
   }
 }
-
 async function sendToBot(ad) {
   let text = `📦 ${ad.title}\n💰 ${ad.price} KGS\n📍 ${ad.city}`;
   try {
@@ -429,7 +416,6 @@ function handleFileSelect(input) {
     r.readAsDataURL(f);
   });
 }
-
 function selectTariff(t) {
   selectedTariff = t;
   document
@@ -438,18 +424,10 @@ function selectTariff(t) {
   document.getElementById("tariff-vip").classList.toggle("active", t === "vip");
   document.getElementById("vip-block").classList.toggle("hidden", t !== "vip");
 }
-
 function cancelAdd() {
   editingId = null;
-  document.querySelectorAll(".main-input").forEach((i) => (i.value = ""));
-  document.getElementById("gallery-preview").innerHTML = "";
-  document.getElementById("preview-box").classList.add("hidden");
-  document.getElementById("add-title-text").innerText = "Новое объявление";
-  document.getElementById("publish-btn").innerText = "Опубликовать";
-  document.getElementById("tariff-selection-area").style.display = "flex";
   showPage("home");
 }
-
 function showPage(p) {
   document.querySelectorAll(".page").forEach((s) => s.classList.add("hidden"));
   document.getElementById(`page-${p}`).classList.remove("hidden");
@@ -464,8 +442,16 @@ function showPage(p) {
   if (p === "profile") renderProfileAds();
   if (p === "favs") renderFavs();
 }
-
 function handleReceiptSelect(input) {
   if (input.files[0])
     document.getElementById("receipt-label").innerText = "Чек добавлен ✅";
+}
+function handleSearch(e) {
+  if (e.key === "Enter") {
+    const query = e.target.value.toLowerCase();
+    const results = ads.filter((a) => a.title.toLowerCase().includes(query));
+    renderFeedInternal(results, "results-grid");
+    showPage("results");
+    e.target.blur();
+  }
 }

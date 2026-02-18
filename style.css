@@ -1,11 +1,12 @@
 :root {
   --bg: #121212;
   --card: #1e1e1e;
+  --pink: #ff4d8d;
   --yellow-main: #ffcc00;
   --yellow-vip: #ffd700;
-  --pink-light: #ffb7c5; /* Нежно-розовый для кнопок назад */
   --white: #ffffff;
   --gray: #8e8e93;
+  --card-gray: #2c2c2e;
 }
 
 * {
@@ -70,7 +71,6 @@ body {
   font-size: 15px;
   color: #333;
 }
-
 .user-avatar-circle {
   width: 42px;
   height: 42px;
@@ -87,16 +87,15 @@ body {
 
 /* SECTION TITLE */
 .section-title-main {
-  padding-left: 25px; /* Подвинули вправо */
-  margin-top: 5px; /* Подвинули вверх */
-  font-size: 16px; /* Сделали меньше */
+  padding: 0 25px;
+  margin-top: 5px;
+  font-size: 20px;
   font-weight: bold;
-  color: var(--white);
 }
 
-/* BACK BUTTONS (PINK) */
-.back-circle-btn-pink {
-  background: var(--pink-light);
+/* BACK BUTTONS (YELLOW) */
+.back-circle-btn-yellow {
+  background: var(--yellow-main);
   border: none;
   color: #000;
   width: 36px;
@@ -106,7 +105,6 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 16px;
-  cursor: pointer;
 }
 
 /* CITY SELECTOR */
@@ -144,11 +142,16 @@ body {
 /* CATEGORIES */
 .categories-container {
   display: flex;
-  justify-content: space-between;
+  overflow-x: auto;
   gap: 10px;
+  padding-bottom: 5px;
+  scrollbar-width: none;
+}
+.categories-container::-webkit-scrollbar {
+  display: none;
 }
 .cat-card {
-  flex: 1;
+  flex: 0 0 70px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -165,6 +168,10 @@ body {
   justify-content: center;
   font-size: 20px;
 }
+.cat-card span {
+  font-size: 11px;
+  color: var(--gray);
+}
 .cat-card.active .cat-icon-box {
   background: var(--yellow-main);
   color: #000;
@@ -173,7 +180,7 @@ body {
   color: var(--yellow-main);
 }
 
-/* GRID */
+/* GRID & CARDS */
 .listings-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -184,26 +191,61 @@ body {
   position: relative;
   border-radius: 15px;
   overflow: hidden;
-  background: #1c1c1e;
+  background: var(--card-gray);
 }
 .card img {
   width: 100%;
   height: 180px;
   object-fit: cover;
-  border-radius: 15px;
 }
 .card.blur-img img {
   filter: blur(15px);
 }
+
+/* Новая структура карточки */
+.card-body {
+  padding: 10px;
+  background: var(--card-gray);
+}
 .card-price {
   display: block;
   font-weight: bold;
-  font-size: 15px;
+  font-size: 16px;
   color: var(--yellow-main);
-  margin-top: 4px;
+  margin-bottom: 4px;
+}
+.card-title-text {
+  display: block;
+  font-size: 13px;
+  color: var(--white);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.card-fav-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.card-fav-btn i {
+  font-size: 14px;
+  color: #000;
+  transition: 0.3s;
+}
+.card-fav-btn.active i {
+  color: var(--pink);
 }
 
-/* FAVORITES */
+/* FAVORITES OLD DESIGN */
 .favs-header-custom {
   padding: 20px 15px;
   border-bottom: 1px solid #222;
@@ -225,13 +267,48 @@ body {
   border-radius: 8px;
   font-weight: bold;
 }
+.empty-favs-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 100px;
+  text-align: center;
+}
+.heart-square {
+  width: 90px;
+  height: 90px;
+  background: rgba(255, 204, 0, 0.1);
+  border: 2px solid var(--yellow-main);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+.heart-square i {
+  color: var(--yellow-main);
+  font-size: 36px;
+}
+.empty-text {
+  color: var(--gray);
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+.go-search-btn {
+  background: var(--yellow-main);
+  color: #000;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 10px;
+  font-weight: bold;
+}
 
-/* PROFILE (NEW LAYOUT) */
+/* PROFILE (CENTERED) */
 .profile-header-nav {
   padding: 15px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
 }
 .profile-new-hero {
   padding: 0 15px 20px;
@@ -281,7 +358,6 @@ body {
 .p-tab {
   font-size: 16px;
   color: var(--gray);
-  padding-bottom: 5px;
   cursor: pointer;
 }
 .p-tab.active {
@@ -289,188 +365,96 @@ body {
   border-bottom: 2px solid var(--yellow-main);
   font-weight: bold;
 }
-
-/* ADD PAGE NEAT DESIGN */
-.upload-zone-neat {
-  background: #1c1c1e;
-  border: 2px dashed #444;
-  padding: 30px;
+.empty-profile-msg {
   text-align: center;
-  border-radius: 15px;
-  color: var(--gray);
-  margin-bottom: 15px;
-  transition: 0.3s;
-}
-.upload-zone-neat:active {
-  border-color: var(--yellow-main);
-  background: rgba(255, 204, 0, 0.05);
-}
-
-.main-input {
   width: 100%;
-  background: #1c1c1e;
-  border: 1px solid #333;
-  padding: 14px;
-  border-radius: 12px;
-  color: white;
-  margin-bottom: 15px;
-  font-size: 15px;
-  outline: none;
-}
-.main-input:focus {
-  border-color: var(--yellow-main);
+  padding: 50px 0;
+  color: var(--gray);
+  grid-column: 1 / span 2;
 }
 
-.close-circle-btn-new {
-  background: #2c2c2e;
-  color: white;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: none;
-  font-size: 20px;
+/* ADD PAGE (TARIFF SPLIT) */
+.page-header-simple-centered {
+  padding: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
+  position: relative;
+  border-bottom: 1px solid #222;
 }
-
-/* VIP SQUARE GLOW */
+.page-header-simple-centered .close-circle-btn-new {
+  position: absolute;
+  left: 15px;
+}
+.tariff-container-split {
+  display: flex;
+  gap: 10px;
+  margin: 20px 15px;
+}
+.tariff-card-half {
+  flex: 1;
+  padding: 15px;
+  border-radius: 12px;
+  text-align: center;
+  background: #1c1c1e;
+  border: 2px solid transparent;
+}
+.tariff-std.active {
+  border-color: var(--pink);
+}
+.tariff-vip.active {
+  border: 2px dashed var(--yellow-vip);
+  box-shadow: 0 0 15px var(--yellow-vip);
+  background: rgba(255, 215, 0, 0.05);
+}
 .vip-details-yellow-glow {
   background: rgba(255, 215, 0, 0.05);
   border: 2px dashed var(--yellow-vip);
   padding: 15px;
   border-radius: 15px;
-  margin-bottom: 20px;
+  margin: 0 15px 20px;
   text-align: center;
-  box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); /* Квадрат тоже светится */
-  animation: glow-pulse 2s infinite alternate;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
 }
-@keyframes glow-pulse {
-  from {
-    box-shadow: 0 0 5px rgba(255, 215, 0, 0.2);
-  }
-  to {
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-  }
+.form-body-padded {
+  padding: 0 15px 120px;
 }
 
-/* BOTTOM NAV (SEPARATED ICONS AND TEXT) */
+/* BOTTOM NAV */
 .bottom-nav {
   position: fixed;
   bottom: 0;
-  left: 0;
   width: 100%;
-  height: 75px;
-  background: rgba(18, 18, 18, 0.98);
+  height: 80px;
+  background: rgba(18, 18, 18, 0.96);
   backdrop-filter: blur(10px);
   display: flex;
   justify-content: space-around;
   align-items: center;
   border-top: 1px solid #333;
   z-index: 2000;
-  padding: 0 10px 5px;
-}
-.nav-item {
-  background: none;
-  border: none;
-  color: var(--gray);
-  display: flex;
-  flex-direction: column; /* Иконка сверху, надпись снизу */
-  align-items: center;
-  font-size: 11px;
-  gap: 4px;
-  flex: 1;
-}
-.nav-item i {
-  font-size: 22px;
+  padding-bottom: 10px;
 }
 .nav-item.active {
   color: var(--yellow-main);
 }
-
 .nav-center {
   position: relative;
-  top: -15px; /* Опустили чуть ниже (было -24) */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  flex: 1;
+  top: -24px;
+  text-align: center;
 }
 .yellow-plus-main {
-  width: 58px;
-  height: 58px;
+  width: 62px;
+  height: 62px;
   border-radius: 50%;
   background: var(--yellow-main);
   border: 5px solid var(--bg);
   color: #000;
   font-size: 24px;
   box-shadow: 0 0 15px rgba(255, 204, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto; /* Центровка в телефонной версии */
-}
-.podat-label {
-  margin: 4px 0 0;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--gray);
-  text-align: center;
 }
 
-/* CAROUSEL & DOTS */
-.modal-carousel-container {
-  position: relative;
-  width: 100%;
-  height: 350px;
-  overflow: hidden;
-  background: #000;
-}
-.product-gallery-slider {
-  display: flex;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  height: 100%;
-  scrollbar-width: none;
-}
-.product-gallery-slider::-webkit-scrollbar {
-  display: none;
-}
-.product-gallery-slider img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  flex-shrink: 0;
-  scroll-snap-align: start;
-}
-.carousel-dots {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 12px;
-}
-.dot {
-  width: 8px;
-  height: 8px;
-  background: #333;
-  border-radius: 50%;
-  transition: 0.3s;
-}
-.dot.active {
-  background: var(--yellow-main);
-  transform: scale(1.2);
-}
-
-/* MISC */
-.info-cell {
-  background: #1c1c1e;
-  border: 1px solid #333;
-  padding: 12px;
-  border-radius: 10px;
-  margin-bottom: 10px;
-}
+/* MODAL TOOLS */
 .pd-btn-write {
   display: block;
   background: var(--yellow-main);
@@ -481,16 +465,6 @@ body {
   text-decoration: none;
   font-weight: bold;
   margin-bottom: 20px;
-}
-.yellow-btn-full {
-  background: var(--yellow-main);
-  color: #000;
-  border: none;
-  padding: 16px;
-  border-radius: 12px;
-  width: 100%;
-  font-weight: bold;
-  font-size: 16px;
 }
 .profile-actions-triple {
   display: grid;
@@ -514,4 +488,30 @@ body {
   background: #333;
   color: white;
   margin-left: auto;
-} /* Отмена с краю */
+}
+.sold-badge {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: #ff3b30;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: bold;
+  z-index: 5;
+  box-shadow: 0 0 10px rgba(255, 59, 48, 0.5);
+}
+.vip-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--yellow-vip);
+  color: #000;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: bold;
+  z-index: 5;
+  box-shadow: 0 0 10px var(--yellow-vip);
+}

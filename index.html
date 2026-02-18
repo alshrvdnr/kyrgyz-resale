@@ -53,35 +53,25 @@
 
           <!-- Категории -->
           <div class="categories-container">
-            <div
-              class="cat-card active"
-              id="cat-flowers"
-              onclick="filterByCat('flowers', this)"
-            >
+            <div class="cat-card active" onclick="filterByCat('Все', this)">
+              <div class="cat-icon-box">
+                <i class="fa-solid fa-border-all"></i>
+              </div>
+              <span>Все</span>
+            </div>
+            <div class="cat-card" onclick="filterByCat('flowers', this)">
               <div class="cat-icon-box"><i class="fa-solid fa-leaf"></i></div>
               <span>Цветы</span>
             </div>
-            <div
-              class="cat-card"
-              id="cat-gifts"
-              onclick="filterByCat('gifts', this)"
-            >
+            <div class="cat-card" onclick="filterByCat('gifts', this)">
               <div class="cat-icon-box"><i class="fa-solid fa-gift"></i></div>
               <span>Подарки</span>
             </div>
-            <div
-              class="cat-card"
-              id="cat-jewelry"
-              onclick="filterByCat('jewelry', this)"
-            >
+            <div class="cat-card" onclick="filterByCat('jewelry', this)">
               <div class="cat-icon-box"><i class="fa-solid fa-ring"></i></div>
               <span>Ювелирка</span>
             </div>
-            <div
-              class="cat-card"
-              id="cat-certs"
-              onclick="filterByCat('certs', this)"
-            >
+            <div class="cat-card" onclick="filterByCat('certs', this)">
               <div class="cat-icon-box"><i class="fa-solid fa-ticket"></i></div>
               <span>Сертификаты</span>
             </div>
@@ -115,7 +105,7 @@
       <!-- СТРАНИЦА РЕЗУЛЬТАТОВ -->
       <section id="page-results" class="page hidden">
         <header class="results-header">
-          <button class="back-circle-btn-pink" onclick="showPage('home')">
+          <button class="back-circle-btn-yellow" onclick="showPage('home')">
             <i class="fa fa-arrow-left"></i>
           </button>
           <h2>Результаты</h2>
@@ -140,7 +130,7 @@
       <!-- ПРОФИЛЬ -->
       <section id="page-profile" class="page hidden">
         <header class="profile-header-nav">
-          <button class="back-circle-btn-pink" onclick="showPage('home')">
+          <button class="back-circle-btn-yellow" onclick="showPage('home')">
             <i class="fa fa-arrow-left"></i>
           </button>
           <span></span>
@@ -169,7 +159,7 @@
 
       <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ -->
       <section id="page-add" class="page hidden">
-        <header class="page-header-simple">
+        <header class="page-header-simple-centered">
           <button onclick="cancelAdd()" class="close-circle-btn-new">
             <i class="fa fa-times"></i>
           </button>
@@ -177,9 +167,9 @@
           <span></span>
         </header>
         <div class="form-scroll">
-          <div class="tariff-container" id="tariff-selection-area">
+          <div class="tariff-container-split" id="tariff-selection-area">
             <div
-              class="tariff-card tariff-std active"
+              class="tariff-card-half tariff-std active"
               id="tariff-std"
               onclick="selectTariff('standard')"
             >
@@ -187,7 +177,7 @@
               <div class="tariff-price">Бесплатно</div>
             </div>
             <div
-              class="tariff-card tariff-vip"
+              class="tariff-card-half tariff-vip"
               id="tariff-vip"
               onclick="selectTariff('vip')"
             >
@@ -220,122 +210,101 @@
             </div>
           </div>
 
-          <div class="f-group">
-            <label>Фотографии (до 5 шт)</label>
-            <div
-              class="upload-zone-neat"
-              onclick="document.getElementById('file-input').click()"
-            >
-              <i
-                class="fa fa-camera"
-                style="
-                  font-size: 24px;
-                  margin-bottom: 8px;
-                  color: var(--yellow-main);
-                "
-              ></i>
-              <span id="file-label" style="display: block; font-weight: 500"
-                >Нажмите для выбора фото</span
+          <div class="form-body-padded">
+            <div class="f-group">
+              <label>Фотографии (до 5 шт)</label>
+              <div
+                class="upload-zone-neat"
+                onclick="document.getElementById('file-input').click()"
               >
-              <input
-                type="file"
-                id="file-input"
-                accept="image/*"
-                multiple
-                hidden
-                onchange="handleFileSelect(this)"
+                <i class="fa fa-camera"></i>
+                <span id="file-label">Выбрать фото</span>
+                <input
+                  type="file"
+                  id="file-input"
+                  accept="image/*"
+                  multiple
+                  hidden
+                  onchange="handleFileSelect(this)"
+                />
+              </div>
+              <div id="preview-box" class="hidden">
+                <div id="gallery-preview" class="upload-gallery"></div>
+              </div>
+            </div>
+
+            <div class="f-group">
+              <label>Отдел (Категория)</label>
+              <select id="in-cat" class="main-input">
+                <option value="flowers">Цветы</option>
+                <option value="jewelry">Ювелирка</option>
+                <option value="gifts">Подарки</option>
+                <option value="certs">Сертификаты</option>
+              </select>
+            </div>
+
+            <div class="f-group">
+              <label>Дата получения</label
+              ><input type="date" id="in-date" class="main-input" />
+            </div>
+            <div class="f-group">
+              <label>Город</label>
+              <select id="in-city" class="main-input">
+                <option value="Бишкек">Бишкек</option>
+                <option value="Ош">Ош</option>
+                <option value="Манас">Манас</option>
+                <option value="Токмок">Токмок</option>
+                <option value="Каракол">Каракол</option>
+              </select>
+            </div>
+            <div class="f-group">
+              <label>Адрес</label
+              ><input
+                type="text"
+                id="in-address"
+                class="main-input"
+                placeholder="Улица, дом"
               />
             </div>
-            <div id="preview-box" class="hidden">
-              <div id="gallery-preview" class="upload-gallery"></div>
-              <p
-                style="
-                  font-size: 12px;
-                  color: gray;
-                  text-align: center;
-                  margin-top: 5px;
-                "
-              >
-                Выбрано: <span id="photo-count">0</span>
-              </p>
+            <div class="f-group">
+              <label>Telegram ник</label
+              ><input
+                type="text"
+                id="in-tg"
+                class="main-input"
+                placeholder="username"
+              />
             </div>
-          </div>
+            <div class="f-group">
+              <label>Телефон</label
+              ><input
+                type="tel"
+                id="in-wa"
+                class="main-input"
+                placeholder="996..."
+              />
+            </div>
+            <div class="f-group">
+              <label>Название товара</label
+              ><input type="text" id="in-title" class="main-input" />
+            </div>
+            <div class="f-group">
+              <label>Цена (KGS)</label
+              ><input type="number" id="in-price" class="main-input" />
+            </div>
+            <div class="f-group">
+              <label>Описание</label
+              ><textarea id="in-desc" class="main-input"></textarea>
+            </div>
 
-          <div class="f-group">
-            <label>Отдел (Категория)</label>
-            <select id="in-cat" class="main-input">
-              <option value="flowers">Цветы</option>
-              <option value="jewelry">Ювелирка</option>
-              <option value="gifts">Подарки</option>
-              <option value="certs">Сертификаты</option>
-            </select>
+            <button
+              class="yellow-btn-full"
+              id="publish-btn"
+              onclick="publishAndSend()"
+            >
+              Опубликовать
+            </button>
           </div>
-
-          <div class="f-group">
-            <label>Дата получения</label
-            ><input type="date" id="in-date" class="main-input" />
-          </div>
-          <div class="f-group">
-            <label>Город</label>
-            <select id="in-city" class="main-input">
-              <option value="Бишкек">Бишкек</option>
-              <option value="Ош">Ош</option>
-              <option value="Манас">Манас</option>
-              <option value="Токмок">Токмок</option>
-              <option value="Каракол">Каракол</option>
-            </select>
-          </div>
-          <div class="f-group">
-            <label>Адрес</label
-            ><input
-              type="text"
-              id="in-address"
-              class="main-input"
-              placeholder="Улица, дом"
-            />
-          </div>
-          <div class="f-group">
-            <label>Telegram ник (без @)</label
-            ><input
-              type="text"
-              id="in-tg"
-              class="main-input"
-              placeholder="username"
-            />
-          </div>
-          <div class="f-group">
-            <label>Телефон</label
-            ><input
-              type="tel"
-              id="in-wa"
-              class="main-input"
-              placeholder="996..."
-            />
-          </div>
-          <div class="f-group">
-            <label>Название товара</label
-            ><input type="text" id="in-title" class="main-input" />
-          </div>
-          <div class="f-group">
-            <label>Цена (KGS)</label
-            ><input type="number" id="in-price" class="main-input" />
-          </div>
-          <div class="f-group">
-            <label>Описание</label
-            ><textarea
-              id="in-desc"
-              class="main-input"
-              style="height: 100px"
-            ></textarea>
-          </div>
-
-          <button
-            class="yellow-btn-full"
-            id="publish-btn"
-            onclick="publishAndSend()"
-          >
-            Опубликовать
-          </button>
         </div>
       </section>
 
@@ -353,18 +322,16 @@
       <!-- НАВИГАЦИЯ -->
       <nav class="bottom-nav">
         <button class="nav-item active" onclick="showPage('home')" id="n-home">
-          <i class="fa-solid fa-house"></i>
-          <span>Главная</span>
+          <i class="fa-solid fa-house"></i><span>Главная</span>
         </button>
         <div class="nav-center">
           <button class="yellow-plus-main" onclick="showPage('add')">
             <i class="fa-solid fa-plus"></i>
           </button>
-          <p class="podat-label">Подать</p>
+          <p>Подать</p>
         </div>
         <button class="nav-item" onclick="showPage('favs')" id="n-favs">
-          <i class="fa-solid fa-heart"></i>
-          <span>Избранные</span>
+          <i class="fa-solid fa-heart"></i><span>Избранное</span>
         </button>
       </nav>
     </div>
