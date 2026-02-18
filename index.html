@@ -139,6 +139,12 @@
 
       <!-- ПРОФИЛЬ -->
       <section id="page-profile" class="page hidden">
+        <header class="profile-header-nav">
+          <button class="back-circle-btn" onclick="showPage('home')">
+            <i class="fa fa-arrow-left"></i>
+          </button>
+          <span></span>
+        </header>
         <div class="profile-new-hero">
           <div class="profile-hero-content">
             <div class="avatar-circle-profile" id="u-avatar-big">?</div>
@@ -164,7 +170,7 @@
       <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ -->
       <section id="page-add" class="page hidden">
         <header class="page-header-simple">
-          <button onclick="cancelAdd()" class="close-circle-btn">
+          <button onclick="cancelAdd()" class="close-circle-btn-new">
             <i class="fa fa-times"></i>
           </button>
           <h2 id="add-title-text">Новое объявление</h2>
@@ -233,6 +239,16 @@
             </div>
             <div id="preview-box" class="hidden">
               <div id="gallery-preview" class="upload-gallery"></div>
+              <p
+                style="
+                  font-size: 12px;
+                  color: gray;
+                  text-align: center;
+                  margin-top: 5px;
+                "
+              >
+                Выбрано: <span id="photo-count">0</span>
+              </p>
             </div>
           </div>
 
@@ -301,7 +317,7 @@
           </div>
 
           <button
-            class="pink-btn-full"
+            class="yellow-btn-full"
             id="publish-btn"
             onclick="publishAndSend()"
           >
@@ -327,7 +343,7 @@
           <i class="fa-solid fa-house"></i><span>Главная</span>
         </button>
         <div class="nav-center">
-          <button class="pink-plus-main" onclick="showPage('add')">
+          <button class="yellow-plus-main" onclick="showPage('add')">
             <i class="fa-solid fa-plus"></i>
           </button>
           <p>Подать</p>

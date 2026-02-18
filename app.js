@@ -16,9 +16,9 @@ const catMap = {
 let ads = JSON.parse(localStorage.getItem("gifts_final_v12")) || [];
 let favs = JSON.parse(localStorage.getItem("favs_final_v12")) || [];
 
-let curCat = "flowers";
-let curCity = "Бишкек";
-let currentProfileTab = "active";
+let curCat = "flowers",
+  curCity = "Бишкек",
+  currentProfileTab = "active";
 let selectedFiles = [],
   selectedReceipt = null,
   selectedTariff = "standard",
@@ -32,7 +32,6 @@ document.addEventListener("DOMContentLoaded", () => {
 function initUser() {
   const user = tg.initDataUnsafe?.user || { first_name: "Пользователь", id: 0 };
   const initial = user.first_name[0].toUpperCase();
-
   if (document.getElementById("u-avatar-top"))
     document.getElementById("u-avatar-top").innerText = initial;
   if (document.getElementById("u-avatar-big"))
@@ -116,7 +115,7 @@ function createAdCard(ad, isProfile = false) {
   else if (isVip) badge = `<div class="vip-badge">VIP</div>`;
 
   const isFav = favs.includes(ad.id);
-  const heartColor = isFav ? "var(--pink)" : "white";
+  const heartColor = isFav ? "var(--yellow-main)" : "white";
 
   card.innerHTML = `
       ${badge}
@@ -128,7 +127,7 @@ function createAdCard(ad, isProfile = false) {
          } fa-heart" style="color:${heartColor}"></i>
       </button>
       <img src="${ad.img[0]}" loading="lazy">
-      <div class="card-body">
+      <div class="card-body" style="padding:10px;">
         <span class="card-cat-row">${ad.title}</span>
         <span class="card-price">${ad.price} KGS</span>
       </div>
@@ -138,17 +137,17 @@ function createAdCard(ad, isProfile = false) {
 }
 
 function renderProfileControls(ad) {
-  if (ad.status !== "active" && !ad.managing) return ""; // Скрываем кнопки для архива
-
+  if (ad.status !== "active" && !ad.managing) return "";
   if (ad.managing) {
     return `<div class="profile-actions-triple">
             <button class="btn-mini btn-sold-action" onclick="event.stopPropagation(); setStatus(${ad.id}, 'sold')">Продано</button>
             <button class="btn-mini" style="background:#ff3b30; color:white;" onclick="event.stopPropagation(); setStatus(${ad.id}, 'deleted')">Удалить</button>
-            <button class="btn-mini btn-cancel" onclick="event.stopPropagation(); cancelManage(${ad.id})">Отмена</button>
+            <button class="btn-mini btn-cancel" style="background:#333; color:white;" onclick="event.stopPropagation(); cancelManage(${ad.id})">Отмена</button>
         </div>`;
   }
-  return `<div class="profile-actions"><button class="btn-mini btn-edit" onclick="event.stopPropagation(); editAd(${ad.id})">Изменить</button>
-    <button class="btn-mini btn-sold-action" onclick="event.stopPropagation(); startManage(${ad.id})">Управление</button></div>`;
+  return `<div class="profile-actions" style="display:flex; gap:5px; padding:0 10px 10px;">
+    <button class="btn-mini btn-edit" style="flex:1; background:#333; color:white;" onclick="event.stopPropagation(); editAd(${ad.id})">Изменить</button>
+    <button class="btn-mini btn-sold-action" style="flex:1;" onclick="event.stopPropagation(); startManage(${ad.id})">Управление</button></div>`;
 }
 
 function startManage(id) {
@@ -168,58 +167,89 @@ function setStatus(id, s) {
   renderFeed();
 }
 
-// МОДАЛКА
+// МОДАЛКА (КАРУСЕЛЬ С ТОЧКАМИ)
 function openProduct(ad) {
   const modal = document.getElementById("product-modal");
   const isSold = ad.status === "sold" || ad.status === "deleted";
   const isFav = favs.includes(ad.id);
+  const images = ad.img;
+
   document.getElementById("modal-fav-icon").innerHTML = `<i class="${
     isFav ? "fa-solid" : "fa-regular"
-  } fa-heart" style="color:var(--pink); font-size:22px;" onclick="toggleFav(${
+  } fa-heart" style="color:var(--yellow-main); font-size:22px;" onclick="toggleFav(${
     ad.id
   })"></i>`;
+
   let imgClass = ad.status === "deleted" ? "blur-img" : "";
-  let contactInfo = isSold
-    ? ""
-    : `
-    <div class="info-cell"><span class="info-cell-label">Связь</span><span class="info-cell-value">@${
-      ad.tgNick
-    } <br> ${ad.phone}</span></div>
-    <a href="https://t.me/${ad.tgNick.replace(
-      "@",
-      ""
-    )}" target="_blank" class="pd-btn-write">Написать продавцу</a>`;
+
+  // Генерация точек
+  let dotsHTML = images
+    .map(
+      (_, i) =>
+        `<div class="dot ${i === 0 ? "active" : ""}" id="dot-${i}"></div>`
+    )
+    .join("");
 
   document.getElementById("pv-content").innerHTML = `
-    <div class="product-gallery">${ad.img
-      .map((i) => `<img src="${i}" class="${imgClass}">`)
-      .join("")}</div>
-    <div class="pd-body">
+    <div class="modal-carousel-container">
+        <div class="product-gallery-slider" id="main-slider">
+            ${images
+              .map((i) => `<img src="${i}" class="${imgClass}">`)
+              .join("")}
+        </div>
+    </div>
+    <div class="carousel-dots">${dotsHTML}</div>
+
+    <div class="pd-body" style="padding:20px;">
         ${
           isSold
             ? `<span style="color:red; font-weight:bold; font-size:20px; display:block; margin-bottom:15px;">ПРОДАНО</span>`
             : ""
         }
-        <div class="info-cell" style="background: rgba(255, 77, 141, 0.1); border-color: var(--pink);"><span class="info-cell-label">Стоимость</span><div class="pd-price">${
-          ad.price
-        } KGS</div><div style="font-size: 14px; margin-top: 5px;">${
-    catMap[ad.cat]
-  } — ${ad.title}</div></div>
-        <div class="pd-desc-label">Описание</div><div class="info-cell">${
-          ad.desc || "Описание отсутствует"
-        }</div>
+        <div class="info-cell" style="background: rgba(255, 204, 0, 0.1); border-color: var(--yellow-main);">
+            <span class="info-cell-label">Стоимость</span>
+            <div class="pd-price">${ad.price} KGS</div>
+            <div style="font-size: 14px; margin-top: 5px;">${
+              catMap[ad.cat]
+            } — ${ad.title}</div>
+        </div>
+        <div class="pd-desc-label" style="font-weight:bold; color:var(--yellow-main); margin-bottom:8px;">Описание</div>
+        <div class="info-cell">${ad.desc || "Описание отсутствует"}</div>
         <div class="info-cell"><span class="info-cell-label">Город</span>${
           ad.city
         }</div>
         <div class="info-cell"><span class="info-cell-label">Дата получения</span>${
           ad.dateReceived
         }</div>
-        ${contactInfo}
+        ${
+          isSold
+            ? ""
+            : `
+            <div class="info-cell"><span class="info-cell-label">Связь</span>@${
+              ad.tgNick
+            } <br> ${ad.phone}</div>
+            <a href="https://t.me/${ad.tgNick.replace(
+              "@",
+              ""
+            )}" target="_blank" class="pd-btn-write">Написать продавцу</a>
+        `
+        }
     </div>`;
+
+  // Логика переключения точек при скролле
+  const slider = document.getElementById("main-slider");
+  slider.addEventListener("scroll", () => {
+    const index = Math.round(slider.scrollLeft / slider.offsetWidth);
+    document
+      .querySelectorAll(".dot")
+      .forEach((d, i) => d.classList.toggle("active", i === index));
+  });
+
   modal.classList.remove("hidden");
   tg.BackButton.show();
   tg.BackButton.onClick(closeProduct);
 }
+
 function closeProduct() {
   document.getElementById("product-modal").classList.add("hidden");
   tg.BackButton.hide();
@@ -241,7 +271,7 @@ function renderFavs() {
   const container = document.getElementById("favs-content-area");
   const data = ads.filter((a) => favs.includes(a.id));
   if (data.length === 0) {
-    container.innerHTML = `<div class="empty-favs-box"><div class="heart-square"><i class="fa-solid fa-heart"></i></div><p class="empty-text">У вас пока нет избранных объявлений</p><button class="go-search-btn" onclick="showPage('home')">В поиск</button></div>`;
+    container.innerHTML = `<div class="empty-favs-box"><div class="heart-square"><i class="fa-solid fa-heart"></i></div><p class="empty-text">У вас пока нет избранных объявлений</p><button class="go-search-btn" style="background:var(--yellow-main); color:#000;" onclick="showPage('home')">В поиск</button></div>`;
     return;
   }
   container.innerHTML = `<div class="listings-grid"></div>`;
@@ -369,6 +399,7 @@ async function uploadToImgBB(file) {
     return null;
   }
 }
+
 async function sendToBot(ad) {
   let text = `📦 ${ad.title}\n💰 ${ad.price} KGS\n📍 ${ad.city}`;
   try {
@@ -390,6 +421,7 @@ function handleFileSelect(input) {
   const gallery = document.getElementById("gallery-preview");
   gallery.innerHTML = "";
   document.getElementById("preview-box").classList.remove("hidden");
+  document.getElementById("photo-count").innerText = selectedFiles.length;
   selectedFiles.forEach((f) => {
     const r = new FileReader();
     r.onload = (e) => {
@@ -400,6 +432,7 @@ function handleFileSelect(input) {
     r.readAsDataURL(f);
   });
 }
+
 function selectTariff(t) {
   selectedTariff = t;
   document
@@ -408,10 +441,18 @@ function selectTariff(t) {
   document.getElementById("tariff-vip").classList.toggle("active", t === "vip");
   document.getElementById("vip-block").classList.toggle("hidden", t !== "vip");
 }
+
 function cancelAdd() {
   editingId = null;
+  document.querySelectorAll(".main-input").forEach((i) => (i.value = ""));
+  document.getElementById("gallery-preview").innerHTML = "";
+  document.getElementById("preview-box").classList.add("hidden");
+  document.getElementById("add-title-text").innerText = "Новое объявление";
+  document.getElementById("publish-btn").innerText = "Опубликовать";
+  document.getElementById("tariff-selection-area").style.display = "flex";
   showPage("home");
 }
+
 function showPage(p) {
   document.querySelectorAll(".page").forEach((s) => s.classList.add("hidden"));
   document.getElementById(`page-${p}`).classList.remove("hidden");
@@ -421,18 +462,13 @@ function showPage(p) {
   if (document.getElementById(`n-${p}`))
     document.getElementById(`n-${p}`).classList.add("active");
   document.querySelector(".bottom-nav").style.display =
-    p === "add" || p === "filter" ? "none" : "flex";
+    p === "add" ? "none" : "flex";
   if (p === "home") renderFeed();
   if (p === "profile") renderProfileAds();
   if (p === "favs") renderFavs();
 }
+
 function handleReceiptSelect(input) {
   if (input.files[0])
     document.getElementById("receipt-label").innerText = "Чек добавлен ✅";
-}
-function applyExtendedFilter() {
-  showPage("home");
-}
-function resetExtendedFilter() {
-  renderFeed();
 }
