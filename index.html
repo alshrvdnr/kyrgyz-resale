@@ -29,12 +29,9 @@
                 onkeypress="handleSearch(event)"
               />
             </div>
-            <button class="filter-pink-btn" onclick="showPage('filter')">
-              Фильтр
-            </button>
           </div>
 
-          <!-- 1. Фильтр КАТЕГОРИЙ -->
+          <!-- ФИЛЬТР КАТЕГОРИЙ -->
           <div class="category-row">
             <div class="cat-chip active" onclick="filterByCat('Все', this)">
               Все
@@ -53,16 +50,13 @@
             </div>
           </div>
 
-          <!-- 2. Фильтр ГОРОДОВ (Новый) -->
+          <!-- ФИЛЬТР ГОРОДОВ (Бишкек, Ош, Манас, Токмок, Каракол) -->
           <div class="city-row">
             <div class="cat-chip active" onclick="filterByCity('Все', this)">
               Все
             </div>
             <div class="cat-chip" onclick="filterByCity('Бишкек', this)">
               Бишкек
-            </div>
-            <div class="cat-chip" onclick="filterByCity('Каракол', this)">
-              Каракол
             </div>
             <div class="cat-chip" onclick="filterByCity('Ош', this)">Ош</div>
             <div class="cat-chip" onclick="filterByCity('Манас', this)">
@@ -71,25 +65,18 @@
             <div class="cat-chip" onclick="filterByCity('Токмок', this)">
               Токмок
             </div>
+            <div class="cat-chip" onclick="filterByCity('Каракол', this)">
+              Каракол
+            </div>
           </div>
         </header>
 
         <div id="home-tabs-wrapper">
-          <div class="capsule-container">
-            <div class="capsule-tabs">
-              <div class="cap-tab active" onclick="switchMainTab('rec', this)">
-                Рекомендуемые
-              </div>
-              <div class="cap-tab" onclick="switchMainTab('new', this)">
-                Новые
-              </div>
-            </div>
-          </div>
           <main class="listings-grid" id="home-grid"></main>
         </div>
 
         <div id="search-error" class="error-container hidden">
-          <p>По такому запросу ничего не найдено</p>
+          <p>Ничего не найдено</p>
         </div>
       </section>
 
@@ -153,7 +140,7 @@
         </header>
         <div class="form-scroll">
           <div class="f-group">
-            <label>Фотографии товара (до 5 шт)</label>
+            <label>Фотографии (до 5 шт)</label>
             <div
               class="upload-zone"
               onclick="document.getElementById('file-input').click()"
@@ -179,70 +166,14 @@
                   margin-top: 5px;
                 "
               >
-                Выбрано фото: <span id="photo-count">0</span>
+                Выбрано: <span id="photo-count">0</span>
               </p>
             </div>
           </div>
 
+          <!-- ОБЯЗАТЕЛЬНО: КАТЕГОРИЯ -->
           <div class="f-group">
-            <label>📍 ГОРОД</label>
-            <select id="in-city" class="main-input">
-              <option value="Бишкек">Бишкек</option>
-              <option value="Каракол">Каракол</option>
-              <option value="Ош">Ош</option>
-              <option value="Манас">Манас</option>
-              <option value="Токмок">Токмок</option>
-            </select>
-          </div>
-
-          <div class="f-group">
-            <label>Адрес</label>
-            <input
-              type="text"
-              id="in-address"
-              class="main-input"
-              placeholder="Улица, дом"
-            />
-          </div>
-
-          <div class="f-group">
-            <label>Telegram ник (без @)</label>
-            <input
-              type="text"
-              id="in-tg"
-              class="main-input"
-              placeholder="username"
-            />
-          </div>
-          <div class="f-group">
-            <label>Номер телефона</label>
-            <input
-              type="tel"
-              id="in-wa"
-              class="main-input"
-              placeholder="996..."
-            />
-          </div>
-          <div class="f-group">
-            <label>Название товара</label>
-            <input
-              type="text"
-              id="in-title"
-              class="main-input"
-              placeholder="Что продаете?"
-            />
-          </div>
-          <div class="f-group">
-            <label>Цена (KGS)</label>
-            <input
-              type="number"
-              id="in-price"
-              class="main-input"
-              placeholder="0"
-            />
-          </div>
-          <div class="f-group">
-            <label>Категория</label>
+            <label>Отдел (Категория)</label>
             <select id="in-cat" class="main-input">
               <option value="flowers">Цветы</option>
               <option value="jewelry">Ювелирка</option>
@@ -250,12 +181,76 @@
               <option value="certs">Сертификаты</option>
             </select>
           </div>
+
+          <!-- ОБЯЗАТЕЛЬНО: ДАТА ПОЛУЧЕНИЯ -->
           <div class="f-group">
-            <label>Описание</label>
+            <label>Дата получения</label>
+            <input type="date" id="in-date" class="main-input" />
+          </div>
+
+          <div class="f-group">
+            <label>Город</label>
+            <select id="in-city" class="main-input">
+              <option value="Бишкек">Бишкек</option>
+              <option value="Ош">Ош</option>
+              <option value="Манас">Манас</option>
+              <option value="Токмок">Токмок</option>
+              <option value="Каракол">Каракол</option>
+            </select>
+          </div>
+
+          <div class="f-group">
+            <label>Адрес</label
+            ><input
+              type="text"
+              id="in-address"
+              class="main-input"
+              placeholder="Улица, дом"
+            />
+          </div>
+          <div class="f-group">
+            <label>Telegram (без @)</label
+            ><input
+              type="text"
+              id="in-tg"
+              class="main-input"
+              placeholder="username"
+            />
+          </div>
+          <div class="f-group">
+            <label>Телефон</label
+            ><input
+              type="tel"
+              id="in-wa"
+              class="main-input"
+              placeholder="996..."
+            />
+          </div>
+          <div class="f-group">
+            <label>Название товара</label
+            ><input
+              type="text"
+              id="in-title"
+              class="main-input"
+              placeholder="Например: 101 Роза"
+            />
+          </div>
+          <div class="f-group">
+            <label>Цена (KGS)</label
+            ><input
+              type="number"
+              id="in-price"
+              class="main-input"
+              placeholder="0"
+            />
+          </div>
+
+          <div class="f-group">
+            <label>Описание (необязательно)</label>
             <textarea
               id="in-desc"
               class="main-input"
-              placeholder="Описание..."
+              placeholder="Детали..."
             ></textarea>
           </div>
 
@@ -265,31 +260,7 @@
         </div>
       </section>
 
-      <!-- ФИЛЬТР (Старый экран, можно оставить) -->
-      <section id="page-filter" class="page hidden">
-        <header class="page-header-simple">
-          <button onclick="showPage('home')">✕</button>
-          <h2>Фильтр</h2>
-          <button class="pink-txt-link" onclick="showPage('home')">
-            Очистить
-          </button>
-        </header>
-        <div class="form-body">
-          <div class="f-group">
-            <label>Город</label>
-            <select class="main-input">
-              <option>Все города</option>
-              <option>Бишкек</option>
-              <option>Ош</option>
-            </select>
-          </div>
-          <button class="pink-btn-full" onclick="showPage('home')">
-            Показать результаты
-          </button>
-        </div>
-      </section>
-
-      <!-- ПРОДУКТ (МОДАЛКА) -->
+      <!-- МОДАЛКА -->
       <div id="product-modal" class="full-view hidden">
         <div class="pv-header">
           <button class="pv-back" onclick="closeProduct()">

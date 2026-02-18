@@ -22,7 +22,7 @@ const catMap = {
 let ads = JSON.parse(localStorage.getItem("gifts_final_v12")) || [];
 let favs = JSON.parse(localStorage.getItem("favs_final_v12")) || [];
 let curCat = "Все";
-let curCity = "Все"; // <--- НОВЫЙ ФИЛЬТР
+let curCity = "Все";
 let currentFavTab = "ads";
 let currentProfileTab = "active";
 let selectedFiles = [];
@@ -41,30 +41,27 @@ function initUser() {
 }
 
 // ---------------------------------------------------------
-// ПОИСК И ЛЕНТА (ОБНОВЛЕННАЯ ФИЛЬТРАЦИЯ)
+// ПОИСК И ЛЕНТА
 // ---------------------------------------------------------
 function handleSearch(e) {
   if (e.key === "Enter") {
     const query = e.target.value.toLowerCase();
     const results = ads.filter((a) => a.title.toLowerCase().includes(query));
-    // При поиске сбрасываем фильтры или ищем по текущим - здесь ищем по всей базе
     renderFeedInternal(results);
     e.target.blur();
   }
 }
 
-// Основная функция отрисовки (обертка для удобства)
 function renderFeed(data = ads) {
   renderFeedInternal(data);
 }
 
-// Внутренняя функция с логикой двойного фильтра
 function renderFeedInternal(data) {
   const grid = document.getElementById("home-grid");
   if (!grid) return;
   grid.innerHTML = "";
 
-  // ФИЛЬТРАЦИЯ: КАТЕГОРИЯ + ГОРОД
+  // ФИЛЬТРАЦИЯ
   let filtered = data.filter((ad) => {
     const catMatch = curCat === "Все" || ad.cat === curCat;
     const cityMatch = curCity === "Все" || ad.city === curCity;
@@ -74,43 +71,46 @@ function renderFeedInternal(data) {
   filtered.sort((a, b) => b.id - a.id);
 
   filtered.forEach((ad) => {
-    const catName = catMap[ad.cat] || "Разное";
-    let coverImg = Array.isArray(ad.img) ? ad.img[0] : ad.img;
+    // Генерируем карточку
+    const card = createAdCard(ad);
+    grid.appendChild(card);
+  });
+}
 
-    // 1. ЛОГИКА ОТОБРАЖЕНИЯ (Deleted vs Sold)
-    // Требование: "В обоих случаях сверху... должна отображаться надпись «Продано»"
+// Функция создания карточки (Единая для ленты, профиля и избранного)
+function createAdCard(ad) {
+  const catName = catMap[ad.cat] || "Товар";
+  let coverImg = Array.isArray(ad.img) ? ad.img[0] : ad.img;
 
-    let imageHTML = "";
-    // Если статус Sold или Deleted - показываем бейдж ПРОДАНО
-    const showSoldBadge = ad.status === "sold" || ad.status === "deleted";
-    const badgeHTML = showSoldBadge
-      ? `<div class="sold-badge">ПРОДАНО</div>`
-      : "";
+  // ЛОГИКА СТАТУСОВ: "Продано" или "Удалено" = Бейдж ПРОДАНО
+  const showSoldBadge = ad.status === "sold" || ad.status === "deleted";
+  const badgeHTML = showSoldBadge
+    ? `<div class="sold-badge">ПРОДАНО</div>`
+    : "";
 
-    if (ad.status === "deleted") {
-      // УДАЛЕНО: Бейдж + Заглушка
-      imageHTML = `
-        ${badgeHTML}
-        <div class="deleted-placeholder">
-            <span class="deleted-text">Пользователь скрыл фотографии<br>для сохранения конфиденциальности</span>
-        </div>`;
-    } else {
-      // ПРОДАНО или АКТИВНО: Бейдж (если продан) + Фото
-      imageHTML = `
-            ${badgeHTML}
-            <img src="${coverImg}" loading="lazy" style="height:140px; object-fit:cover; width:100%;">
-        `;
-    }
+  let imageHTML = "";
+  if (ad.status === "deleted") {
+    // УДАЛЕНО - заглушка
+    imageHTML = `${badgeHTML}<div class="deleted-placeholder"><span class="deleted-text">Фото скрыто<br>конфиденциально</span></div>`;
+  } else {
+    // АКТИВНО или ПРОДАНО - фото
+    imageHTML = `${badgeHTML}<img src="${coverImg}" loading="lazy" style="height:140px; object-fit:cover; width:100%;">`;
+  }
 
-    const isFav = favs.includes(ad.id);
-    const heartColor = isFav ? "var(--pink)" : "white";
-    const heartClass = isFav ? "fa-solid" : "fa-regular";
+  const isFav = favs.includes(ad.id);
+  const heartColor = isFav ? "var(--pink)" : "white";
+  const heartClass = isFav ? "fa-solid" : "fa-regular";
 
-    const card = document.createElement("div");
-    card.className = "card";
-    card.onclick = () => openProduct(ad);
+  const card = document.createElement("div");
+  card.className = "card";
 
-    card.innerHTML = `
+  // Профиль имеет свои кнопки, поэтому клик на открытие только в Ленте и Избранном
+  card.onclick = () => openProduct(ad);
+
+  // ДАТА вместо описания
+  const dateStr = ad.dateReceived ? `Получено: ${ad.dateReceived}` : "";
+
+  card.innerHTML = `
       <button class="card-fav-btn" onclick="toggleFavCard(event, ${ad.id})">
          <i class="${heartClass} fa-heart" style="color:${heartColor}"></i>
       </button>
@@ -118,14 +118,17 @@ function renderFeedInternal(data) {
       ${imageHTML}
       <div class="card-body">
         <span class="card-price">${ad.price} KGS</span>
+        
+        <!-- КАТЕГОРИЯ (Серый квадрат) + НАЗВАНИЕ -->
         <div class="card-cat-row">
             <span class="card-category">${catName}</span> ${ad.title}
         </div>
-        <div class="card-desc-short">${ad.desc || ad.city}</div>
+        
+        <!-- ДАТА ВНИЗУ -->
+        <div class="card-date">${dateStr}</div>
       </div>`;
 
-    grid.appendChild(card);
-  });
+  return card;
 }
 
 function toggleFavCard(e, id) {
@@ -134,21 +137,18 @@ function toggleFavCard(e, id) {
 }
 
 // ---------------------------------------------------------
-// УПРАВЛЕНИЕ ФИЛЬТРАМИ
+// ФИЛЬТРЫ
 // ---------------------------------------------------------
 function filterByCat(c, el) {
   curCat = c;
-  // Обновляем визуально кнопки категорий
   document
     .querySelectorAll(".category-row .cat-chip")
     .forEach((i) => i.classList.remove("active"));
   el.classList.add("active");
   renderFeed();
 }
-
 function filterByCity(c, el) {
   curCity = c;
-  // Обновляем визуально кнопки городов
   document
     .querySelectorAll(".city-row .cat-chip")
     .forEach((i) => i.classList.remove("active"));
@@ -157,21 +157,19 @@ function filterByCity(c, el) {
 }
 
 // ---------------------------------------------------------
-// ЗАГРУЗКА И ПУБЛИКАЦИЯ
+// ЗАГРУЗКА
 // ---------------------------------------------------------
 function handleFileSelect(input) {
   const files = Array.from(input.files);
   if (files.length > 0) {
     selectedFiles = files.slice(0, 5);
     const gallery = document.getElementById("gallery-preview");
-
     gallery.innerHTML = "";
     document.getElementById("preview-box").classList.remove("hidden");
     document.getElementById("photo-count").innerText = selectedFiles.length;
     document.getElementById(
       "file-label"
     ).innerText = `Выбрано: ${selectedFiles.length}`;
-
     selectedFiles.forEach((file) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -205,6 +203,7 @@ async function uploadToImgBB(file) {
 async function publishAndSend() {
   const title = document.getElementById("in-title").value;
   const price = document.getElementById("in-price").value;
+  const dateReceived = document.getElementById("in-date").value; // ДАТА
   const phone = document.getElementById("in-wa").value;
   const address = document.getElementById("in-address").value;
   const tgNick = document.getElementById("in-tg").value;
@@ -213,10 +212,11 @@ async function publishAndSend() {
   const desc = document.getElementById("in-desc").value;
 
   if (!title || !price) return tg.showAlert("Заполните название и цену!");
+  if (!dateReceived) return tg.showAlert("Укажите дату получения!");
   if (selectedFiles.length === 0) return tg.showAlert("Нужно хотя бы 1 фото!");
 
   tg.MainButton.showProgress();
-  tg.MainButton.text = "Публикация...";
+  tg.MainButton.text = "Создание записи...";
   tg.MainButton.show();
 
   let uploadedUrls = [];
@@ -235,6 +235,7 @@ async function publishAndSend() {
     id: Date.now(),
     title,
     price,
+    dateReceived,
     phone,
     address,
     tgNick,
@@ -251,9 +252,10 @@ async function publishAndSend() {
   ads.unshift(ad);
   localStorage.setItem("gifts_final_v12", JSON.stringify(ads));
 
+  // Очистка
   document.getElementById("in-title").value = "";
   document.getElementById("in-price").value = "";
-  document.getElementById("in-desc").value = "";
+  document.getElementById("in-date").value = "";
   selectedFiles = [];
   document.getElementById("gallery-preview").innerHTML = "";
   document.getElementById("preview-box").classList.add("hidden");
@@ -261,15 +263,14 @@ async function publishAndSend() {
 
   tg.MainButton.hideProgress();
   tg.MainButton.hide();
-  tg.showAlert("Готово!");
+  tg.showAlert("Объявление создано!");
   showPage("home");
 }
 
 async function sendToBot(ad) {
-  const text = `🚀 ЗАЯВКА\n📦: ${ad.title}\n💰: ${ad.price} KGS\n📍: ${ad.city}\n👤: @${ad.tgNick}\n📱: ${ad.phone}`;
+  // Отправляем боту (можно убрать, если не нужно, но оставил для сохранения логики)
+  const text = `📦 ${ad.title}\n💰 ${ad.price} KGS\n📅 ${ad.dateReceived}\n📍 ${ad.city}`;
   const urlGroup = `https://api.telegram.org/bot${BOT_TOKEN}/sendMediaGroup`;
-  const urlMessage = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-
   try {
     let mediaGroup = ad.img.map((imgUrl, index) => {
       return { type: "photo", media: imgUrl, caption: index === 0 ? text : "" };
@@ -279,29 +280,13 @@ async function sendToBot(ad) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ chat_id: ADMIN_ID, media: mediaGroup }),
     });
-    await fetch(urlMessage, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: ADMIN_ID,
-        text: `Действия:`,
-        reply_markup: {
-          inline_keyboard: [
-            [
-              { text: "ОК ✅", callback_data: `ok_${ad.id}` },
-              { text: "DEL ❌", callback_data: `no_${ad.id}` },
-            ],
-          ],
-        },
-      }),
-    });
   } catch (e) {
     console.error(e);
   }
 }
 
 // ---------------------------------------------------------
-// ПРОДУКТ (ПОЛНЫЙ ПРОСМОТР)
+// ПРОДУКТ
 // ---------------------------------------------------------
 function openProduct(ad) {
   const modal = document.getElementById("product-modal");
@@ -316,7 +301,7 @@ function openProduct(ad) {
     ad.id
   })"></i>`;
 
-  // ГАЛЕРЕЯ (Deleted = Заглушка, Sold = Фото)
+  // ГАЛЕРЕЯ
   let galleryHTML = "";
   if (ad.status === "deleted") {
     galleryHTML = `<div class="deleted-placeholder" style="height:250px;"><span class="deleted-text" style="font-size:14px;">Фото скрыто<br>для конфиденциальности</span></div>`;
@@ -333,7 +318,7 @@ function openProduct(ad) {
     }`;
   }
 
-  // КОНТАКТЫ (Скрыты если Sold или Deleted)
+  // КОНТАКТЫ
   let contactInfoHTML = "";
   if (ad.status === "active") {
     contactInfoHTML = `
@@ -344,20 +329,15 @@ function openProduct(ad) {
         <div class="contact-info-block"><div class="contact-label">📍 ГОРОД</div><div class="contact-value">${
           ad.city
         }</div></div>
-        <div class="contact-info-block"><div class="contact-label">🏠 АДРЕС</div><div class="contact-value">${
-          ad.address || "Не указан"
+        <div class="contact-info-block"><div class="contact-label">📅 ДАТА ПОЛУЧЕНИЯ</div><div class="contact-value">${
+          ad.dateReceived || "-"
         }</div></div>
         <div class="contact-info-block"><div class="contact-label">📱 ТЕЛЕФОН</div><div class="contact-value">${
           ad.phone
         }</div></div>
       `;
   } else {
-    contactInfoHTML = `
-        <div class="hidden-contacts-msg">
-            <i class="fa fa-lock" style="margin-bottom:5px;"></i><br>
-            Контактные данные и адрес скрыты,<br>так как товар продан.
-        </div>
-      `;
+    contactInfoHTML = `<div class="hidden-contacts-msg"><i class="fa fa-lock" style="margin-bottom:5px;"></i><br>Контактные данные скрыты,<br>так как товар продан.</div>`;
   }
 
   document.getElementById("pv-content").innerHTML = `
@@ -367,7 +347,9 @@ function openProduct(ad) {
             <div class="pd-title" style="font-size:18px; color:#aaa; margin-bottom:5px;">
                 ${catName} - <span style="color:white;">${ad.title}</span>
             </div>
-            <p style="color:#eee; font-size:15px; margin-bottom:20px; line-height:1.5;">${ad.desc}</p>
+            <p style="color:#eee; font-size:15px; margin-bottom:20px; line-height:1.5;">${
+              ad.desc || "Без описания"
+            }</p>
             ${contactInfoHTML}
         </div>
     `;
@@ -398,8 +380,11 @@ function toggleFav(id) {
     favs.push(id);
   }
   localStorage.setItem("favs_final_v12", JSON.stringify(favs));
+
+  // Обновляем все экраны, чтобы синхронизация была мгновенной
   renderFeed();
   renderFavs();
+
   const modalIcon = document.querySelector("#modal-fav-icon i");
   if (modalIcon) {
     if (favs.includes(id)) {
@@ -447,13 +432,16 @@ function renderProfileAds() {
     : '<p style="text-align:center; padding:50px; color:gray;">Пусто</p>';
 
   myAds.forEach((ad) => {
-    let cover = Array.isArray(ad.img) ? ad.img[0] : ad.img;
-    const catName = catMap[ad.cat] || "Товар";
+    // В профиле используем ту же карточку, но добавляем кнопки управления
+    const cardWrapper = document.createElement("div");
+    cardWrapper.className = "card";
 
+    const catName = catMap[ad.cat] || "Товар";
+    let cover = Array.isArray(ad.img) ? ad.img[0] : ad.img;
     let imgBlock = "";
-    // Логика профиля: Deleted - заглушка, Sold - фото
+
     if (ad.status === "deleted") {
-      imgBlock = `<div class="deleted-placeholder" style="height:100px; font-size:10px; padding:10px;">Фото скрыто</div>`;
+      imgBlock = `<div class="deleted-placeholder" style="height:140px; font-size:10px; padding:10px;">Фото скрыто</div>`;
     } else {
       const badge =
         ad.status === "sold" ? `<div class="sold-badge">ПРОДАНО</div>` : "";
@@ -468,23 +456,24 @@ function renderProfileAds() {
             <button class="btn-mini btn-sold-action" onclick="showActionPopup(${ad.id})">Продано</button>
         </div>`;
     } else {
-      // Статус словами
-      const statusText = ad.status === "sold" ? "Продано" : "Удалено";
-      buttonsHTML = `<div style="text-align:center; font-size:12px; color:gray; margin-top:10px; font-weight:bold;">Статус: ${statusText}</div>`;
+      buttonsHTML = `<div style="text-align:center; font-size:12px; color:gray; margin-top:10px; font-weight:bold;">Статус: Продано</div>`;
     }
 
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
+    // ДАТА
+    const dateStr = ad.dateReceived ? `Получено: ${ad.dateReceived}` : "";
+
+    cardWrapper.innerHTML = `
         ${imgBlock}
         <div class="card-body">
             <span class="card-price">${ad.price} KGS</span>
             <div class="card-cat-row">
                 <span class="card-category">${catName}</span> ${ad.title}
             </div>
+            <div class="card-date">${dateStr}</div>
             ${buttonsHTML}
         </div>`;
-    grid.appendChild(card);
+
+    grid.appendChild(cardWrapper);
   });
 }
 
@@ -511,8 +500,10 @@ function changeStatus(id, newStatus) {
   if (ad) {
     ad.status = newStatus;
     localStorage.setItem("gifts_final_v12", JSON.stringify(ads));
+    // Обновляем все для синхронизации
     renderProfileAds();
     renderFeed();
+    renderFavs();
   }
 }
 
@@ -552,25 +543,14 @@ function renderFavs() {
   if (data.length === 0)
     return (container.innerHTML = `<div style="text-align:center; padding:50px;">Пусто</div>`);
 
-  container.innerHTML =
-    `<div class="listings-grid">` +
-    data
-      .map((a) => {
-        let cover = Array.isArray(a.img) ? a.img[0] : a.img;
-        let imgHTML =
-          a.status === "deleted"
-            ? `<div class="deleted-placeholder" style="height:130px;"><span class="deleted-text">Удалено</span></div>`
-            : `<img src="${cover}">`;
+  // Теперь используем общую функцию создания карточки, чтобы визуально всё совпадало
+  container.innerHTML = `<div class="listings-grid"></div>`;
+  const grid = container.querySelector(".listings-grid");
 
-        return `<div class="card" onclick='openProduct(${JSON.stringify(a)})'>
-              ${imgHTML}
-              <div class="card-body">
-                <span class="card-price">${a.price} KGS</span>
-              </div>
-            </div>`;
-      })
-      .join("") +
-    `</div>`;
+  data.forEach((ad) => {
+    const card = createAdCard(ad);
+    grid.appendChild(card);
+  });
 }
 
 function clearFavs() {
