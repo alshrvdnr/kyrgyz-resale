@@ -667,3 +667,157 @@ body {
   margin-top: 15px;
   border: 1px dashed #444;
 }
+/* --- ВСТАВИТЬ В КОНЕЦ style.css --- */
+
+/* 1. Кнопка "Подать" (Круг) */
+.nav-center {
+  position: relative;
+  top: -22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 70px;
+}
+.pink-plus {
+  width: 54px !important;
+  height: 54px !important;
+  border-radius: 50% !important;
+  background: var(--pink);
+  border: 4px solid var(--bg);
+  color: white;
+  font-size: 28px;
+  font-weight: 400;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  box-shadow: 0 4px 10px rgba(255, 143, 177, 0.3);
+}
+.nav-center p {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--gray);
+}
+
+/* 2. Сердечко в карточке */
+.card-fav-btn {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 10;
+  width: 28px;
+  height: 28px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.card-fav-btn i {
+  font-size: 14px;
+  transition: transform 0.2s;
+}
+.card-fav-btn:active i {
+  transform: scale(1.2);
+}
+
+/* 3. Скрытые контакты */
+.hidden-contacts-msg {
+  background: #2c2c2e;
+  color: #888;
+  padding: 15px;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 13px;
+  margin-top: 15px;
+  border: 1px dashed #444;
+}
+
+/* 4. Бейдж ПРОДАНО (Красный) */
+.sold-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #ff3b30;
+  color: white;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 800;
+  border-radius: 4px;
+  z-index: 5;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* 5. Ряд городов (Второй фильтр) */
+.city-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 0 15px 10px; /* Отступ снизу */
+  scrollbar-width: none;
+  border-bottom: 1px solid #222; /* Разделитель */
+  margin-bottom: 10px;
+}
+.city-row::-webkit-scrollbar {
+  display: none;
+}
+
+/* Обновленная карточка */
+.card-price {
+  color: var(--pink);
+  font-weight: 900;
+  font-size: 17px;
+  display: block;
+  margin-bottom: 4px;
+}
+.card-cat-row {
+  font-size: 13px;
+  color: #fff;
+  font-weight: 500;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card-category {
+  color: var(--gray);
+  margin-right: 5px;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  border: 1px solid #444;
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+.card-desc-short {
+  font-size: 11px;
+  color: #777;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.deleted-placeholder {
+  width: 100%;
+  height: 140px;
+  background: #151517;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  text-align: center;
+  border-bottom: 1px solid #333;
+}
+.deleted-text {
+  font-size: 10px;
+  color: #555;
+  line-height: 1.4;
+  font-style: italic;
+}

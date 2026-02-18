@@ -33,6 +33,8 @@
               Фильтр
             </button>
           </div>
+
+          <!-- 1. Фильтр КАТЕГОРИЙ -->
           <div class="category-row">
             <div class="cat-chip active" onclick="filterByCat('Все', this)">
               Все
@@ -48,6 +50,26 @@
             </div>
             <div class="cat-chip" onclick="filterByCat('certs', this)">
               Сертификаты
+            </div>
+          </div>
+
+          <!-- 2. Фильтр ГОРОДОВ (Новый) -->
+          <div class="city-row">
+            <div class="cat-chip active" onclick="filterByCity('Все', this)">
+              Все
+            </div>
+            <div class="cat-chip" onclick="filterByCity('Бишкек', this)">
+              Бишкек
+            </div>
+            <div class="cat-chip" onclick="filterByCity('Каракол', this)">
+              Каракол
+            </div>
+            <div class="cat-chip" onclick="filterByCity('Ош', this)">Ош</div>
+            <div class="cat-chip" onclick="filterByCity('Манас', this)">
+              Манас
+            </div>
+            <div class="cat-chip" onclick="filterByCity('Токмок', this)">
+              Токмок
             </div>
           </div>
         </header>
@@ -166,10 +188,10 @@
             <label>📍 ГОРОД</label>
             <select id="in-city" class="main-input">
               <option value="Бишкек">Бишкек</option>
-              <option value="Ош">Ош</option>
-              <option value="Джалал-Абад">Джалал-Абад</option>
-              <option value="Токмок">Токмок</option>
               <option value="Каракол">Каракол</option>
+              <option value="Ош">Ош</option>
+              <option value="Манас">Манас</option>
+              <option value="Токмок">Токмок</option>
             </select>
           </div>
 
@@ -243,7 +265,7 @@
         </div>
       </section>
 
-      <!-- ФИЛЬТР -->
+      <!-- ФИЛЬТР (Старый экран, можно оставить) -->
       <section id="page-filter" class="page hidden">
         <header class="page-header-simple">
           <button onclick="showPage('home')">✕</button>
@@ -273,7 +295,6 @@
           <button class="pv-back" onclick="closeProduct()">
             <i class="fa fa-chevron-left"></i>
           </button>
-          <!-- Контейнер для сердечка справа сверху -->
           <div class="pv-top-icons" id="modal-fav-icon"></div>
         </div>
         <div id="pv-content" class="pv-scroll-area"></div>
@@ -284,13 +305,10 @@
         <button class="nav-item active" onclick="showPage('home')" id="n-home">
           <i class="fa fa-home"></i><span>Главная</span>
         </button>
-
-        <!-- Кнопка "Подать" (Идеальный круг через CSS) -->
         <div class="nav-center">
           <button class="pink-plus" onclick="showPage('add')">+</button>
           <p>Подать</p>
         </div>
-
         <button class="nav-item" onclick="showPage('favs')" id="n-favs">
           <i class="fa fa-heart"></i><span>Избранное</span>
         </button>

@@ -22,6 +22,7 @@ const catMap = {
 let ads = JSON.parse(localStorage.getItem("gifts_final_v12")) || [];
 let favs = JSON.parse(localStorage.getItem("favs_final_v12")) || [];
 let curCat = "Все";
+let curCity = "Все"; // <--- НОВЫЙ ФИЛЬТР
 let currentFavTab = "ads";
 let currentProfileTab = "active";
 let selectedFiles = [];
@@ -40,58 +41,76 @@ function initUser() {
 }
 
 // ---------------------------------------------------------
-// ПОИСК И ЛЕНТА
+// ПОИСК И ЛЕНТА (ОБНОВЛЕННАЯ ФИЛЬТРАЦИЯ)
 // ---------------------------------------------------------
 function handleSearch(e) {
   if (e.key === "Enter") {
     const query = e.target.value.toLowerCase();
     const results = ads.filter((a) => a.title.toLowerCase().includes(query));
-    renderFeed(query === "" ? ads : results);
+    // При поиске сбрасываем фильтры или ищем по текущим - здесь ищем по всей базе
+    renderFeedInternal(results);
     e.target.blur();
   }
 }
 
+// Основная функция отрисовки (обертка для удобства)
 function renderFeed(data = ads) {
+  renderFeedInternal(data);
+}
+
+// Внутренняя функция с логикой двойного фильтра
+function renderFeedInternal(data) {
   const grid = document.getElementById("home-grid");
   if (!grid) return;
   grid.innerHTML = "";
 
-  let filtered = curCat === "Все" ? data : data.filter((a) => a.cat === curCat);
+  // ФИЛЬТРАЦИЯ: КАТЕГОРИЯ + ГОРОД
+  let filtered = data.filter((ad) => {
+    const catMatch = curCat === "Все" || ad.cat === curCat;
+    const cityMatch = curCity === "Все" || ad.city === curCity;
+    return catMatch && cityMatch;
+  });
+
   filtered.sort((a, b) => b.id - a.id);
 
   filtered.forEach((ad) => {
     const catName = catMap[ad.cat] || "Разное";
     let coverImg = Array.isArray(ad.img) ? ad.img[0] : ad.img;
 
-    // 1. Логика ФОТО (Удалено = заглушка, Продано = фото + бейдж)
+    // 1. ЛОГИКА ОТОБРАЖЕНИЯ (Deleted vs Sold)
+    // Требование: "В обоих случаях сверху... должна отображаться надпись «Продано»"
+
     let imageHTML = "";
+    // Если статус Sold или Deleted - показываем бейдж ПРОДАНО
+    const showSoldBadge = ad.status === "sold" || ad.status === "deleted";
+    const badgeHTML = showSoldBadge
+      ? `<div class="sold-badge">ПРОДАНО</div>`
+      : "";
+
     if (ad.status === "deleted") {
+      // УДАЛЕНО: Бейдж + Заглушка
       imageHTML = `
+        ${badgeHTML}
         <div class="deleted-placeholder">
-            <span class="deleted-text">Фото удалено<br>для конфиденциальности</span>
+            <span class="deleted-text">Пользователь скрыл фотографии<br>для сохранения конфиденциальности</span>
         </div>`;
     } else {
-      const soldBadge =
-        ad.status === "sold" ? `<div class="sold-badge">ПРОДАНО</div>` : "";
+      // ПРОДАНО или АКТИВНО: Бейдж (если продан) + Фото
       imageHTML = `
-            ${soldBadge}
+            ${badgeHTML}
             <img src="${coverImg}" loading="lazy" style="height:140px; object-fit:cover; width:100%;">
         `;
     }
 
-    // 2. Логика СЕРДЕЧКА (В левом углу)
     const isFav = favs.includes(ad.id);
     const heartColor = isFav ? "var(--pink)" : "white";
     const heartClass = isFav ? "fa-solid" : "fa-regular";
 
     const card = document.createElement("div");
     card.className = "card";
-
-    // Клик по карточке открывает товар (даже если удален, там просто будет заглушка)
     card.onclick = () => openProduct(ad);
 
     card.innerHTML = `
-      <!-- Кнопка избранного (с stopPropagation чтобы не открывать товар) -->
       <button class="card-fav-btn" onclick="toggleFavCard(event, ${ad.id})">
          <i class="${heartClass} fa-heart" style="color:${heartColor}"></i>
       </button>
@@ -109,10 +128,32 @@ function renderFeed(data = ads) {
   });
 }
 
-// Отдельная функция для клика по сердечку в карточке
 function toggleFavCard(e, id) {
-  e.stopPropagation(); // Останавливаем клик, чтобы не открылась модалка
+  e.stopPropagation();
   toggleFav(id);
+}
+
+// ---------------------------------------------------------
+// УПРАВЛЕНИЕ ФИЛЬТРАМИ
+// ---------------------------------------------------------
+function filterByCat(c, el) {
+  curCat = c;
+  // Обновляем визуально кнопки категорий
+  document
+    .querySelectorAll(".category-row .cat-chip")
+    .forEach((i) => i.classList.remove("active"));
+  el.classList.add("active");
+  renderFeed();
+}
+
+function filterByCity(c, el) {
+  curCity = c;
+  // Обновляем визуально кнопки городов
+  document
+    .querySelectorAll(".city-row .cat-chip")
+    .forEach((i) => i.classList.remove("active"));
+  el.classList.add("active");
+  renderFeed();
 }
 
 // ---------------------------------------------------------
@@ -269,18 +310,16 @@ function openProduct(ad) {
   const catName = catMap[ad.cat] || "Товар";
 
   const images = Array.isArray(ad.img) ? ad.img : [ad.img];
-
-  // Сердечко справа сверху
   favIconArea.innerHTML = `<i class="${
     isFav ? "fa-solid" : "fa-regular"
   } fa-heart" style="color:var(--pink); font-size:22px;" onclick="toggleFav(${
     ad.id
   })"></i>`;
 
-  // Галерея (Слайдер) или Заглушка
+  // ГАЛЕРЕЯ (Deleted = Заглушка, Sold = Фото)
   let galleryHTML = "";
   if (ad.status === "deleted") {
-    galleryHTML = `<div class="deleted-placeholder" style="height:250px;"><span class="deleted-text" style="font-size:14px;">Фотография удалена<br>для конфиденциальности</span></div>`;
+    galleryHTML = `<div class="deleted-placeholder" style="height:250px;"><span class="deleted-text" style="font-size:14px;">Фото скрыто<br>для конфиденциальности</span></div>`;
   } else {
     let imagesHtml = images.map((src) => `<img src="${src}">`).join("");
     let dotsHtml =
@@ -294,10 +333,9 @@ function openProduct(ad) {
     }`;
   }
 
-  // Логика контактов (Скрываем, если не активен)
+  // КОНТАКТЫ (Скрыты если Sold или Deleted)
   let contactInfoHTML = "";
   if (ad.status === "active") {
-    // Показываем всё
     contactInfoHTML = `
         <a href="https://t.me/${ad.tgNick.replace(
           "@",
@@ -314,34 +352,27 @@ function openProduct(ad) {
         }</div></div>
       `;
   } else {
-    // Скрываем всё
     contactInfoHTML = `
         <div class="hidden-contacts-msg">
             <i class="fa fa-lock" style="margin-bottom:5px;"></i><br>
-            Контактные данные и адрес скрыты,<br>так как товар ${
-              ad.status === "sold" ? "продан" : "удален"
-            }.
+            Контактные данные и адрес скрыты,<br>так как товар продан.
         </div>
       `;
   }
 
   document.getElementById("pv-content").innerHTML = `
         ${galleryHTML}
-
         <div class="pd-body">
             <div class="pd-price">${ad.price} KGS</div>
             <div class="pd-title" style="font-size:18px; color:#aaa; margin-bottom:5px;">
                 ${catName} - <span style="color:white;">${ad.title}</span>
             </div>
-            
             <p style="color:#eee; font-size:15px; margin-bottom:20px; line-height:1.5;">${ad.desc}</p>
-            
             ${contactInfoHTML}
         </div>
     `;
   modal.classList.remove("hidden");
 
-  // Инициализация слайдера (если он есть)
   const galleryDiv = document.querySelector(".product-gallery");
   if (galleryDiv && images.length > 1) {
     galleryDiv.addEventListener("scroll", () => {
@@ -367,12 +398,8 @@ function toggleFav(id) {
     favs.push(id);
   }
   localStorage.setItem("favs_final_v12", JSON.stringify(favs));
-
-  // Обновляем сердечки везде
-  renderFeed(); // Обновит ленту
-  renderFavs(); // Обновит экран избранного
-
-  // Если открыта модалка, обновляем сердечко в ней
+  renderFeed();
+  renderFavs();
   const modalIcon = document.querySelector("#modal-fav-icon i");
   if (modalIcon) {
     if (favs.includes(id)) {
@@ -382,7 +409,7 @@ function toggleFav(id) {
     } else {
       modalIcon.classList.remove("fa-solid");
       modalIcon.classList.add("fa-regular");
-      modalIcon.style.color = "var(--pink)"; // Или белый, как решишь
+      modalIcon.style.color = "var(--pink)";
     }
   }
 }
@@ -417,15 +444,16 @@ function renderProfileAds() {
 
   grid.innerHTML = myAds.length
     ? ""
-    : '<p style="text-align:center; padding:50px; color:gray;">Тут пока пусто</p>';
+    : '<p style="text-align:center; padding:50px; color:gray;">Пусто</p>';
 
   myAds.forEach((ad) => {
     let cover = Array.isArray(ad.img) ? ad.img[0] : ad.img;
     const catName = catMap[ad.cat] || "Товар";
 
     let imgBlock = "";
+    // Логика профиля: Deleted - заглушка, Sold - фото
     if (ad.status === "deleted") {
-      imgBlock = `<div class="deleted-placeholder" style="height:100px; font-size:10px; padding:10px;">Удалено (Фото скрыто)</div>`;
+      imgBlock = `<div class="deleted-placeholder" style="height:100px; font-size:10px; padding:10px;">Фото скрыто</div>`;
     } else {
       const badge =
         ad.status === "sold" ? `<div class="sold-badge">ПРОДАНО</div>` : "";
@@ -436,13 +464,13 @@ function renderProfileAds() {
     if (ad.status === "active") {
       buttonsHTML = `
         <div class="profile-actions">
-            <button class="btn-mini btn-edit" onclick="tg.showAlert('Редактирование пока недоступно')">Изменить</button>
+            <button class="btn-mini btn-edit" onclick="tg.showAlert('Скоро')">Изменить</button>
             <button class="btn-mini btn-sold-action" onclick="showActionPopup(${ad.id})">Продано</button>
         </div>`;
     } else {
+      // Статус словами
       const statusText = ad.status === "sold" ? "Продано" : "Удалено";
-      const color = ad.status === "sold" ? "var(--pink)" : "gray";
-      buttonsHTML = `<div style="text-align:center; font-size:12px; color:${color}; margin-top:10px; font-weight:bold;">Статус: ${statusText}</div>`;
+      buttonsHTML = `<div style="text-align:center; font-size:12px; color:gray; margin-top:10px; font-weight:bold;">Статус: ${statusText}</div>`;
     }
 
     const card = document.createElement("div");
@@ -466,7 +494,7 @@ function showActionPopup(id) {
       title: "Завершение сделки",
       message: "Выберите действие:",
       buttons: [
-        { id: "sold", type: "default", text: "Продано (Сохранить фото)" },
+        { id: "sold", type: "default", text: "Продано (Оставить фото)" },
         { id: "delete", type: "destructive", text: "Удалить (Скрыть фото)" },
         { id: "cancel", type: "cancel" },
       ],
@@ -483,11 +511,6 @@ function changeStatus(id, newStatus) {
   if (ad) {
     ad.status = newStatus;
     localStorage.setItem("gifts_final_v12", JSON.stringify(ads));
-
-    if (newStatus === "sold") tg.showAlert("Товар продан. Контакты скрыты.");
-    if (newStatus === "deleted")
-      tg.showAlert("Удалено. Фото и контакты скрыты.");
-
     renderProfileAds();
     renderFeed();
   }
@@ -554,12 +577,4 @@ function clearFavs() {
   favs = [];
   localStorage.setItem("favs_final_v12", JSON.stringify(favs));
   renderFavs();
-}
-function filterByCat(c, el) {
-  curCat = c;
-  document
-    .querySelectorAll(".cat-chip")
-    .forEach((i) => i.classList.remove("active"));
-  el.classList.add("active");
-  renderFeed();
 }
