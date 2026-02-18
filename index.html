@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>Gifts Kyrgyzstan</title>
+    <title>Gifts KG</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link
       rel="stylesheet"
@@ -16,7 +16,7 @@
   </head>
   <body>
     <div id="app">
-      <!-- ГЛАВНАЯ -->
+      <!-- ГЛАВНАЯ СТРАНИЦА -->
       <section id="page-home" class="page">
         <header class="main-header">
           <div class="top-location-bar" onclick="toggleCitySelector()">
@@ -41,18 +41,7 @@
             </div>
             <div
               id="u-avatar-top"
-              style="
-                width: 42px;
-                height: 42px;
-                background: var(--yellow-main);
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: #000;
-                font-weight: bold;
-                cursor: pointer;
-              "
+              class="u-avatar-top-circle"
               onclick="showPage('profile')"
             >
               ?
@@ -191,7 +180,7 @@
         </div>
       </div>
 
-      <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ (ВЕРНУТ ВСЕ ПОЛЯ) -->
+      <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ -->
       <section id="page-add" class="page hidden">
         <header
           style="
@@ -275,7 +264,7 @@
           </div>
 
           <div class="f-group">
-            <label>Фотографии (до 5 штук)</label>
+            <label>Фотографии (макс. 5 фото)</label>
             <div
               class="main-input"
               onclick="document.getElementById('file-input').click()"
@@ -314,7 +303,6 @@
               <option value="certs">Сертификаты</option>
             </select>
           </div>
-
           <div class="f-group">
             <label>Город</label>
             <select id="in-city" class="main-input">
@@ -324,50 +312,44 @@
               <option value="Каракол">Каракол</option>
             </select>
           </div>
-
           <div class="f-group">
-            <label>Название товара</label>
-            <input
+            <label>Название товара</label
+            ><input
               type="text"
               id="in-title"
               class="main-input"
-              placeholder="Например: Букет из 25 роз"
+              placeholder="Букет из 25 роз"
             />
           </div>
-
           <div class="f-group">
-            <label>Цена (KGS)</label>
-            <input type="number" id="in-price" class="main-input" />
+            <label>Цена (KGS)</label
+            ><input type="number" id="in-price" class="main-input" />
           </div>
-
           <div class="f-group">
-            <label>Дата получения товара</label>
-            <input type="date" id="in-receive-date" class="main-input" />
+            <label>Дата получения товара</label
+            ><input type="date" id="in-receive-date" class="main-input" />
           </div>
-
           <div class="f-group">
-            <label>Telegram (@nick)</label>
-            <input
+            <label>Telegram (@nick)</label
+            ><input
               type="text"
               id="in-tg"
               class="main-input"
               placeholder="@nickname"
             />
           </div>
-
           <div class="f-group">
-            <label>Телефон / WhatsApp</label>
-            <input
+            <label>Телефон / WhatsApp</label
+            ><input
               type="tel"
               id="in-wa"
               class="main-input"
               placeholder="0XXXXXXXXX"
             />
           </div>
-
           <div class="f-group">
-            <label>Описание</label>
-            <textarea id="in-desc" class="main-input" rows="4"></textarea>
+            <label>Описание</label
+            ><textarea id="in-desc" class="main-input" rows="4"></textarea>
           </div>
 
           <button class="btn-premium-unity" onclick="publishAndSend()">
@@ -458,7 +440,7 @@
         <main class="listings-grid" id="my-ads-grid"></main>
       </section>
 
-      <!-- МОДАЛКА ТОВАРА -->
+      <!-- МОДАЛКА -->
       <div
         id="product-modal"
         class="hidden"

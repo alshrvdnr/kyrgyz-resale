@@ -275,7 +275,6 @@ function editAd(id) {
   document.getElementById("in-desc").value = ad.desc || "";
   document.getElementById("in-cat").value = ad.cat;
   document.getElementById("in-city").value = ad.city;
-  document.getElementById("in-receive-date").value = ad.receiveDate || "";
 }
 
 function selectTariff(t) {
