@@ -29,7 +29,7 @@
             <div class="cat-chip" onclick="filterByCat('certs', this)">Сертификаты</div>
           </div>
 
-          <!-- ГОРОДА (Бишкек, Ош, Манас, Токмок, Каракол) -->
+          <!-- ГОРОДА -->
           <div class="city-row">
             <div class="cat-chip active" onclick="filterByCity('Все', this)">Все</div>
             <div class="cat-chip" onclick="filterByCity('Бишкек', this)">Бишкек</div>
@@ -41,11 +41,11 @@
         </header>
 
         <div id="home-tabs-wrapper">
-          <!-- ВКЛАДКИ РЕКОМЕНДОВАННЫЕ / НОВЫЕ -->
+          <!-- ВКЛАДКИ: Рекомендуемые (1), Новые (2) -->
           <div class="capsule-container">
             <div class="capsule-tabs">
-              <div class="cap-tab active" id="mtab-new" onclick="switchMainTab('new')">Новые</div>
-              <div class="cap-tab" id="mtab-rec" onclick="switchMainTab('rec')">Рекомендуемые</div>
+              <div class="cap-tab active" id="mtab-rec" onclick="switchMainTab('rec')">Рекомендуемые</div>
+              <div class="cap-tab" id="mtab-new" onclick="switchMainTab('new')">Новые</div>
             </div>
           </div>
           <main class="listings-grid" id="home-grid"></main>
@@ -56,7 +56,7 @@
         </div>
       </section>
 
-      <!-- ИЗБРАННОЕ (БЕЗ ПОИСКА) -->
+      <!-- ИЗБРАННОЕ -->
       <section id="page-favs" class="page hidden">
         <header class="favs-header-custom">
           <div class="favs-top-line">
@@ -84,7 +84,8 @@
       <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ -->
       <section id="page-add" class="page hidden">
         <header class="page-header-simple">
-          <button onclick="showPage('home')" class="icon-btn">✕</button>
+          <!-- НОРМАЛЬНЫЙ КРУГЛЫЙ КРЕСТИК -->
+          <button onclick="showPage('home')" class="close-circle-btn"><i class="fa fa-times"></i></button>
           <h2>Новое объявление</h2>
           <span></span>
         </header>
