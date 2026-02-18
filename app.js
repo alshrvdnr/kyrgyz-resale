@@ -33,13 +33,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function initUser() {
   const user = tg.initDataUnsafe?.user || { first_name: "Гость", id: 0 };
-  const initial = user.first_name[0].toUpperCase();
+  const initial = user.first_name ? user.first_name[0].toUpperCase() : "?";
   document.getElementById("u-avatar-top").innerText = initial;
   document.getElementById("u-avatar-big").innerText = initial;
-  document.getElementById("u-name").innerText = user.first_name;
+  document.getElementById("u-name").innerText = user.first_name || "Гость";
 }
 
-// ГОРОДА
+// ГЕОЛОКАЦИЯ
 function toggleCitySelector() {
   document.getElementById("city-selector").classList.toggle("hidden");
 }
@@ -62,9 +62,10 @@ function filterByCat(cat, el) {
   renderFeed();
 }
 
-// ЛЕНТА
+// РЕНДЕР ЛЕНТЫ
 function renderFeed() {
   const grid = document.getElementById("home-grid");
+  if (!grid) return;
   grid.innerHTML = "";
   const filtered = ads.filter(
     (ad) =>
@@ -75,12 +76,15 @@ function renderFeed() {
   filtered.forEach((ad) => grid.appendChild(createAdCard(ad)));
 }
 
+// СОЗДАНИЕ КАРТОЧКИ (СЕРДЕЧКИ СНАРУЖИ + ПРОДАНО)
 function createAdCard(ad, isProfile = false) {
   const isFav = favs.includes(ad.id);
   const isSold = ad.status === "sold";
   const isDeleted = ad.status === "deleted";
+  const isVip = ad.tariff === "vip";
+
   const card = document.createElement("div");
-  card.className = "card";
+  card.className = `card ${isVip ? "card-vip" : ""}`;
   card.onclick = () => openProduct(ad);
   card.innerHTML = `
     ${isSold ? '<div class="sold-badge">ПРОДАНО</div>' : ""}
@@ -93,11 +97,11 @@ function createAdCard(ad, isProfile = false) {
           }, event)"><i class="fa-solid fa-heart"></i></div>`
         : ""
     }
-    <img src="${ad.img[0]}" loading="lazy" class="${
-    isDeleted ? "blur-img" : ""
-  }">
+    <img src="${
+      ad.img[0] || "https://via.placeholder.com/300"
+    }" loading="lazy" class="${isDeleted ? "blur-img" : ""}">
     <div style="padding:10px;">
-      <div style="color:var(--yellow-main); font-weight:bold;">${
+      <div style="color:var(--yellow-main); font-weight:bold; font-size:16px;">${
         ad.price
       } KGS</div>
       <div style="font-size:12px; color:#ccc; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${
@@ -106,9 +110,9 @@ function createAdCard(ad, isProfile = false) {
       ${
         isProfile && ad.status === "active"
           ? `
-        <div style="display:flex; gap:5px; margin-top:8px;">
-          <button onclick="event.stopPropagation(); editAd(${ad.id})" style="flex:1; background:#444; color:#fff; border:none; padding:6px; border-radius:6px; font-size:11px;">Изменить</button>
-          <button onclick="event.stopPropagation(); manageAd(${ad.id})" style="flex:1; background:var(--yellow-main); color:#000; border:none; padding:6px; border-radius:6px; font-size:11px; font-weight:bold;">Управление</button>
+        <div style="display:flex; gap:5px; margin-top:10px;">
+          <button onclick="event.stopPropagation(); editAd(${ad.id})" style="flex:1; background:#444; color:#fff; border:none; padding:8px; border-radius:8px; font-size:11px; font-weight:bold;">Изменить</button>
+          <button onclick="event.stopPropagation(); manageAd(${ad.id})" style="flex:1; background:var(--yellow-main); color:#000; border:none; padding:8px; border-radius:8px; font-size:11px; font-weight:bold;">Управление</button>
         </div>`
           : ""
       }
@@ -118,24 +122,6 @@ function createAdCard(ad, isProfile = false) {
 }
 
 // ИЗБРАННОЕ
-function renderFavs() {
-  const container = document.getElementById("favs-content-area");
-  const filtered = ads.filter((ad) => favs.includes(ad.id));
-  if (filtered.length === 0) {
-    container.innerHTML = `
-      <div class="empty-fav-box">
-        <div class="fav-heart-circle-big"><i class="fa-solid fa-heart"></i></div>
-        <h3 style="margin-bottom:8px;">У вас пока нет объявлений</h3>
-        <p style="color:var(--gray); font-size:14px; margin-bottom:25px;">Сохраняйте товары, которые вам понравились</p>
-        <button class="yellow-plus-main" style="width:auto; padding:12px 40px; border-radius:12px;" onclick="showPage('home')">Поиск</button>
-      </div>`;
-  } else {
-    container.innerHTML = '<div class="listings-grid" id="fav-grid"></div>';
-    const grid = document.getElementById("fav-grid");
-    filtered.forEach((ad) => grid.appendChild(createAdCard(ad)));
-  }
-}
-
 function toggleFav(id, event) {
   if (event) event.stopPropagation();
   favs = favs.includes(id) ? favs.filter((f) => f !== id) : [...favs, id];
@@ -143,7 +129,19 @@ function toggleFav(id, event) {
   renderFeed();
   if (!document.getElementById("product-modal").classList.contains("hidden")) {
     const ad = ads.find((a) => a.id === id);
-    openProduct(ad);
+    if (ad) openProduct(ad);
+  }
+}
+
+function renderFavs() {
+  const container = document.getElementById("favs-content-area");
+  const filtered = ads.filter((ad) => favs.includes(ad.id));
+  if (filtered.length === 0) {
+    container.innerHTML = `<div style="text-align:center; padding:60px 20px;"><div style="width:80px; height:80px; background:#2c2c2e; border-radius:20px; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; color:var(--yellow-main); font-size:32px;"><i class="fa-solid fa-heart"></i></div><h3 style="margin-bottom:15px;">У вас пока нет избранных</h3><button class="btn-premium-unity" style="width:auto; padding:12px 40px;" onclick="showPage('home')">Поиск подарков</button></div>`;
+  } else {
+    container.innerHTML = '<div class="listings-grid" id="fav-grid"></div>';
+    const grid = document.getElementById("fav-grid");
+    filtered.forEach((ad) => grid.appendChild(createAdCard(ad)));
   }
 }
 
@@ -154,7 +152,7 @@ function clearFavs() {
   renderFeed();
 }
 
-// МОДАЛКА
+// МОДАЛКА (ВНУТРИ НИЧЕГО НЕ ТРОГАЕМ)
 function openProduct(ad) {
   const modal = document.getElementById("product-modal");
   const isFav = favs.includes(ad.id);
@@ -188,38 +186,46 @@ function openProduct(ad) {
           catMap[ad.cat]
         }</span> — ${ad.title}
       </div>
+      
       <a href="https://t.me/${ad.tgNick?.replace(
         "@",
         ""
-      )}" class="btn-contact-modal">Написать продавцу</a>
+      )}" class="btn-premium-unity">Написать продавцу</a>
+      
       <div style="color:var(--gray); font-size:12px; margin-top:10px;">Дата публикации: ${dateStr}</div>
       ${
         ad.receiveDate
           ? `<div style="color:var(--gray); font-size:12px;">Дата получения: ${ad.receiveDate}</div>`
           : ""
       }
+      
       <div style="background:#2c2c2e; padding:15px; border-radius:12px; margin:20px 0;">
         <div style="text-transform:uppercase; font-size:11px; color:var(--gray); margin-bottom:5px;">Описание</div>
-        <div style="line-height:1.5;">${ad.desc || "Нет описания"}</div>
+        <div style="line-height:1.5; font-size:15px;">${
+          ad.desc || "Нет описания"
+        }</div>
       </div>
-      <div style="margin-bottom:10px;"><i class="fa fa-location-dot" style="color:var(--yellow-main)"></i> ${
+      
+      <div style="margin-bottom:12px;"><i class="fa fa-location-dot" style="color:var(--yellow-main)"></i> ${
         ad.city
       }, ${ad.address || "Центр"}</div>
-      <div style="margin-bottom:10px;"><i class="fa-brands fa-telegram" style="color:#0088cc"></i> ${
+      <div style="margin-bottom:12px;"><i class="fa-brands fa-telegram" style="color:#0088cc"></i> ${
         ad.tgNick || "—"
       }</div>
-      <div style="margin-bottom:10px;"><i class="fa-solid fa-phone" style="color:#34c759"></i> ${
+      <div style="margin-bottom:12px;"><i class="fa-solid fa-phone" style="color:#34c759"></i> ${
         ad.phone || "—"
       }</div>
     </div>`;
 
   const slider = document.getElementById("main-slider");
-  slider.onscroll = () => {
-    let idx = Math.round(slider.scrollLeft / slider.offsetWidth);
-    document
-      .querySelectorAll(".dot")
-      .forEach((d, i) => d.classList.toggle("active", i === idx));
-  };
+  if (slider) {
+    slider.onscroll = () => {
+      let idx = Math.round(slider.scrollLeft / slider.offsetWidth);
+      document
+        .querySelectorAll(".dot")
+        .forEach((d, i) => d.classList.toggle("active", i === idx));
+    };
+  }
   modal.classList.remove("hidden");
   tg.BackButton.show();
   tg.BackButton.onClick(() => closeProduct());
@@ -230,7 +236,7 @@ function closeProduct() {
   tg.BackButton.hide();
 }
 
-// ПРОФИЛЬ
+// ПРОФИЛЬ (АКТИВНЫЕ / АРХИВ)
 function switchProfileTab(tab) {
   profTab = tab;
   document
@@ -244,6 +250,7 @@ function switchProfileTab(tab) {
 
 function renderProfile() {
   const grid = document.getElementById("my-ads-grid");
+  if (!grid) return;
   grid.innerHTML = "";
   const myId = tg.initDataUnsafe?.user?.id || 0;
   const filtered = ads.filter((ad) => {
@@ -259,6 +266,7 @@ function renderProfile() {
 function manageAd(id) {
   const res = prompt("Управление:\n1 - Продано\n2 - Удалить\n3 - Отмена");
   const ad = ads.find((a) => a.id === id);
+  if (!ad) return;
   if (res === "1") ad.status = "sold";
   else if (res === "2") ad.status = "deleted";
   else return;
@@ -269,19 +277,20 @@ function manageAd(id) {
 
 function editAd(id) {
   const ad = ads.find((a) => a.id === id);
+  if (!ad) return;
   editingId = id;
   showPage("add");
-  document.getElementById("add-title-text").innerText = "Изменить";
+  document.getElementById("add-title-text").innerText = "Изменить объявление";
   document.getElementById("in-title").value = ad.title;
   document.getElementById("in-price").value = ad.price;
-  document.getElementById("in-wa").value = ad.phone;
-  document.getElementById("in-tg").value = ad.tgNick;
-  document.getElementById("in-desc").value = ad.desc;
+  document.getElementById("in-wa").value = ad.phone || "";
+  document.getElementById("in-tg").value = ad.tgNick || "";
+  document.getElementById("in-desc").value = ad.desc || "";
   document.getElementById("in-cat").value = ad.cat;
   document.getElementById("in-city").value = ad.city;
 }
 
-// ПОДАЧА
+// ПОДАТЬ ОБЪЯВЛЕНИЕ
 function selectTariff(t) {
   selectedTariff = t;
   document

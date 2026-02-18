@@ -7,78 +7,109 @@
   --gray: #8e8e93;
   --card-gray: #2c2c2e;
   --input-bg: #1c1c1e;
+  /* Единый солидный дизайн для всех главных кнопок */
   --premium-grad: linear-gradient(135deg, #ffcc00 0%, #ffdb4d 100%);
 }
 
+/* БАЗОВЫЕ НАСТРОЙКИ */
 body {
   background: var(--bg);
   color: var(--white);
   margin: 0;
-  font-family: -apple-system, sans-serif;
+  font-family: -apple-system, system-ui, sans-serif;
   overflow-x: hidden;
   width: 100%;
+  -webkit-tap-highlight-color: transparent;
 }
+
 .hidden {
   display: none !important;
 }
 
-/* Навигация */
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
+/* ЕДИНЫЙ ДИЗАЙН КНОПОК (Написать, Опубликовать, Поиск) */
+.btn-premium-unity {
+  display: block;
   width: 100%;
-  height: 85px;
-  background: rgba(20, 20, 20, 0.98);
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  border-top: 1px solid #333;
-  z-index: 2000;
-  padding-bottom: env(safe-area-inset-bottom);
-}
-.nav-item {
-  background: none;
-  border: none;
-  color: var(--gray);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  width: 80px;
-}
-.nav-item.active {
-  color: var(--yellow-main);
-}
-.nav-center {
-  position: relative;
-  top: -20px;
-  text-align: center;
-}
-.yellow-plus-main {
-  width: 65px;
-  height: 65px;
-  border-radius: 50%;
-  background: var(--yellow-main);
-  border: 5px solid var(--bg);
+  box-sizing: border-box;
+  background: var(--premium-grad);
   color: #000;
-  font-size: 26px;
-  box-shadow: 0 4px 15px rgba(255, 204, 0, 0.4);
+  border: none;
+  padding: 18px;
+  border-radius: 15px;
+  font-weight: 800;
+  font-size: 16px;
+  text-align: center;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 15px rgba(255, 204, 0, 0.3);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn-premium-unity:active {
+  transform: scale(0.97);
 }
 
-/* Локация в хедере */
+/* ХЕДЕР: ГЕОЛОКАЦИЯ И ПОИСК (Подтянуты вверх, линия тоньше) */
+.main-header {
+  padding: 5px 15px 10px; /* Уменьшили отступы */
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 100;
+}
+
 .top-location-bar {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 5px;
   background: #2c2c2e;
-  width: fit-content;
-  padding: 6px 14px;
+  padding: 4px 12px; /* Линия стала тоньше */
   border-radius: 20px;
-  margin-bottom: 15px;
+  margin-bottom: 8px; /* Подтянуто вверх */
   cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
 }
 
-/* Категории */
+.search-profile-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 5px; /* Подтянуто к категориям */
+}
+
+.search-wrapper {
+  background: #2c2c2e;
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+}
+.search-wrapper input {
+  background: none;
+  border: none;
+  color: #fff;
+  margin-left: 10px;
+  outline: none;
+  width: 100%;
+  font-size: 15px;
+}
+
+.user-avatar-top {
+  width: 42px;
+  height: 42px;
+  background: var(--yellow-main);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+  font-weight: bold;
+}
+
+/* КАТЕГОРИИ */
 .categories-container {
   display: flex;
   overflow-x: auto;
@@ -86,6 +117,10 @@ body {
   padding: 10px 0;
   scrollbar-width: none;
 }
+.categories-container::-webkit-scrollbar {
+  display: none;
+}
+
 .cat-card {
   min-width: 80px;
   background: var(--card-gray);
@@ -94,142 +129,69 @@ body {
   text-align: center;
   flex-shrink: 0;
   border: 1px solid transparent;
+  transition: 0.2s;
 }
 .cat-card.active {
   border-color: var(--yellow-main);
   color: var(--yellow-main);
+  background: rgba(255, 204, 0, 0.05);
 }
 
-/* РАЗДЕЛ ПОДАТЬ: Тарифы */
-.tariff-container-split {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-.tariff-card-half {
-  flex: 1;
-  padding: 18px;
-  border-radius: 15px;
-  background: var(--input-bg);
-  text-align: center;
-  border: 2px solid transparent;
-  transition: 0.3s;
-}
-/* Стандарт выбран */
-.tariff-std.active {
-  border: 2px solid var(--yellow-main) !important;
-  background: rgba(255, 204, 0, 0.1);
-}
-/* VIP выбран: пунктир и свечение */
-.tariff-vip.active {
-  border: 2px dashed var(--yellow-main) !important;
-  box-shadow: 0 0 15px rgba(255, 204, 0, 0.6);
-  background: rgba(255, 204, 0, 0.1);
-}
-/* Блок с QR VIP: пунктир и свечение */
-.vip-details-yellow-glow {
-  border: 2px dashed var(--yellow-main);
-  border-radius: 15px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 0 20px rgba(255, 204, 0, 0.3);
-  text-align: center;
-}
-
-/* ПРОФИЛЬ: Вкладки */
-.profile-tabs {
-  display: flex;
-  border-bottom: 1px solid #333;
-  margin-bottom: 15px;
-}
-.p-tab {
-  flex: 1;
-  text-align: center;
-  padding: 15px;
-  color: var(--gray);
-  font-weight: bold;
-  cursor: pointer;
-}
-.p-tab.active {
-  color: var(--yellow-main);
-  border-bottom: 3px solid var(--yellow-main);
-}
-.back-btn-profile {
-  color: var(--yellow-main);
-  background: none;
-  border: none;
-  font-size: 18px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-}
-
-/* Объявление: Кнопка "Написать продавцу" */
-.btn-contact-modal {
-  display: block;
-  width: 100%;
-  box-sizing: border-box;
-  background: var(--premium-grad);
-  color: #000;
-  border: none;
-  padding: 16px;
-  border-radius: 12px;
-  font-weight: bold;
-  font-size: 16px;
-  text-align: center;
-  text-decoration: none;
-  margin: 15px 0;
-}
-
-/* Избранное */
-.favs-header-custom {
-  padding: 20px 15px;
-  border-bottom: 1px solid #333;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.favs-clear-btn {
-  color: var(--yellow-main);
-  font-weight: 600;
-  cursor: pointer;
-}
-.empty-fav-box {
-  text-align: center;
-  padding: 60px 20px;
-}
-.fav-heart-circle-big {
-  width: 80px;
-  height: 80px;
-  background: #2c2c2e;
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 20px;
-  color: var(--yellow-main);
-  font-size: 32px;
-}
-
-/* Карточки */
+/* КАРТОЧКИ ОБЪЯВЛЕНИЙ */
 .listings-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  padding: 15px 15px 120px;
+  gap: 12px;
+  padding: 10px 15px 130px;
 }
+
 .card {
   background: var(--card-gray);
-  border-radius: 12px;
+  border-radius: 15px;
   overflow: hidden;
   position: relative;
+  border: 1px solid transparent;
+  transition: 0.3s;
 }
+
+/* VIP ЭФФЕКТ: Свечение и выделение */
+.card-vip {
+  border: 1px solid var(--yellow-main);
+  box-shadow: 0 0 15px rgba(255, 204, 0, 0.3);
+  background: linear-gradient(180deg, #2c2c2e 0%, #3a3a3c 100%);
+  animation: vipPulse 2s infinite alternate;
+}
+@keyframes vipPulse {
+  0% {
+    box-shadow: 0 0 5px rgba(255, 204, 0, 0.2);
+  }
+  100% {
+    box-shadow: 0 0 18px rgba(255, 204, 0, 0.5);
+  }
+}
+
 .card img {
   width: 100%;
   height: 160px;
   object-fit: cover;
 }
+
+/* Сердечко СНАРУЖИ на карточке */
+.fav-heart-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  color: #fff;
+  font-size: 20px;
+  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.8));
+  cursor: pointer;
+}
+.fav-heart-btn.active {
+  color: var(--yellow-main);
+}
+
+/* Надпись ПРОДАНО */
 .sold-badge {
   position: absolute;
   top: 10px;
@@ -241,40 +203,81 @@ body {
   font-size: 10px;
   font-weight: bold;
   z-index: 10;
+  text-transform: uppercase;
 }
+
 .blur-img {
   filter: blur(12px);
 }
-.fav-heart-btn {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 10;
-  color: #fff;
-  font-size: 18px;
-}
-.fav-heart-btn.active {
-  color: var(--yellow-main);
-}
 
-/* Форма */
-.form-scroll {
-  padding: 10px 20px 120px 20px;
-}
-.f-group {
-  margin-bottom: 18px;
-}
-.main-input {
+/* НИЖНЯЯ НАВИГАЦИЯ (Исправлен плюс, увеличены кнопки) */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
   width: 100%;
-  background: var(--input-bg);
-  border: 1px solid #333;
-  padding: 14px;
-  border-radius: 12px;
-  color: #fff;
+  height: 95px; /* Увеличена высота для аккуратного вида */
+  background: rgba(20, 20, 20, 0.98);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border-top: 1px solid #333;
+  z-index: 2000;
+  padding-bottom: 20px; /* Опустили кнопки ниже */
   box-sizing: border-box;
 }
 
-/* Карусель */
+.nav-item {
+  background: none;
+  border: none;
+  color: var(--gray);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: 30%;
+  transition: 0.3s;
+}
+.nav-item i {
+  font-size: 30px; /* Кнопки стали больше */
+}
+.nav-item span {
+  font-size: 11px;
+  font-weight: 600;
+}
+.nav-item.active {
+  color: var(--yellow-main);
+}
+
+/* Центрирование ПЛЮСИКА (чтобы не уходил вправо) */
+.nav-center-container {
+  width: 40%;
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+.nav-center-content {
+  position: absolute;
+  top: -50px; /* Вынос кнопки вверх */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: auto;
+}
+.yellow-plus-main {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: var(--yellow-main);
+  border: 6px solid var(--bg);
+  color: #000;
+  font-size: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(255, 204, 0, 0.4);
+}
+
+/* МОДАЛЬНОЕ ОКНО ТОВАРА */
 .modal-carousel-container {
   position: relative;
   width: 100%;
@@ -286,6 +289,10 @@ body {
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   height: 100%;
+  scrollbar-width: none;
+}
+.product-gallery-slider::-webkit-scrollbar {
+  display: none;
 }
 .product-gallery-slider img {
   min-width: 100%;
@@ -308,4 +315,25 @@ body {
 }
 .dot.active {
   background: var(--yellow-main);
+  width: 10px;
+  height: 10px;
+}
+
+/* ПРОФИЛЬ ТАБЫ */
+.profile-tabs {
+  display: flex;
+  border-bottom: 1px solid #333;
+  margin-bottom: 15px;
+}
+.p-tab {
+  flex: 1;
+  text-align: center;
+  padding: 15px;
+  color: var(--gray);
+  font-weight: bold;
+  cursor: pointer;
+}
+.p-tab.active {
+  color: var(--yellow-main);
+  border-bottom: 3px solid var(--yellow-main);
 }
