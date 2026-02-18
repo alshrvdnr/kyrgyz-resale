@@ -19,7 +19,6 @@
       <!-- ГЛАВНАЯ -->
       <section id="page-home" class="page">
         <header class="main-header">
-          <!-- Геолокация -->
           <div class="top-location-bar" onclick="showCitySelector()">
             <div class="location-text">
               <i class="fa-solid fa-location-dot"></i>
@@ -31,14 +30,13 @@
             </div>
           </div>
 
-          <!-- Поиск и Аватар -->
           <div class="search-profile-row">
             <div class="search-wrapper">
               <i class="fa fa-search"></i>
               <input
                 type="text"
                 id="main-search"
-                placeholder="Поиск цветов..."
+                placeholder="Поиск..."
                 onkeypress="handleSearch(event)"
               />
             </div>
@@ -51,7 +49,6 @@
             </div>
           </div>
 
-          <!-- Категории -->
           <div class="categories-container">
             <div class="cat-card active" onclick="filterByCat('Все', this)">
               <div class="cat-icon-box">
@@ -80,13 +77,13 @@
 
         <div id="home-content-area">
           <h2 class="section-title-main" id="dynamic-feed-title">
-            Свежие букеты
+            Свежие предложения
           </h2>
           <main class="listings-grid" id="home-grid"></main>
         </div>
       </section>
 
-      <!-- МЕНЮ ВЫБОРА ГОРОДА -->
+      <!-- ВЫБОР ГОРОДА -->
       <div
         id="city-selector-overlay"
         class="city-overlay hidden"
@@ -102,7 +99,7 @@
         </div>
       </div>
 
-      <!-- СТРАНИЦА РЕЗУЛЬТАТОВ -->
+      <!-- РЕЗУЛЬТАТЫ ПОИСКА -->
       <section id="page-results" class="page hidden">
         <header class="results-header">
           <button class="back-circle-btn-yellow" onclick="showPage('home')">
@@ -118,7 +115,7 @@
       <section id="page-favs" class="page hidden">
         <header class="favs-header-custom">
           <div class="favs-top-line">
-            <h2>Избранное</h2>
+            <h2>Избранные</h2>
             <button class="favs-clear-btn" onclick="clearFavs()">
               Очистить
             </button>
@@ -133,7 +130,6 @@
           <button class="back-circle-btn-yellow" onclick="showPage('home')">
             <i class="fa fa-arrow-left"></i>
           </button>
-          <span></span>
         </header>
         <div class="profile-new-hero">
           <div class="profile-hero-content">
@@ -187,9 +183,11 @@
           </div>
 
           <div id="vip-block" class="hidden vip-details-yellow-glow">
-            <div class="vip-top-info">
-              VIP объявление будет размещаться в топе 3 дня
-            </div>
+            <p class="vip-promo-text">
+              VIP-объявления размещаются в ТОПе и находятся в приоритетной
+              выдаче в течение 3 дней. Это позволяет получить больше просмотров
+              и откликов.
+            </p>
             <div class="qr-container-small">
               <img
                 src="https://i.ibb.co/v487YmS6/photo-2025-02-18-19-14-11.jpg"
@@ -234,7 +232,7 @@
             </div>
 
             <div class="f-group">
-              <label>Отдел (Категория)</label>
+              <label>Категория</label>
               <select id="in-cat" class="main-input">
                 <option value="flowers">Цветы</option>
                 <option value="jewelry">Ювелирка</option>
@@ -242,7 +240,19 @@
                 <option value="certs">Сертификаты</option>
               </select>
             </div>
-
+            <div class="f-group">
+              <label>Название товара</label
+              ><input
+                type="text"
+                id="in-title"
+                class="main-input"
+                placeholder="Например: Кольцо с бриллиантом"
+              />
+            </div>
+            <div class="f-group">
+              <label>Цена (KGS)</label
+              ><input type="number" id="in-price" class="main-input" />
+            </div>
             <div class="f-group">
               <label>Дата получения</label
               ><input type="date" id="in-date" class="main-input" />
@@ -272,7 +282,7 @@
                 type="text"
                 id="in-tg"
                 class="main-input"
-                placeholder="username"
+                placeholder="@username"
               />
             </div>
             <div class="f-group">
@@ -281,20 +291,12 @@
                 type="tel"
                 id="in-wa"
                 class="main-input"
-                placeholder="996..."
+                placeholder="0XXXXXXXXX"
               />
             </div>
             <div class="f-group">
-              <label>Название товара</label
-              ><input type="text" id="in-title" class="main-input" />
-            </div>
-            <div class="f-group">
-              <label>Цена (KGS)</label
-              ><input type="number" id="in-price" class="main-input" />
-            </div>
-            <div class="f-group">
               <label>Описание</label
-              ><textarea id="in-desc" class="main-input"></textarea>
+              ><textarea id="in-desc" class="main-input" rows="4"></textarea>
             </div>
 
             <button
@@ -308,21 +310,21 @@
         </div>
       </section>
 
-      <!-- МОДАЛКА -->
-      <div id="product-modal" class="full-view hidden">
-        <div class="pv-header">
-          <button class="pv-back" onclick="closeProduct()">
-            <i class="fa fa-chevron-left"></i>
+      <!-- ОТДЕЛЬНАЯ СТРАНИЦА ОБЪЯВЛЕНИЯ -->
+      <div id="product-modal" class="full-view-page hidden">
+        <div class="pv-header-transparent">
+          <button class="pv-back-btn" onclick="closeProduct()">
+            <i class="fa fa-arrow-left"></i>
           </button>
-          <div class="pv-top-icons" id="modal-fav-icon"></div>
+          <div id="modal-fav-icon"></div>
         </div>
-        <div id="pv-content" class="pv-scroll-area"></div>
+        <div id="pv-content"></div>
       </div>
 
       <!-- НАВИГАЦИЯ -->
       <nav class="bottom-nav">
         <button class="nav-item active" onclick="showPage('home')" id="n-home">
-          <i class="fa-solid fa-house"></i><span>Главная</span>
+          <i class="fa-solid fa-house"></i><span>Главное</span>
         </button>
         <div class="nav-center">
           <button class="yellow-plus-main" onclick="showPage('add')">
@@ -331,7 +333,7 @@
           <p>Подать</p>
         </div>
         <button class="nav-item" onclick="showPage('favs')" id="n-favs">
-          <i class="fa-solid fa-heart"></i><span>Избранное</span>
+          <i class="fa-solid fa-heart"></i><span>Избранные</span>
         </button>
       </nav>
     </div>
