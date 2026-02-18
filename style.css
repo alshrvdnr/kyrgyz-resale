@@ -9,39 +9,18 @@
   --input-bg: #1c1c1e;
 }
 
-/* Фиксация интерфейса */
-html,
 body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  position: fixed; /* Запрет смещения страницы */
-  overflow: hidden;
   background: var(--bg);
   color: var(--white);
+  margin: 0;
   font-family: -apple-system, sans-serif;
+  overflow-x: hidden;
 }
-
-#app {
-  width: 100%;
-  height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden; /* Запрет горизонтального скролла */
-  display: flex;
-  flex-direction: column;
-}
-
-.page {
-  width: 100%;
-  flex: 1;
-}
-
 .hidden {
   display: none !important;
 }
 
-/* NAV BAR */
+/* Навигация */
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -84,153 +63,173 @@ body {
   box-shadow: 0 4px 15px rgba(255, 204, 0, 0.4);
 }
 
-/* ФОРМА ПОДАЧИ - Идеальное центрирование */
-.form-body-padded {
-  padding: 10px 15px 120px 15px; /* Равные отступы слева и справа */
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.close-circle-btn-new {
-  background: var(--yellow-main);
-  color: #000;
-  border: none;
-  width: 45px; /* Увеличена */
-  height: 45px;
-  border-radius: 50%;
-  font-size: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* HEADER & КАТЕГОРИИ */
-.main-header {
-  padding: 15px;
-  position: sticky;
+/* 1. Выбор города (Центральный блок) */
+.city-overlay {
+  position: fixed;
   top: 0;
-  background: var(--bg);
-  z-index: 100;
-}
-
-.top-location-bar {
-  display: flex;
-  align-items: center;
-  margin-bottom: 15px;
-  cursor: pointer;
-}
-.location-text {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 600;
-  font-size: 16px;
-}
-
-.search-profile-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-.search-wrapper {
-  background: #2c2c2e;
-  border-radius: 12px;
-  padding: 12px;
-  display: flex;
-  align-items: center;
-  flex: 1;
-}
-.search-wrapper input {
-  background: none;
-  border: none;
-  color: #fff;
-  margin-left: 10px;
+  left: 0;
   width: 100%;
-  outline: none;
-}
-.user-avatar-circle {
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
-  background: var(--yellow-main);
-  color: #000;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 5000;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.city-modal {
+  background: var(--card-gray);
+  width: 85%;
+  max-width: 300px;
+  border-radius: 20px;
+  padding: 25px;
+  position: relative;
+  text-align: center;
+}
+.city-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 20px;
+}
+.city-box {
+  background: #3a3a3c;
+  padding: 15px 5px;
+  border-radius: 12px;
   font-weight: bold;
+  cursor: pointer;
+  font-size: 14px;
+}
+.city-box:active {
+  background: var(--yellow-main);
+  color: #000;
+}
+.close-city-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  color: var(--yellow-main);
+  font-size: 20px;
 }
 
+/* 2. Категории (Меньше и аккуратнее) */
 .categories-container {
   display: flex;
   overflow-x: auto;
-  gap: 10px;
-  padding-bottom: 5px;
+  gap: 8px;
+  padding: 10px 0;
   scrollbar-width: none;
 }
-.categories-container::-webkit-scrollbar {
-  display: none;
-}
 .cat-card {
-  min-width: 90px;
+  min-width: 70px;
   background: var(--card-gray);
-  border: 1px solid #333;
-  padding: 10px;
-  border-radius: 12px;
+  border-radius: 10px;
+  padding: 8px 4px;
   text-align: center;
-  transition: 0.3s;
+  flex-shrink: 0;
+  border: 1px solid transparent;
 }
 .cat-card.active {
   border-color: var(--yellow-main);
-  background: rgba(255, 204, 0, 0.1);
+  color: var(--yellow-main);
 }
 .cat-card i {
-  font-size: 18px;
-  margin-bottom: 5px;
-  display: block;
-}
-
-/* ИЗБРАННОЕ */
-.favs-header-custom {
-  padding: 20px 15px 10px;
-}
-.favs-top-line {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.favs-header-line {
-  height: 3px;
-  width: 40px;
-  background: var(--yellow-main);
-  margin-top: 8px;
-  border-radius: 2px;
-}
-.favs-clear-btn {
-  background: none;
-  border: none;
-  color: var(--yellow-main);
   font-size: 14px;
+  display: block;
+  margin-bottom: 4px;
+}
+.cat-card span {
+  font-size: 10px;
+  font-weight: 600;
 }
 
-.empty-favs-container {
-  text-align: center;
-  padding: 60px 20px;
-}
-.fav-icon-box-empty {
-  width: 80px;
-  height: 80px;
-  background: var(--card-gray);
-  border-radius: 20px;
+/* 3. Профиль: Активные / Архив */
+.profile-tabs-nav {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 20px;
-  font-size: 30px;
+  gap: 20px;
+  padding: 10px 15px;
+  border-bottom: 1px solid #333;
+}
+.p-tab {
+  color: var(--gray);
+  font-weight: bold;
+  padding-bottom: 8px;
+  position: relative;
+}
+.p-tab.active {
   color: var(--yellow-main);
 }
+.p-tab.active::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--yellow-main);
+}
+.ad-actions {
+  display: flex;
+  gap: 5px;
+  padding: 5px;
+}
+.btn-edit {
+  background: #444;
+  color: #fff;
+  border: none;
+  flex: 1;
+  padding: 6px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+.btn-manage {
+  background: var(--yellow-main);
+  color: #000;
+  border: none;
+  flex: 1;
+  padding: 6px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: bold;
+}
+.blur-img {
+  filter: blur(10px);
+}
 
-/* КАРТОЧКИ И МОДАЛКА */
+/* 4. Страница объявления */
+.pd-price {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--yellow-main);
+  margin-bottom: 10px;
+}
+.pd-cat-tag {
+  background: #3a3a3c;
+  color: var(--gray);
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  vertical-align: middle;
+}
+.yellow-btn-small {
+  background: var(--yellow-main);
+  color: #000;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: bold;
+  width: fit-content;
+  margin: 10px 0;
+  text-decoration: none;
+  display: inline-block;
+}
+.pd-desc-block {
+  background: var(--card-gray);
+  padding: 15px;
+  border-radius: 12px;
+  margin: 15px 0;
+}
+
+/* 5. Карточки ленты и сердечки */
 .listings-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -245,48 +244,93 @@ body {
 }
 .card img {
   width: 100%;
-  height: 150px;
+  height: 160px;
   object-fit: cover;
 }
-.card-body {
-  padding: 10px;
+.fav-heart-btn {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
 }
-.card-price {
+.fav-heart-btn.active {
   color: var(--yellow-main);
-  font-weight: bold;
 }
 
-.full-view-page {
-  position: fixed;
-  top: 0;
-  left: 0;
+/* 6. Форма Подать объявление (Отступы 5мм ≈ 20px) */
+.form-scroll {
+  padding: 15px 20px 120px 20px;
+}
+.f-group {
+  margin-bottom: 15px;
+}
+.main-input {
   width: 100%;
-  height: 100%;
-  background: var(--bg);
-  z-index: 3000;
-  overflow-y: auto;
-}
-.pd-main-info {
-  padding: 20px;
-}
-.pd-price {
-  font-size: 28px;
-  font-weight: 800;
-  color: var(--yellow-main);
-}
-.info-block {
-  background: var(--card-gray);
+  background: var(--input-bg);
+  border: 1px solid #333;
+  padding: 14px;
   border-radius: 12px;
-  padding: 15px;
-  margin-bottom: 10px;
+  color: #fff;
+  font-size: 16px;
+  box-sizing: border-box;
 }
-.yellow-btn-full {
+
+/* Старые стили карусели и тарифов */
+.tariff-container-split {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.tariff-card-half {
+  flex: 1;
+  padding: 15px;
+  border-radius: 12px;
+  background: var(--input-bg);
+  text-align: center;
+  border: 2px solid transparent;
+}
+.tariff-card-half.active {
+  border-color: var(--yellow-main);
+}
+.modal-carousel-container {
+  position: relative;
   width: 100%;
+  height: 350px;
+  background: #000;
+}
+.product-gallery-slider {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  height: 100%;
+}
+.product-gallery-slider img {
+  min-width: 100%;
+  object-fit: contain;
+  scroll-snap-align: start;
+}
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  position: absolute;
+  bottom: 15px;
+  width: 100%;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+}
+.dot.active {
   background: var(--yellow-main);
-  color: #000;
-  border: none;
-  padding: 18px;
-  border-radius: 15px;
-  font-size: 18px;
-  font-weight: bold;
 }
