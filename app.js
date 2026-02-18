@@ -1,36 +1,30 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-// ---------------------------------------------------------
-// НАСТРОЙКИ
-// ---------------------------------------------------------
-const IMGBB_KEY = "94943ea3f656b4bc95e25c86d2880b94"; 
+const IMGBB_KEY = "94943ea3f656b4bc95e25c86d2880b94";
 const BOT_TOKEN = "8399814024:AAEla8xBVk_9deHydJV0hrc5QYDyXAFpZ8k";
 const ADMIN_ID = "1615492914";
 
 const catMap = {
-  "flowers": "Цветы", "jewelry": "Ювелирка", "gifts": "Подарки", "certs": "Сертификаты", "Все": "Все"
+  flowers: "Цветы",
+  jewelry: "Ювелирка",
+  gifts: "Подарки",
+  certs: "Сертификаты",
+  Все: "Все",
 };
 
-// ---------------------------------------------------------
-// ДАННЫЕ
-// ---------------------------------------------------------
 let ads = JSON.parse(localStorage.getItem("gifts_final_v12")) || [];
 let favs = JSON.parse(localStorage.getItem("favs_final_v12")) || [];
 
-// Фильтры
 let curCat = "Все";
 let curCity = "Все";
 let curMainTab = "rec";
 let filterSort = "default";
-let filterCurrency = "KGS"; // KGS или USDT
-let filterPriceFrom = null;
-let filterPriceTo = null;
 
 let currentProfileTab = "active";
 let selectedFiles = [];
-let selectedReceipt = null; 
-let selectedTariff = "standard"; 
+let selectedReceipt = null;
+let selectedTariff = "standard";
 
 document.addEventListener("DOMContentLoaded", () => {
   initUser();
@@ -39,13 +33,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function initUser() {
   const user = tg.initDataUnsafe?.user || { first_name: "Пользователь", id: 0 };
-  if(document.getElementById("u-name")) document.getElementById("u-name").innerText = user.first_name;
-  if(document.getElementById("u-avatar")) document.getElementById("u-avatar").innerText = user.first_name[0];
+  if (document.getElementById("u-name"))
+    document.getElementById("u-name").innerText = user.first_name;
+  if (document.getElementById("u-avatar"))
+    document.getElementById("u-avatar").innerText = user.first_name[0];
 }
 
-// ---------------------------------------------------------
-// ЛЕНТА И СОРТИРОВКА
-// ---------------------------------------------------------
 function handleSearch(e) {
   if (e.key === "Enter") {
     const query = e.target.value.toLowerCase();
@@ -57,431 +50,395 @@ function handleSearch(e) {
 }
 
 function switchMainTab(tab) {
-    curMainTab = tab;
-    document.getElementById("mtab-rec").classList.toggle("active", tab === 'rec');
-    document.getElementById("mtab-new").classList.toggle("active", tab === 'new');
-    renderFeed();
+  curMainTab = tab;
+  document.getElementById("mtab-rec").classList.toggle("active", tab === "rec");
+  document.getElementById("mtab-new").classList.toggle("active", tab === "new");
+  renderFeed();
 }
 
-function renderFeed(data = ads) { renderFeedInternal(data, "home-grid"); }
+function renderFeed(data = ads) {
+  renderFeedInternal(data, "home-grid");
+}
 
 function renderFeedInternal(data, gridId) {
   const grid = document.getElementById(gridId);
-  if(!grid) return;
+  if (!grid) return;
   grid.innerHTML = "";
-  
-  // 1. Фильтрация
-  let filtered = data.filter(ad => {
-      const catMatch = (curCat === "Все") || (ad.cat === curCat);
-      const cityMatch = (curCity === "Все") || (ad.city === curCity);
-      
-      let priceMatch = true;
-      if (filterPriceFrom !== null && parseFloat(ad.price) < filterPriceFrom) priceMatch = false;
-      if (filterPriceTo !== null && parseFloat(ad.price) > filterPriceTo) priceMatch = false;
 
-      return catMatch && cityMatch && priceMatch;
-  });
+  let filtered = [...data];
 
-  // 2. Сортировка
-  const now = Date.now();
-  
-  if (filterSort === 'cheap') {
-      filtered.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
-  } else if (filterSort === 'expensive') {
-      filtered.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
-  } else {
-      // Стандартная логика (VIP всегда сверху)
-      filtered.sort((a, b) => {
-          const aIsVip = (a.tariff === 'vip' && a.vipTill > now);
-          const bIsVip = (b.tariff === 'vip' && b.vipTill > now);
-          
-          if (aIsVip && !bIsVip) return -1;
-          if (!aIsVip && bIsVip) return 1;
-          
-          // Если оба VIP или оба Стандарт
-          if (curMainTab === 'new' || filterSort === 'new') {
-              return b.id - a.id; // По новизне
-          } else {
-              return Math.random() - 0.5; // Рекомендованные (в разброс)
-          }
-      });
+  // Если это главная лента, применяем быстрые фильтры (категория/город)
+  if (gridId === "home-grid") {
+    filtered = filtered.filter((ad) => {
+      const catMatch = curCat === "Все" || ad.cat === curCat;
+      const cityMatch = curCity === "Все" || ad.city === curCity;
+      return catMatch && cityMatch;
+    });
   }
 
+  const now = Date.now();
+
+  // ПОРЯДОК: VIP (1) -> Активные (2) -> Проданные (3)
+  filtered.sort((a, b) => {
+    const getRank = (item) => {
+      if (item.status === "sold" || item.status === "deleted") return 3;
+      if (item.tariff === "vip" && item.vipTill > now) return 1;
+      return 2;
+    };
+
+    const rankA = getRank(a);
+    const rankB = getRank(b);
+
+    if (rankA !== rankB) return rankA - rankB;
+
+    // Внутри групп сортируем по фильтру
+    if (filterSort === "cheap")
+      return parseFloat(a.price) - parseFloat(b.price);
+    if (filterSort === "expensive")
+      return parseFloat(b.price) - parseFloat(a.price);
+    return b.id - a.id; // По умолчанию новые сверху
+  });
+
   filtered.forEach((ad) => {
-    const card = createAdCard(ad);
-    grid.appendChild(card);
+    grid.appendChild(createAdCard(ad));
   });
 }
 
 function createAdCard(ad) {
-    const catName = catMap[ad.cat] || "Товар";
-    let coverImg = Array.isArray(ad.img) ? ad.img[0] : ad.img;
-    const showSoldBadge = (ad.status === 'sold' || ad.status === 'deleted');
-    let badgeHTML = "";
-    
-    if (showSoldBadge) badgeHTML = `<div class="sold-badge">ПРОДАНО</div>`;
-    else if (ad.tariff === 'vip' && ad.vipTill > Date.now()) badgeHTML = `<div class="vip-badge">VIP</div>`;
-    
-    let imageHTML = "";
-    if (ad.status === 'deleted') {
-        imageHTML = `${badgeHTML}<div class="deleted-placeholder"><span class="deleted-text">Фото скрыто<br>конфиденциально</span></div>`;
-    } else {
-        imageHTML = `${badgeHTML}<img src="${coverImg}" loading="lazy" style="height:140px; object-fit:cover; width:100%;">`;
-    }
+  const catName = catMap[ad.cat] || "Товар";
+  let coverImg = Array.isArray(ad.img) ? ad.img[0] : ad.img;
+  const isSold = ad.status === "sold" || ad.status === "deleted";
+  const isVip = ad.tariff === "vip" && ad.vipTill > Date.now();
 
-    const isFav = favs.includes(ad.id);
-    const heartColor = isFav ? "var(--pink)" : "white";
-    const heartClass = isFav ? "fa-solid" : "fa-regular";
-    
-    let dateStr = "-";
-    if (ad.dateReceived) {
-        const d = new Date(ad.dateReceived);
-        dateStr = d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'numeric', year: '2-digit' });
-    }
+  let badgeHTML = "";
+  if (isSold) badgeHTML = `<div class="sold-badge">ПРОДАНО</div>`;
+  else if (isVip) badgeHTML = `<div class="vip-badge">VIP</div>`;
 
-    const card = document.createElement("div");
-    card.className = "card";
-    card.onclick = () => openProduct(ad);
+  let imageHTML =
+    ad.status === "deleted"
+      ? `${badgeHTML}<div class="deleted-placeholder"><span class="deleted-text">Фото скрыто<br>конфиденциально</span></div>`
+      : `${badgeHTML}<img src="${coverImg}" loading="lazy" style="height:140px; object-fit:cover; width:100%;">`;
 
-    card.innerHTML = `
+  const isFav = favs.includes(ad.id);
+  const heartColor = isFav ? "var(--pink)" : "white";
+  const heartClass = isFav ? "fa-solid" : "fa-regular";
+
+  let dateStr = ad.dateReceived
+    ? new Date(ad.dateReceived).toLocaleDateString("ru-RU", {
+        day: "numeric",
+        month: "numeric",
+        year: "2-digit",
+      })
+    : "-";
+
+  const card = document.createElement("div");
+  card.className = "card";
+  card.onclick = () => openProduct(ad);
+  card.innerHTML = `
       <button class="card-fav-btn" onclick="toggleFavCard(event, ${ad.id})">
          <i class="${heartClass} fa-heart" style="color:${heartColor}"></i>
       </button>
       ${imageHTML}
       <div class="card-body">
         <span class="card-price">${ad.price} KGS</span>
-        <div class="card-cat-row">
-            <span class="card-category">${catName}</span> ${ad.title}
-        </div>
+        <div class="card-cat-row"><span class="card-category">${catName}</span> ${ad.title}</div>
         <div class="card-date-block">
             <span class="date-label">Дата получения</span>
             <span class="date-value">${dateStr}</span>
         </div>
       </div>`;
-    return card;
+  return card;
 }
 
-function toggleFavCard(e, id) { e.stopPropagation(); toggleFav(id); }
-
-// ---------------------------------------------------------
-// ФИЛЬТРЫ
-// ---------------------------------------------------------
-function filterByCat(c, el) { 
-    curCat = c; 
-    document.querySelectorAll(".category-row .cat-chip").forEach(i => i.classList.remove("active")); 
-    el.classList.add("active"); 
-    renderFeed(); 
-}
-function filterByCity(c, el) {
-    curCity = c;
-    document.querySelectorAll(".city-row .cat-chip").forEach(i => i.classList.remove("active")); 
-    el.classList.add("active"); 
-    renderFeed();
-}
-
-function setCurrency(curr) {
-    filterCurrency = curr;
-    document.getElementById("cur-kgs").classList.toggle("active", curr === 'KGS');
-    document.getElementById("cur-usdt").classList.toggle("active", curr === 'USDT');
+function toggleFavCard(e, id) {
+  e.stopPropagation();
+  toggleFav(id);
 }
 
 function applyExtendedFilter() {
-    const eCat = document.getElementById("ext-cat").value;
-    const eCity = document.getElementById("ext-city").value;
-    const pFrom = document.getElementById("price-from").value;
-    const pTo = document.getElementById("price-to").value;
-    
-    const sortRadios = document.getElementsByName("sort");
-    let sortVal = "default";
-    for (let r of sortRadios) { if(r.checked) sortVal = r.value; }
+  const eCat = document.getElementById("ext-cat").value;
+  const eCity = document.getElementById("ext-city").value;
+  const pFrom = parseFloat(document.getElementById("price-from").value) || 0;
+  const pTo = parseFloat(document.getElementById("price-to").value) || Infinity;
 
-    if (eCat !== "Все") curCat = eCat; else curCat = "Все";
-    curCity = eCity;
-    filterPriceFrom = pFrom ? parseFloat(pFrom) : null;
-    filterPriceTo = pTo ? parseFloat(pTo) : null;
-    filterSort = sortVal;
-    
-    renderFeedInternal(ads, "results-grid");
-    showPage('results');
+  const sortRadios = document.getElementsByName("sort");
+  for (let r of sortRadios) {
+    if (r.checked) filterSort = r.value;
+  }
+
+  const results = ads.filter((ad) => {
+    const catMatch = eCat === "Все" || ad.cat === eCat;
+    const cityMatch = eCity === "Все" || ad.city === eCity;
+    const priceMatch =
+      parseFloat(ad.price) >= pFrom && parseFloat(ad.price) <= pTo;
+    return catMatch && cityMatch && priceMatch;
+  });
+
+  renderFeedInternal(results, "results-grid");
+  showPage("results");
 }
 
 function resetExtendedFilter() {
-    document.getElementById("ext-cat").value = "Все";
-    document.getElementById("ext-city").value = "Все";
-    document.getElementById("price-from").value = "";
-    document.getElementById("price-to").value = "";
-    document.getElementsByName("sort")[0].checked = true;
-    setCurrency('KGS');
-    
-    curCat = "Все"; curCity = "Все"; filterPriceFrom = null; filterPriceTo = null; filterSort = "default";
-    renderFeed();
+  document.getElementById("ext-cat").value = "Все";
+  document.getElementById("ext-city").value = "Все";
+  document.getElementById("price-from").value = "";
+  document.getElementById("price-to").value = "";
+  document.getElementsByName("sort")[0].checked = true;
+  filterSort = "default";
+  renderFeed();
 }
 
-// ---------------------------------------------------------
-// ЗАГРУЗКА
-// ---------------------------------------------------------
 function selectTariff(t) {
-    selectedTariff = t;
-    document.getElementById("tariff-std").classList.toggle("active", t === 'standard');
-    document.getElementById("tariff-vip").classList.toggle("active", t === 'vip');
-    const vipBlock = document.getElementById("vip-block");
-    if (t === 'vip') vipBlock.classList.remove("hidden"); else vipBlock.classList.add("hidden");
+  selectedTariff = t;
+  document
+    .getElementById("tariff-std")
+    .classList.toggle("active", t === "standard");
+  document.getElementById("tariff-vip").classList.toggle("active", t === "vip");
+  document.getElementById("vip-block").classList.toggle("hidden", t !== "vip");
 }
 
 function handleFileSelect(input) {
-  const files = Array.from(input.files);
-  if (files.length > 0) {
-    selectedFiles = files.slice(0, 5);
-    const gallery = document.getElementById("gallery-preview");
-    gallery.innerHTML = "";
-    document.getElementById("preview-box").classList.remove("hidden");
-    document.getElementById("photo-count").innerText = selectedFiles.length;
-    document.getElementById("file-label").innerText = `Выбрано: ${selectedFiles.length}`;
-    selectedFiles.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (e) => { const img = document.createElement("img"); img.src = e.target.result; gallery.appendChild(img); };
-      reader.readAsDataURL(file);
-    });
-  }
+  selectedFiles = Array.from(input.files).slice(0, 5);
+  const gallery = document.getElementById("gallery-preview");
+  gallery.innerHTML = "";
+  document
+    .getElementById("preview-box")
+    .classList.toggle("hidden", selectedFiles.length === 0);
+  document.getElementById("photo-count").innerText = selectedFiles.length;
+  document.getElementById(
+    "file-label"
+  ).innerText = `Выбрано: ${selectedFiles.length}`;
+  selectedFiles.forEach((file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = document.createElement("img");
+      img.src = e.target.result;
+      gallery.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 function handleReceiptSelect(input) {
-    const file = input.files[0];
-    if(file) { selectedReceipt = file; document.getElementById("receipt-label").innerText = "Чек добавлен ✅"; }
+  if (input.files[0]) {
+    selectedReceipt = input.files[0];
+    document.getElementById("receipt-label").innerText = "Чек добавлен ✅";
+  }
 }
 
 async function uploadToImgBB(file) {
   const formData = new FormData();
   formData.append("image", file);
   try {
-    const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
-      method: "POST", body: formData,
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
+      method: "POST",
+      body: formData,
     });
-    const data = await response.json();
+    const data = await res.json();
     return data.success ? data.data.url : null;
-  } catch (error) { return null; }
+  } catch (e) {
+    return null;
+  }
 }
 
 async function publishAndSend() {
-  const title = document.getElementById("in-title").value;
-  const price = document.getElementById("in-price").value;
-  const dateReceived = document.getElementById("in-date").value;
-  const phone = document.getElementById("in-wa").value;
-  const address = document.getElementById("in-address").value;
-  const tgNick = document.getElementById("in-tg").value;
-  const city = document.getElementById("in-city").value;
-  const cat = document.getElementById("in-cat").value;
-  const desc = document.getElementById("in-desc").value;
+  const fields = {
+    title: document.getElementById("in-title"),
+    price: document.getElementById("in-price"),
+    date: document.getElementById("in-date"),
+    phone: document.getElementById("in-wa"),
+    addr: document.getElementById("in-address"),
+    tg: document.getElementById("in-tg"),
+    city: document.getElementById("in-city"),
+    cat: document.getElementById("in-cat"),
+    desc: document.getElementById("in-desc"),
+  };
 
-  if (!title || !price || !dateReceived || selectedFiles.length === 0) return tg.showAlert("Заполните все обязательные поля!");
-  if (selectedTariff === 'vip' && !selectedReceipt) return tg.showAlert("Для VIP нужно прикрепить чек!");
+  if (!fields.title.value || !fields.price.value || !fields.date.value)
+    return tg.showAlert("Заполните основные поля!");
+  if (selectedFiles.length === 0) return tg.showAlert("Нужно фото!");
+  if (selectedTariff === "vip" && !selectedReceipt)
+    return tg.showAlert("Нужен чек для VIP!");
 
   tg.MainButton.showProgress();
-  tg.MainButton.text = "Создание записи...";
   tg.MainButton.show();
 
   let uploadedUrls = [];
-  for (let file of selectedFiles) {
-    const url = await uploadToImgBB(file);
+  for (let f of selectedFiles) {
+    const url = await uploadToImgBB(f);
     if (url) uploadedUrls.push(url);
   }
-  let receiptUrl = "";
-  if (selectedTariff === 'vip' && selectedReceipt) {
-      receiptUrl = await uploadToImgBB(selectedReceipt);
-  }
 
-  if (uploadedUrls.length === 0) {
-    tg.MainButton.hideProgress(); tg.MainButton.hide(); return tg.showAlert("Ошибка загрузки фото");
-  }
+  let receiptUrl =
+    selectedTariff === "vip" ? await uploadToImgBB(selectedReceipt) : "";
 
-  const vipTill = selectedTariff === 'vip' ? (Date.now() + 3 * 24 * 60 * 60 * 1000) : 0;
   const ad = {
     id: Date.now(),
-    title, price, dateReceived, phone, address, tgNick, city, cat, desc,
-    img: uploadedUrls, status: "active", userId: tg.initDataUnsafe?.user?.id || 0,
-    tariff: selectedTariff, vipTill: vipTill, receipt: receiptUrl
+    title: fields.title.value,
+    price: fields.price.value,
+    dateReceived: fields.date.value,
+    phone: fields.phone.value,
+    address: fields.addr.value,
+    tgNick: fields.tg.value,
+    city: fields.city.value,
+    cat: fields.cat.value,
+    desc: fields.desc.value,
+    img: uploadedUrls,
+    status: "active",
+    userId: tg.initDataUnsafe?.user?.id || 0,
+    tariff: selectedTariff,
+    vipTill:
+      selectedTariff === "vip" ? Date.now() + 3 * 24 * 60 * 60 * 1000 : 0,
+    receipt: receiptUrl,
   };
 
   await sendToBot(ad);
   ads.unshift(ad);
   localStorage.setItem("gifts_final_v12", JSON.stringify(ads));
-  
-  document.getElementById("in-title").value = ""; document.getElementById("in-price").value = ""; document.getElementById("in-date").value = "";
-  selectedFiles = []; selectedReceipt = null; selectTariff('standard');
-  document.getElementById("gallery-preview").innerHTML = ""; document.getElementById("preview-box").classList.add("hidden");
-  document.getElementById("file-label").innerText = "Нажмите для выбора фото"; document.getElementById("receipt-label").innerText = "Добавить чек";
 
-  tg.MainButton.hideProgress(); tg.MainButton.hide(); tg.showAlert("Объявление создано!"); showPage("home");
+  // ОЧИСТКА ВСЕХ ПОЛЕЙ
+  Object.values(fields).forEach((f) => (f.value = ""));
+  selectedFiles = [];
+  selectedReceipt = null;
+  document.getElementById("gallery-preview").innerHTML = "";
+  document.getElementById("preview-box").classList.add("hidden");
+  document.getElementById("file-label").innerText = "Нажмите для выбора фото";
+  document.getElementById("receipt-label").innerText = "Добавить чек";
+  selectTariff("standard");
+
+  tg.MainButton.hideProgress();
+  tg.MainButton.hide();
+  tg.showAlert("Опубликовано!");
+  showPage("home");
 }
 
 async function sendToBot(ad) {
-  let text = `📦 ${ad.title}\n💰 ${ad.price} KGS\n📅 ${ad.dateReceived}\n📍 ${ad.city}`;
-  if (ad.tariff === 'vip') text += `\n🌟 VIP ЗАЯВКА`;
-  const urlGroup = `https://api.telegram.org/bot${BOT_TOKEN}/sendMediaGroup`;
+  let text = `📦 ${ad.title}\n💰 ${ad.price} KGS\n📍 ${ad.city}`;
+  const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMediaGroup`;
   try {
-    let mediaGroup = ad.img.map((imgUrl, index) => ({ type: "photo", media: imgUrl, caption: index === 0 ? text : "" }));
-    if (ad.receipt) mediaGroup.push({ type: "photo", media: ad.receipt, caption: "🧾 ЧЕК ОПЛАТЫ" });
-    await fetch(urlGroup, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ chat_id: ADMIN_ID, media: mediaGroup }) });
-  } catch(e) { console.error(e); }
+    let media = ad.img.map((url, i) => ({
+      type: "photo",
+      media: url,
+      caption: i === 0 ? text : "",
+    }));
+    if (ad.receipt)
+      media.push({ type: "photo", media: ad.receipt, caption: "🧾 ЧЕК" });
+    await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: ADMIN_ID, media }),
+    });
+  } catch (e) {}
 }
 
-// ---------------------------------------------------------
-// ПРОДУКТ (ВРЕМЯ ДОБАВЛЕНИЯ СПРАВА СВЕРХУ)
-// ---------------------------------------------------------
 function openProduct(ad) {
   const modal = document.getElementById("product-modal");
-  const favIconArea = document.getElementById("modal-fav-icon");
   const isFav = favs.includes(ad.id);
-  const catName = catMap[ad.cat] || "Товар";
   const images = Array.isArray(ad.img) ? ad.img : [ad.img];
-  favIconArea.innerHTML = `<i class="${isFav ? 'fa-solid' : 'fa-regular'} fa-heart" style="color:var(--pink); font-size:22px;" onclick="toggleFav(${ad.id})"></i>`;
 
-  let galleryHTML = "";
-  if (ad.status === 'deleted') galleryHTML = `<div class="deleted-placeholder" style="height:250px;"><span class="deleted-text">Фото скрыто</span></div>`;
-  else {
-      let imagesHtml = images.map(src => `<img src="${src}">`).join("");
-      let dotsHtml = images.length > 1 ? images.map((_, i) => `<div class="dot ${i===0?'active':''}"></div>`).join("") : "";
-      galleryHTML = `<div class="product-gallery">${imagesHtml}</div>${images.length > 1 ? `<div class="gallery-dots">${dotsHtml}</div>` : ''}`;
-  }
+  document.getElementById("modal-fav-icon").innerHTML = `<i class="${
+    isFav ? "fa-solid" : "fa-regular"
+  } fa-heart" style="color:var(--pink); font-size:22px;" onclick="toggleFav(${
+    ad.id
+  })"></i>`;
 
-  let contactInfoHTML = "";
-  if (ad.status === 'active') {
-      contactInfoHTML = `
-        <a href="https://t.me/${ad.tgNick.replace("@","")}" target="_blank" class="pd-btn-write">Написать продавцу</a>
-        <div class="contact-info-block"><div class="contact-label">📍 ГОРОД</div><div class="contact-value">${ad.city}</div></div>
-        <div class="contact-info-block"><div class="contact-label">🏠 АДРЕС</div><div class="contact-value">${ad.address || 'Не указан'}</div></div>
-        <div class="contact-info-block"><div class="contact-label">📅 ДАТА ПОЛУЧЕНИЯ</div><div class="contact-value">${ad.dateReceived || '-'}</div></div>
-        <div class="contact-info-block"><div class="contact-label">📱 ТЕЛЕФОН</div><div class="contact-value">${ad.phone}</div></div>
-      `;
-  } else {
-      contactInfoHTML = `<div class="hidden-contacts-msg">Контактные данные скрыты</div>`;
-  }
-
-  // Время добавления на сайт (из ID timestamp)
-  const addedTime = new Date(ad.id).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+  let galleryHTML =
+    ad.status === "deleted"
+      ? `<div class="deleted-placeholder" style="height:250px;"><span class="deleted-text">Фото скрыто</span></div>`
+      : `<div class="product-gallery">${images
+          .map((src) => `<img src="${src}">`)
+          .join("")}</div>`;
 
   document.getElementById("pv-content").innerHTML = `
-        ${galleryHTML}
-        <div class="pd-body">
-            <div class="pd-price-row">
-                <div class="pd-price">${ad.price} KGS</div>
-                <div class="pd-timestamp">Добавлено в ${addedTime}</div>
-            </div>
-            <div class="pd-title" style="font-size:18px; color:#aaa; margin-bottom:5px;">
-                ${catName} - <span style="color:white;">${ad.title}</span>
-            </div>
-            <p style="color:#eee; font-size:15px; margin-bottom:20px; line-height:1.5;">${ad.desc || 'Без описания'}</p>
-            ${contactInfoHTML}
-        </div>
-    `;
+    ${galleryHTML}
+    <div class="pd-body">
+        <div class="pd-price">${ad.price} KGS</div>
+        <div class="pd-title">${catMap[ad.cat]} - ${ad.title}</div>
+        <p style="color:#eee; margin-bottom:20px;">${
+          ad.desc || "Без описания"
+        }</p>
+        ${
+          ad.status === "active"
+            ? `
+          <a href="https://t.me/${ad.tgNick}" target="_blank" class="pd-btn-write">Написать продавцу</a>
+          <div class="contact-info-block">📍 ${ad.city}, ${ad.address}</div>
+          <div class="contact-info-block">📱 ${ad.phone}</div>
+        `
+            : `<div class="hidden-contacts-msg">Товар продан</div>`
+        }
+    </div>`;
   modal.classList.remove("hidden");
-  tg.BackButton.show(); tg.BackButton.onClick(closeProduct);
+  tg.BackButton.show();
+  tg.BackButton.onClick(closeProduct);
 }
 
-function closeProduct() { document.getElementById("product-modal").classList.add("hidden"); tg.BackButton.hide(); }
+function closeProduct() {
+  document.getElementById("product-modal").classList.add("hidden");
+  tg.BackButton.hide();
+}
 
 function toggleFav(id) {
-    if (favs.includes(id)) favs = favs.filter(f => f !== id); else favs.push(id);
-    localStorage.setItem("favs_final_v12", JSON.stringify(favs));
-    renderFeed(); renderFavs();
-    const modalIcon = document.querySelector("#modal-fav-icon i");
-    if(modalIcon) modalIcon.classList.toggle('fa-solid'); modalIcon.classList.toggle('fa-regular');
+  if (favs.includes(id)) favs = favs.filter((f) => f !== id);
+  else favs.push(id);
+  localStorage.setItem("favs_final_v12", JSON.stringify(favs));
+  renderFeed();
+  renderFavs();
 }
 
-// ---------------------------------------------------------
-// ПРОФИЛЬ
-// ---------------------------------------------------------
-function switchProfileTab(tab) {
-  currentProfileTab = tab;
-  document.getElementById("p-tab-active").classList.toggle("active", tab === "active");
-  document.getElementById("p-tab-sold").classList.toggle("active", tab === "sold");
+function showPage(p) {
+  document.querySelectorAll(".page").forEach((s) => s.classList.add("hidden"));
+  document.getElementById(`page-${p}`).classList.remove("hidden");
+  document
+    .querySelectorAll(".nav-item")
+    .forEach((i) => i.classList.remove("active"));
+  if (document.getElementById(`n-${p}`))
+    document.getElementById(`n-${p}`).classList.add("active");
+  if (p === "home") renderFeed();
+  if (p === "profile") renderProfileAds();
+  if (p === "favs") renderFavs();
+}
+
+function switchProfileTab(t) {
+  currentProfileTab = t;
+  document
+    .getElementById("p-tab-active")
+    .classList.toggle("active", t === "active");
+  document
+    .getElementById("p-tab-sold")
+    .classList.toggle("active", t === "sold");
   renderProfileAds();
 }
 
 function renderProfileAds() {
   const grid = document.getElementById("my-ads-grid");
   const myId = tg.initDataUnsafe?.user?.id || 0;
-  let myAds;
-  if (currentProfileTab === "active") myAds = ads.filter(a => a.userId === myId && a.status === "active");
-  else myAds = ads.filter(a => a.userId === myId && (a.status === "sold" || a.status === "deleted"));
-
-  grid.innerHTML = myAds.length ? "" : '<p style="text-align:center; padding:50px; color:gray;">Пусто</p>';
-  
-  myAds.forEach((ad) => {
-    const cardWrapper = document.createElement("div");
-    cardWrapper.className = "card";
-    const catName = catMap[ad.cat] || "Товар";
-    let cover = Array.isArray(ad.img) ? ad.img[0] : ad.img;
-    let imgBlock = "";
-    if (ad.status === 'deleted') imgBlock = `<div class="deleted-placeholder" style="height:140px; font-size:10px; padding:10px;">Фото скрыто</div>`;
-    else imgBlock = `<img src="${cover}" style="height:140px; width:100%; object-fit:cover;">`;
-
-    let buttonsHTML = "";
-    if (ad.status === "active") {
-        buttonsHTML = `
-        <div class="profile-actions">
-            <button class="btn-mini btn-edit" onclick="tg.showAlert('Скоро')">Изменить</button>
-            <button class="btn-mini btn-sold-action" onclick="showActionPopup(${ad.id})">Продано</button>
-        </div>`;
-    } else {
-        buttonsHTML = `<div style="text-align:center; font-size:12px; color:gray; margin-top:10px; font-weight:bold;">Статус: Продано</div>`;
-    }
-
-    let dateStr = "-";
-    if (ad.dateReceived) {
-        const d = new Date(ad.dateReceived);
-        dateStr = d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'numeric', year: '2-digit' });
-    }
-
-    cardWrapper.innerHTML = `
-        ${imgBlock}
-        <div class="card-body">
-            <span class="card-price">${ad.price} KGS</span>
-            <div class="card-cat-row"><span class="card-category">${catName}</span> ${ad.title}</div>
-            <div class="card-date-block"><span class="date-label">Дата получения</span><span class="date-value">${dateStr}</span></div>
-            ${buttonsHTML}
-        </div>`;
-    grid.appendChild(cardWrapper);
-  });
-}
-
-function showActionPopup(id) {
-    tg.showPopup({
-        title: "Завершение", message: "Выберите действие:",
-        buttons: [ { id: "sold", type: "default", text: "Продано" }, { id: "delete", type: "destructive", text: "Удалить" }, { id: "cancel", type: "cancel" } ]
-    }, (btnId) => {
-        if (btnId === "sold") changeStatus(id, "sold");
-        if (btnId === "delete") changeStatus(id, "deleted");
-    });
-}
-
-function changeStatus(id, newStatus) {
-    const ad = ads.find(a => a.id === id);
-    if (ad) {
-        ad.status = newStatus;
-        localStorage.setItem("gifts_final_v12", JSON.stringify(ads));
-        renderProfileAds(); renderFeed(); renderFavs();
-    }
-}
-
-function showPage(p) {
-  document.querySelectorAll(".page").forEach((s) => s.classList.add("hidden"));
-  document.getElementById(`page-${p}`).classList.remove("hidden");
-  document.querySelectorAll(".nav-item").forEach((i) => i.classList.remove("active"));
-  const navBtn = document.getElementById(`n-${p}`);
-  if (navBtn) navBtn.classList.add("active");
-  if (p === "home") renderFeed();
-  if (p === "favs") renderFavs();
-  if (p === "profile") renderProfileAds();
+  const myAds = ads.filter(
+    (a) =>
+      a.userId === myId &&
+      (currentProfileTab === "active"
+        ? a.status === "active"
+        : a.status !== "active")
+  );
+  grid.innerHTML = myAds.length
+    ? ""
+    : '<p style="text-align:center; padding:50px; color:gray;">Пусто</p>';
+  myAds.forEach((ad) => grid.appendChild(createAdCard(ad)));
 }
 
 function renderFavs() {
-  const container = document.getElementById("favs-content-area");
+  const area = document.getElementById("favs-content-area");
   const data = ads.filter((a) => favs.includes(a.id));
-  if (data.length === 0) return container.innerHTML = `<div style="text-align:center; padding:50px; color:gray;">Пусто</div>`;
-  container.innerHTML = `<div class="listings-grid"></div>`;
-  const grid = container.querySelector(".listings-grid");
-  data.forEach(ad => { const card = createAdCard(ad); grid.appendChild(card); });
+  area.innerHTML = data.length
+    ? '<div class="listings-grid"></div>'
+    : '<p style="text-align:center; padding:50px; color:gray;">Пусто</p>';
+  if (data.length)
+    data.forEach((ad) =>
+      area.querySelector(".listings-grid").appendChild(createAdCard(ad))
+    );
 }
 
-function clearFavs() { favs = []; localStorage.setItem("favs_final_v12", JSON.stringify(favs)); renderFavs(); }
+function clearFavs() {
+  favs = [];
+  localStorage.setItem("favs_final_v12", JSON.stringify(favs));
+  renderFavs();
+}
