@@ -7,11 +7,9 @@
   --gray: #8e8e93;
   --card-gray: #2c2c2e;
   --input-bg: #1c1c1e;
-  /* Единый солидный дизайн для всех главных кнопок */
   --premium-grad: linear-gradient(135deg, #ffcc00 0%, #ffdb4d 100%);
 }
 
-/* БАЗОВЫЕ НАСТРОЙКИ */
 body {
   background: var(--bg);
   color: var(--white);
@@ -19,14 +17,12 @@ body {
   font-family: -apple-system, system-ui, sans-serif;
   overflow-x: hidden;
   width: 100%;
-  -webkit-tap-highlight-color: transparent;
 }
-
 .hidden {
   display: none !important;
 }
 
-/* ЕДИНЫЙ ДИЗАЙН КНОПОК (Написать, Опубликовать, Поиск) */
+/* ЕДИНЫЙ ДИЗАЙН КНОПОК */
 .btn-premium-unity {
   display: block;
   width: 100%;
@@ -41,44 +37,30 @@ body {
   text-align: center;
   text-decoration: none;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  box-shadow: 0 4px 15px rgba(255, 204, 0, 0.3);
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.btn-premium-unity:active {
-  transform: scale(0.97);
+  box-shadow: 0 4px 15px rgba(255, 204, 0, 0.3);
 }
 
-/* ХЕДЕР: ГЕОЛОКАЦИЯ И ПОИСК (Подтянуты вверх, линия тоньше) */
+/* ХЕДЕР (Подтянут вверх) */
 .main-header {
-  padding: 5px 15px 10px; /* Уменьшили отступы */
+  padding: 5px 15px 10px;
   position: sticky;
   top: 0;
   background: var(--bg);
   z-index: 100;
 }
-
 .top-location-bar {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   background: #2c2c2e;
-  padding: 4px 12px; /* Линия стала тоньше */
+  padding: 4px 12px;
   border-radius: 20px;
-  margin-bottom: 8px; /* Подтянуто вверх */
+  margin-bottom: 8px;
   cursor: pointer;
   font-size: 13px;
   font-weight: 600;
 }
-
-.search-profile-row {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 5px; /* Подтянуто к категориям */
-}
-
 .search-wrapper {
   background: #2c2c2e;
   flex: 1;
@@ -94,104 +76,47 @@ body {
   margin-left: 10px;
   outline: none;
   width: 100%;
-  font-size: 15px;
 }
 
-.user-avatar-top {
-  width: 42px;
-  height: 42px;
-  background: var(--yellow-main);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #000;
-  font-weight: bold;
-}
-
-/* КАТЕГОРИИ */
-.categories-container {
-  display: flex;
-  overflow-x: auto;
-  gap: 10px;
-  padding: 10px 0;
-  scrollbar-width: none;
-}
-.categories-container::-webkit-scrollbar {
-  display: none;
-}
-
-.cat-card {
-  min-width: 80px;
-  background: var(--card-gray);
-  border-radius: 12px;
-  padding: 10px;
-  text-align: center;
-  flex-shrink: 0;
-  border: 1px solid transparent;
-  transition: 0.2s;
-}
-.cat-card.active {
-  border-color: var(--yellow-main);
-  color: var(--yellow-main);
-  background: rgba(255, 204, 0, 0.05);
-}
-
-/* КАРТОЧКИ ОБЪЯВЛЕНИЙ */
+/* КАРТОЧКИ И VIP СВЕЧЕНИЕ */
 .listings-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   padding: 10px 15px 130px;
 }
-
 .card {
   background: var(--card-gray);
   border-radius: 15px;
   overflow: hidden;
   position: relative;
   border: 1px solid transparent;
-  transition: 0.3s;
 }
-
-/* VIP ЭФФЕКТ: Свечение и выделение */
 .card-vip {
   border: 1px solid var(--yellow-main);
-  box-shadow: 0 0 15px rgba(255, 204, 0, 0.3);
-  background: linear-gradient(180deg, #2c2c2e 0%, #3a3a3c 100%);
-  animation: vipPulse 2s infinite alternate;
+  animation: vipGlowEffect 1.5s infinite alternate;
 }
-@keyframes vipPulse {
-  0% {
-    box-shadow: 0 0 5px rgba(255, 204, 0, 0.2);
+@keyframes vipGlowEffect {
+  from {
+    box-shadow: 0 0 5px rgba(255, 204, 0, 0.3);
   }
-  100% {
-    box-shadow: 0 0 18px rgba(255, 204, 0, 0.5);
+  to {
+    box-shadow: 0 0 15px rgba(255, 204, 0, 0.6);
   }
 }
-
-.card img {
-  width: 100%;
-  height: 160px;
-  object-fit: cover;
-}
-
-/* Сердечко СНАРУЖИ на карточке */
 .fav-heart-btn {
   position: absolute;
   top: 10px;
   left: 10px;
   z-index: 10;
   color: #fff;
-  font-size: 20px;
-  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.8));
+  font-size: 22px;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.8));
   cursor: pointer;
 }
 .fav-heart-btn.active {
   color: var(--yellow-main);
 }
-
-/* Надпись ПРОДАНО */
 .sold-badge {
   position: absolute;
   top: 10px;
@@ -203,29 +128,25 @@ body {
   font-size: 10px;
   font-weight: bold;
   z-index: 10;
-  text-transform: uppercase;
 }
-
 .blur-img {
   filter: blur(12px);
 }
 
-/* НИЖНЯЯ НАВИГАЦИЯ (Исправлен плюс, увеличены кнопки) */
+/* НИЖНЯЯ ПАНЕЛЬ И КРУГЛЫЙ ПЛЮС */
 .bottom-nav {
   position: fixed;
   bottom: 0;
   width: 100%;
-  height: 95px; /* Увеличена высота для аккуратного вида */
+  height: 95px;
   background: rgba(20, 20, 20, 0.98);
   display: flex;
   justify-content: space-around;
   align-items: center;
   border-top: 1px solid #333;
   z-index: 2000;
-  padding-bottom: 20px; /* Опустили кнопки ниже */
-  box-sizing: border-box;
+  padding-bottom: 20px;
 }
-
 .nav-item {
   background: none;
   border: none;
@@ -235,20 +156,18 @@ body {
   align-items: center;
   gap: 5px;
   width: 30%;
-  transition: 0.3s;
 }
 .nav-item i {
-  font-size: 30px; /* Кнопки стали больше */
+  font-size: 32px;
 }
 .nav-item span {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: bold;
 }
 .nav-item.active {
   color: var(--yellow-main);
 }
 
-/* Центрирование ПЛЮСИКА (чтобы не уходил вправо) */
 .nav-center-container {
   width: 40%;
   display: flex;
@@ -257,27 +176,84 @@ body {
 }
 .nav-center-content {
   position: absolute;
-  top: -50px; /* Вынос кнопки вверх */
+  top: -45px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  pointer-events: auto;
 }
+
 .yellow-plus-main {
-  width: 68px;
-  height: 68px;
-  border-radius: 50%;
+  width: 65px !important;
+  height: 65px !important; /* Строгий круг */
   background: var(--yellow-main);
-  border: 6px solid var(--bg);
+  border: 5px solid var(--bg);
   color: #000;
-  font-size: 32px;
+  font-size: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 20px rgba(255, 204, 0, 0.4);
+  border-radius: 50% !important;
+  box-shadow: 0 4px 15px rgba(255, 204, 0, 0.4);
+  flex-shrink: 0;
 }
 
-/* МОДАЛЬНОЕ ОКНО ТОВАРА */
+/* ИЗБРАННОЕ (ЦЕНТРОВКА) */
+.empty-favs-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  height: 60vh;
+}
+
+/* ФОРМА ПОДАЧИ (СТАРЫЙ ВИД) */
+.form-scroll {
+  padding: 10px 20px 120px 20px;
+}
+.f-group {
+  margin-bottom: 18px;
+}
+.f-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--gray);
+  font-size: 14px;
+  font-weight: 600;
+}
+.main-input {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid #333;
+  padding: 14px;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+/* ТАРИФЫ СО СВЕЧЕНИЕМ */
+.tariff-card-box {
+  flex: 1;
+  padding: 15px;
+  border-radius: 12px;
+  background: var(--input-bg);
+  text-align: center;
+  border: 2px solid transparent;
+  transition: 0.3s;
+}
+.tariff-card-box.active-std {
+  border-color: var(--yellow-main);
+  background: rgba(255, 204, 0, 0.1);
+}
+.tariff-card-box.active-vip {
+  border-color: var(--yellow-vip);
+  background: rgba(255, 215, 0, 0.15);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.7); /* Сильное свечение */
+}
+
+/* МОДАЛКА */
 .modal-carousel-container {
   position: relative;
   width: 100%;
@@ -290,9 +266,6 @@ body {
   scroll-snap-type: x mandatory;
   height: 100%;
   scrollbar-width: none;
-}
-.product-gallery-slider::-webkit-scrollbar {
-  display: none;
 }
 .product-gallery-slider img {
   min-width: 100%;
@@ -317,23 +290,4 @@ body {
   background: var(--yellow-main);
   width: 10px;
   height: 10px;
-}
-
-/* ПРОФИЛЬ ТАБЫ */
-.profile-tabs {
-  display: flex;
-  border-bottom: 1px solid #333;
-  margin-bottom: 15px;
-}
-.p-tab {
-  flex: 1;
-  text-align: center;
-  padding: 15px;
-  color: var(--gray);
-  font-weight: bold;
-  cursor: pointer;
-}
-.p-tab.active {
-  color: var(--yellow-main);
-  border-bottom: 3px solid var(--yellow-main);
 }

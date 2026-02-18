@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>Подарки Кыргызстан</title>
+    <title>Gifts KG</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link
       rel="stylesheet"
@@ -30,26 +30,47 @@
               style="font-size: 10px; margin-left: 4px"
             ></i>
           </div>
-
-          <div class="search-profile-row">
+          <div
+            class="search-profile-row"
+            style="
+              display: flex;
+              gap: 10px;
+              align-items: center;
+              margin-bottom: 5px;
+            "
+          >
             <div class="search-wrapper">
               <i class="fa fa-search" style="color: var(--gray)"></i>
-              <input
-                type="text"
-                id="main-search"
-                placeholder="Поиск подарков..."
-              />
+              <input type="text" id="main-search" placeholder="Поиск..." />
             </div>
             <div
               id="u-avatar-top"
-              class="user-avatar-top"
+              style="
+                width: 42px;
+                height: 42px;
+                background: var(--yellow-main);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #000;
+                font-weight: bold;
+              "
               onclick="showPage('profile')"
             >
               ?
             </div>
           </div>
-
-          <div class="categories-container">
+          <div
+            class="categories-container"
+            style="
+              display: flex;
+              overflow-x: auto;
+              gap: 10px;
+              padding: 10px 0;
+              scrollbar-width: none;
+            "
+          >
             <div class="cat-card active" onclick="filterByCat('Все', this)">
               <i class="fa-solid fa-border-all"></i><span>Все</span>
             </div>
@@ -67,7 +88,6 @@
             </div>
           </div>
         </header>
-
         <h2
           id="dynamic-feed-title"
           style="margin: 5px 15px 10px; font-size: 18px"
@@ -77,7 +97,7 @@
         <main class="listings-grid" id="home-grid"></main>
       </section>
 
-      <!-- ВЫБОР ГОРОДА (Центрированный квадрат) -->
+      <!-- ВЫБОР ГОРОДА -->
       <div
         id="city-selector"
         class="hidden"
@@ -158,7 +178,7 @@
         </div>
       </div>
 
-      <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ -->
+      <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ (ПОЛНЫЙ ВИД) -->
       <section id="page-add" class="page hidden">
         <header
           style="
@@ -179,29 +199,23 @@
           <div style="width: 24px"></div>
         </header>
         <div class="form-scroll">
-          <!-- ТАРИФЫ -->
           <div style="display: flex; gap: 12px; margin-bottom: 20px">
             <div
-              class="cat-card active"
+              class="tariff-card-box active-std"
               id="tariff-std"
               onclick="selectTariff('standard')"
-              style="flex: 1; border-width: 2px; padding: 15px"
             >
-              <b style="font-size: 14px">Стандарт</b><br /><small
-                >Бесплатно</small
-              >
+              <b>Стандарт</b><br /><small>Бесплатно</small>
             </div>
             <div
-              class="cat-card"
+              class="tariff-card-box"
               id="tariff-vip"
               onclick="selectTariff('vip')"
-              style="flex: 1; border-width: 2px; padding: 15px"
             >
-              <b style="font-size: 14px">VIP</b><br /><small>100 сом</small>
+              <b>VIP</b><br /><small>100 сом</small>
             </div>
           </div>
 
-          <!-- VIP БЛОК -->
           <div id="vip-block" class="hidden">
             <div
               style="
@@ -210,7 +224,6 @@
                 padding: 20px;
                 margin-bottom: 20px;
                 text-align: center;
-                box-shadow: 0 0 15px rgba(255, 204, 0, 0.2);
               "
             >
               <p style="font-size: 14px; margin: 0">
@@ -249,14 +262,14 @@
           </div>
 
           <div class="f-group">
-            <label>Фотографии (макс. 5)</label>
+            <label>Фотографии (макс. 5 фото)</label>
             <div
               class="main-input"
               onclick="document.getElementById('file-input').click()"
               style="
                 text-align: center;
-                cursor: pointer;
                 border: 1px dashed #555;
+                cursor: pointer;
               "
             >
               <i class="fa fa-camera"></i> Выбрать фото
@@ -303,20 +316,15 @@
               type="text"
               id="in-title"
               class="main-input"
-              placeholder="Например: Букет из 21 розы"
+              placeholder="Например: Букет из 25 роз"
             />
           </div>
           <div class="f-group">
             <label>Цена (KGS)</label
-            ><input
-              type="number"
-              id="in-price"
-              class="main-input"
-              placeholder="Введите цену"
-            />
+            ><input type="number" id="in-price" class="main-input" />
           </div>
           <div class="f-group">
-            <label>Дата получения</label
+            <label>Дата получения товара</label
             ><input type="date" id="in-receive-date" class="main-input" />
           </div>
           <div class="f-group">
@@ -329,22 +337,17 @@
             />
           </div>
           <div class="f-group">
-            <label>Телефон</label
+            <label>Телефон / WhatsApp</label
             ><input
               type="tel"
               id="in-wa"
               class="main-input"
-              placeholder="0555 123 456"
+              placeholder="0XXXXXXXXX"
             />
           </div>
           <div class="f-group">
             <label>Описание</label
-            ><textarea
-              id="in-desc"
-              class="main-input"
-              rows="4"
-              placeholder="Опишите состояние, размеры и т.д."
-            ></textarea>
+            ><textarea id="in-desc" class="main-input" rows="4"></textarea>
           </div>
 
           <button class="btn-premium-unity" onclick="publishAndSend()">
@@ -398,8 +401,8 @@
           <div
             id="u-avatar-big"
             style="
-              width: 80px;
-              height: 80px;
+              width: 70px;
+              height: 70px;
               background: var(--yellow-main);
               border-radius: 50%;
               margin: 0 auto;
@@ -407,21 +410,30 @@
               align-items: center;
               justify-content: center;
               color: #000;
-              font-size: 28px;
+              font-size: 24px;
               font-weight: bold;
             "
           >
             ?
           </div>
-          <h2 id="u-name" style="margin-top: 12px; font-size: 22px">
-            Пользователь
-          </h2>
+          <h2 id="u-name" style="margin-top: 10px">Никнейм</h2>
         </div>
-        <div class="profile-tabs">
+        <div
+          class="profile-tabs"
+          style="display: flex; border-bottom: 1px solid #333"
+        >
           <div
             class="p-tab active"
             id="tab-active"
             onclick="switchProfileTab('active')"
+            style="
+              flex: 1;
+              text-align: center;
+              padding: 15px;
+              color: var(--gray);
+              font-weight: bold;
+              cursor: pointer;
+            "
           >
             Активные
           </div>
@@ -429,6 +441,14 @@
             class="p-tab"
             id="tab-archive"
             onclick="switchProfileTab('archive')"
+            style="
+              flex: 1;
+              text-align: center;
+              padding: 15px;
+              color: var(--gray);
+              font-weight: bold;
+              cursor: pointer;
+            "
           >
             Архив
           </div>
@@ -436,7 +456,7 @@
         <main class="listings-grid" id="my-ads-grid"></main>
       </section>
 
-      <!-- МОДАЛКА (ПРОСМОТР ТОВАРА) -->
+      <!-- МОДАЛКА ТОВАРА -->
       <div
         id="product-modal"
         class="hidden"
@@ -454,12 +474,11 @@
         <div id="pv-content"></div>
       </div>
 
-      <!-- НИЖНЯЯ НАВИГАЦИЯ -->
+      <!-- НАВИГАЦИЯ -->
       <nav class="bottom-nav">
         <button class="nav-item active" onclick="showPage('home')" id="n-home">
           <i class="fa-solid fa-house"></i><span>Главное</span>
         </button>
-
         <div class="nav-center-container">
           <div class="nav-center-content" onclick="showPage('add')">
             <button class="yellow-plus-main">
@@ -467,8 +486,8 @@
             </button>
             <span
               style="
-                font-size: 11px;
-                margin-top: 5px;
+                font-size: 12px;
+                margin-top: 4px;
                 color: var(--gray);
                 font-weight: bold;
               "
@@ -476,7 +495,6 @@
             >
           </div>
         </div>
-
         <button class="nav-item" onclick="showPage('favs')" id="n-favs">
           <i class="fa-solid fa-heart"></i><span>Избранные</span>
         </button>
