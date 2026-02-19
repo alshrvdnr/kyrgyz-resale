@@ -1,7 +1,9 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-// FIREBASE CONFIG
+// ==========================================
+// 1. КОНФИГУРАЦИЯ FIREBASE (ТВОИ ДАННЫЕ)
+// ==========================================
 const firebaseConfig = {
   apiKey: "AIzaSyCxaC3C9dx6IEhXWH9eATdKZO8SCRYe33I",
   authDomain: "gifts-kg.firebaseapp.com",
@@ -14,10 +16,16 @@ const firebaseConfig = {
 };
 
 // Инициализация
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
 const db = firebase.database();
 
+// ==========================================
+// 2. ГЛОБАЛЬНЫЕ НАСТРОЙКИ И ПЕРЕМЕННЫЕ
+// ==========================================
 const IMGBB_KEY = "94943ea3f656b4bc95e25c86d2880b94";
+
 const catMap = {
   flowers: "Цветы",
   jewelry: "Ювелирка",
@@ -25,6 +33,7 @@ const catMap = {
   certs: "Сертификаты",
   Все: "Все",
 };
+
 const catTitles = {
   Все: "Свежие предложения",
   flowers: "Свежие цветы",
@@ -35,20 +44,23 @@ const catTitles = {
 
 let ads = [];
 let favs = JSON.parse(localStorage.getItem("favs_v15")) || [];
-let curCat = "Все",
-  curCity = "Бишкек",
-  selectedTariff = "standard",
-  editingId = null,
-  selectedFiles = [],
-  profTab = "active";
+let curCat = "Все";
+let curCity = "Бишкек";
+let selectedTariff = "standard";
+let editingId = null;
+let selectedFiles = [];
+let profTab = "active";
 let currentManageId = null;
 let holidayMode = false;
 let receiptAttached = false;
 
+// ==========================================
+// 3. СТАРТ ПРИЛОЖЕНИЯ
+// ==========================================
 document.addEventListener("DOMContentLoaded", () => {
   initUser();
-  listenSettings();
-  listenAds();
+  listenSettings(); // Слушаем Праздничный режим
+  listenAds(); // Слушаем базу объявлений
 });
 
 function initUser() {
@@ -59,6 +71,9 @@ function initUser() {
   document.getElementById("u-name").innerText = user.first_name || "Гость";
 }
 
+// ==========================================
+// 4. РАБОТА С НАСТРОЙКАМИ (FIREBASE)
+// ==========================================
 function listenSettings() {
   db.ref("settings").on("value", (snap) => {
     const s = snap.val() || {};
@@ -73,13 +88,23 @@ function applyHolidayUI() {
   if (holidayMode) {
     tBlock.classList.add("hidden");
     vBlock.classList.remove("hidden");
+    document.getElementById("vip-promo-text").innerText =
+      "Сегодня праздничный день. Все объявления платные.";
   } else {
     tBlock.classList.remove("hidden");
-    if (selectedTariff !== "vip") vBlock.classList.add("hidden");
-    else vBlock.classList.remove("hidden");
+    if (selectedTariff !== "vip") {
+      vBlock.classList.add("hidden");
+    } else {
+      vBlock.classList.remove("hidden");
+    }
+    document.getElementById("vip-promo-text").innerText =
+      "VIP-объявление будет в ТОПе 3 дня.";
   }
 }
 
+// ==========================================
+// 5. РАБОТА С ОБЪЯВЛЕНИЯМИ (FIREBASE)
+// ==========================================
 function listenAds() {
   db.ref("ads").on("value", (snap) => {
     const data = snap.val();
@@ -88,15 +113,30 @@ function listenAds() {
       : [];
     renderFeed();
     renderProfile();
+    checkVipExpiration();
   });
 }
 
+// Проверка истечения VIP (72 часа)
+function checkVipExpiration() {
+  const now = Math.floor(Date.now() / 1000);
+  ads.forEach((ad) => {
+    if (ad.tariff === "vip" && ad.approvedAt && now - ad.approvedAt > 259200) {
+      db.ref("ads/" + ad.id).update({ tariff: "standard" });
+    }
+  });
+}
+
+// ==========================================
+// 6. РЕНДЕРИНГ (ОСНОВНАЯ ЛЕНТА)
+// ==========================================
 function renderFeed() {
   const grid = document.getElementById("home-grid");
   if (!grid) return;
   grid.innerHTML = "";
 
-  // ФИЛЬТР: ПОКАЗЫВАЕМ ТОЛЬКО ACTIVE И SOLD. PENDING СКРЫВАЕМ.
+  // Фильтр: Категория + Город. Скрываем только удаленные совсем (Deleted).
+  // Статус Pending (на проверке) скрываем для всех, кроме админа (или просто скрываем в общей ленте)
   let filtered = ads.filter(
     (ad) =>
       (curCat === "Все" || ad.cat === curCat) &&
@@ -105,6 +145,7 @@ function renderFeed() {
       ad.status !== "pending"
   );
 
+  // Сортировка: VIP (активные) -> Обычные -> Sold (Проданные в самый низ)
   filtered.sort((a, b) => {
     if (a.status === "sold" && b.status !== "sold") return 1;
     if (a.status !== "sold" && b.status === "sold") return -1;
@@ -122,22 +163,25 @@ function createAdCard(ad, isProfile = false) {
   const isFav = favs.includes(ad.id);
   const isSold = ad.status === "sold";
   const isDeleted = ad.status === "deleted";
-  const isVip = ad.tariff === "vip" && !isSold;
+  const isVip = ad.tariff === "vip" && !isSold && !isDeleted;
+
   const card = document.createElement("div");
   card.className = `card ${isVip ? "card-vip" : ""} ${
     isDeleted ? "card-deleted" : ""
   }`;
   card.onclick = () => openProduct(ad);
+
   card.innerHTML = `
     ${isSold || isDeleted ? '<div class="sold-badge">ПРОДАНО</div>' : ""}
     ${isVip ? '<div class="vip-badge">VIP</div>' : ""}
     ${
       !isProfile
-        ? `<div class="fav-heart-btn ${
-            isFav ? "active" : ""
-          }" onclick="toggleFav('${
+        ? `
+      <div class="fav-heart-btn ${isFav ? "active" : ""}" onclick="toggleFav('${
             ad.id
-          }', event)"><i class="fa-solid fa-heart"></i></div>`
+          }', event)">
+        <i class="fa-solid fa-heart"></i>
+      </div>`
         : ""
     }
     <img src="${ad.img ? ad.img[0] : ""}" loading="lazy">
@@ -150,7 +194,9 @@ function createAdCard(ad, isProfile = false) {
       }</div>
       ${
         isProfile && ad.status === "active"
-          ? `<button onclick="event.stopPropagation(); openManageModal('${ad.id}')" style="width:100%; background:var(--yellow-main); color:#000; border:none; padding:8px; border-radius:8px; font-size:11px; font-weight:bold; margin-top:8px;">Управление</button>`
+          ? `
+        <button onclick="event.stopPropagation(); openManageModal('${ad.id}')" style="width:100%; background:var(--yellow-main); color:#000; border:none; padding:8px; border-radius:8px; font-size:11px; font-weight:bold; margin-top:8px;">Управление</button>
+      `
           : ""
       }
     </div>
@@ -158,35 +204,24 @@ function createAdCard(ad, isProfile = false) {
   return card;
 }
 
-function toggleFav(id, event) {
-  if (event) event.stopPropagation();
-  favs = favs.includes(id) ? favs.filter((f) => f !== id) : [...favs, id];
-  localStorage.setItem("favs_v15", JSON.stringify(favs));
-  renderFeed();
-  if (!document.getElementById("page-favs").classList.contains("hidden"))
-    renderFavs();
-}
-
-function filterByCat(c, el) {
-  curCat = c;
-  document
-    .querySelectorAll(".cat-card")
-    .forEach((i) => i.classList.remove("active"));
-  el.classList.add("active");
-  document.getElementById("dynamic-feed-title").innerText =
-    catTitles[c] || "Свежие предложения";
-  renderFeed();
-}
-
+// ==========================================
+// 7. ПРОСМОТР И ПРОСМОТРЫ
+// ==========================================
 function openProduct(ad) {
   const modal = document.getElementById("product-modal");
+
+  // Увеличиваем просмотры (если смотрит не автор)
   if (ad.userId !== tg.initDataUnsafe?.user?.id) {
-    db.ref("ads/" + ad.id + "/views").transaction((c) => (c || 0) + 1);
+    db.ref("ads/" + ad.id + "/views").transaction(
+      (currentViews) => (currentViews || 0) + 1
+    );
   }
+
   const isFav = favs.includes(ad.id);
   const dateStr = ad.approvedAt
     ? new Date(ad.approvedAt * 1000).toLocaleDateString()
     : "На проверке";
+
   document.getElementById("pv-content").innerHTML = `
     <div class="modal-carousel-container">
       <i class="fa fa-arrow-left" onclick="closeProduct()" style="position:absolute; top:20px; left:20px; z-index:100; background:rgba(0,0,0,0.5); padding:10px; border-radius:50%;"></i>
@@ -195,9 +230,9 @@ function openProduct(ad) {
       }')" style="position:absolute; top:20px; right:20px; z-index:100; font-size:24px; color:${
     isFav ? "var(--yellow-main)" : "#fff"
   }"></i>
-      <div class="product-gallery-slider">${
-        ad.img ? ad.img.map((src) => `<img src="${src}">`).join("") : ""
-      }</div>
+      <div class="product-gallery-slider">
+        ${ad.img ? ad.img.map((src) => `<img src="${src}">`).join("") : ""}
+      </div>
     </div>
     <div style="padding:20px;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -217,36 +252,52 @@ function openProduct(ad) {
       <div style="background:#2c2c2e; padding:15px; border-radius:12px; margin:20px 0;">${
         ad.desc || "Нет описания"
       }</div>
-      <div>📍 ${ad.city}, ${ad.address || "—"}</div>
+      <div style="margin-bottom:8px;"><i class="fa fa-location-dot"></i> ${
+        ad.city
+      }, ${ad.address || "—"}</div>
+      <div><i class="fa-brands fa-telegram"></i> ${ad.tgNick || "—"}</div>
     </div>`;
   modal.classList.remove("hidden");
+  tg.BackButton.show();
+  tg.BackButton.onClick(closeProduct);
 }
 
+// ==========================================
+// 8. ПУБЛИКАЦИЯ И РЕДАКТИРОВАНИЕ
+// ==========================================
 async function publishAndSend() {
   const title = document.getElementById("in-title").value;
   const price = document.getElementById("in-price").value;
   if (!title || !price) return alert("Заполни поля!");
 
+  // РЕДАКТИРОВАНИЕ
   if (editingId) {
-    await db
-      .ref("ads/" + editingId)
-      .update({
-        title,
-        price,
-        address: document.getElementById("in-address").value,
-      });
+    await db.ref("ads/" + editingId).update({
+      title: title,
+      price: price,
+      address: document.getElementById("in-address").value,
+    });
     editingId = null;
     showPage("home");
     return;
   }
 
+  // ПРОВЕРКА VIP/ПРАЗДНИКА
   const isVipNeeded = selectedTariff === "vip" || holidayMode;
-  if (isVipNeeded && !receiptAttached) return alert("Нужно прикрепить чек!");
+  if (isVipNeeded && !receiptAttached) {
+    return alert("Для VIP-объявления необходимо прикрепить чек!");
+  }
 
   tg.MainButton.showProgress();
-  let receiptUrl = isVipNeeded
-    ? await uploadToImgBB(document.getElementById("receipt-input").files[0])
-    : null;
+
+  // Загрузка чека
+  let receiptUrl = null;
+  if (isVipNeeded) {
+    const rFile = document.getElementById("receipt-input").files[0];
+    if (rFile) receiptUrl = await uploadToImgBB(rFile);
+  }
+
+  // Загрузка фото товара
   let imgs = [];
   for (let f of selectedFiles) {
     const url = await uploadToImgBB(f);
@@ -269,40 +320,80 @@ async function publishAndSend() {
     tariff: selectedTariff,
     userId: tg.initDataUnsafe?.user?.id || 0,
     createdAt: Math.floor(Date.now() / 1000),
+    notified: false,
+    views: 0,
   };
 
   await db.ref("ads").push(newAd);
+
   tg.MainButton.hide();
-  alert("На модерации!");
+  alert("Ваше объявление отправлено на модерацию!");
   showPage("home");
 }
 
+// Загрузка фото превью
+function handleFileSelect(input) {
+  const files = Array.from(input.files).slice(0, 5);
+  selectedFiles = files;
+  const prev = document.getElementById("gallery-preview");
+  prev.innerHTML = "";
+
+  files.forEach((f) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = document.createElement("img");
+      img.src = e.target.result;
+      img.style.width = "60px";
+      img.style.height = "60px";
+      img.style.objectFit = "cover";
+      img.style.borderRadius = "8px";
+      prev.appendChild(img);
+    };
+    reader.readAsDataURL(f);
+  });
+}
+
+// ==========================================
+// 9. ЦЕНТР УПРАВЛЕНИЯ (ПРОФИЛЬ)
+// ==========================================
 function openManageModal(id) {
   currentManageId = id;
   const ad = ads.find((a) => a.id === id);
-  if (ad)
-    document.getElementById("manage-info").innerHTML = `Название: <b>${
-      ad.title
-    }</b><br>Телефон: <b>${ad.phone || "—"}</b><br>Адрес: <b>${
-      ad.address || "—"
-    }</b>`;
+  if (ad) {
+    document.getElementById("manage-info").innerHTML = `
+      Название: <b>${ad.title}</b><br>
+      Телефон: <b>${ad.phone || "—"}</b><br>
+      Адрес: <b>${ad.address || "—"}</b>
+    `;
+  }
   document.getElementById("manage-modal").classList.remove("hidden");
 }
 
 function confirmAction(type) {
   document.getElementById("manage-modal").classList.add("hidden");
   const modal = document.getElementById("confirm-modal");
-  document.getElementById("confirm-text").innerText =
-    type === "sold"
-      ? "Объявление будет убрано в архив."
-      : "Объявление уйдёт с сайта навсегда.";
-  document.getElementById("confirm-btn-final").onclick = () => {
-    db.ref("ads/" + currentManageId).update({
-      status: type === "sold" ? "sold" : "deleted",
-    });
-    closeConfirmModal();
-  };
+  if (type === "sold") {
+    document.getElementById("confirm-text").innerText =
+      "Объявление будет убрано в архив.";
+    document.getElementById("confirm-btn-final").onclick = () => {
+      setAdStatus("sold");
+      closeConfirmModal();
+    };
+  } else {
+    document.getElementById("confirm-text").innerText =
+      "Объявление уйдёт с сайта навсегда.";
+    document.getElementById("confirm-btn-final").onclick = () => {
+      setAdStatus("deleted");
+      closeConfirmModal();
+    };
+  }
   modal.classList.remove("hidden");
+}
+
+function setAdStatus(status) {
+  if (!currentManageId) return;
+  db.ref("ads/" + currentManageId).update({ status: status });
+  currentManageId = null;
 }
 
 function startAdEdit() {
@@ -311,7 +402,9 @@ function startAdEdit() {
   editingId = currentManageId;
   showPage("add");
   document.getElementById("add-title-text").innerText = "Редактирование";
-  [
+
+  // Скрываем блоки, которые нельзя менять
+  const hideIds = [
     "tariff-block",
     "file-group",
     "cat-group",
@@ -320,13 +413,20 @@ function startAdEdit() {
     "tg-group",
     "phone-group",
     "desc-group",
-  ].forEach((id) => document.getElementById(id).classList.add("hidden"));
+  ];
+  hideIds.forEach((id) => document.getElementById(id).classList.add("hidden"));
+
+  // Заполняем поля
   document.getElementById("in-title").value = ad.title || "";
   document.getElementById("in-price").value = ad.price || "";
   document.getElementById("in-address").value = ad.address || "";
+
   closeManageModal();
 }
 
+// ==========================================
+// 10. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+// ==========================================
 function toggleCitySelector() {
   document.getElementById("city-selector").classList.toggle("hidden");
 }
@@ -336,6 +436,14 @@ function selectCity(c) {
   toggleCitySelector();
   renderFeed();
 }
+function filterByCat(c, el) {
+  curCat = c;
+  document
+    .querySelectorAll(".cat-card")
+    .forEach((i) => i.classList.remove("active"));
+  el.classList.add("active");
+  renderFeed();
+}
 function selectTariff(t) {
   selectedTariff = t;
   document.getElementById("tariff-std").className =
@@ -343,9 +451,6 @@ function selectTariff(t) {
   document.getElementById("tariff-vip").className =
     "tariff-card-box" + (t === "vip" ? " active-vip" : "");
   applyHolidayUI();
-}
-function handleFileSelect(i) {
-  selectedFiles = Array.from(i.files).slice(0, 5);
 }
 function handleReceiptSelect(i) {
   if (i.files[0]) {
@@ -376,7 +481,7 @@ function showPage(p) {
 
 function resetAddForm() {
   document.getElementById("add-title-text").innerText = "Новое объявление";
-  [
+  const showIds = [
     "tariff-block",
     "file-group",
     "cat-group",
@@ -385,9 +490,16 @@ function resetAddForm() {
     "tg-group",
     "phone-group",
     "desc-group",
-  ].forEach((id) => document.getElementById(id).classList.remove("hidden"));
+  ];
+  showIds.forEach((id) =>
+    document.getElementById(id).classList.remove("hidden")
+  );
   receiptAttached = false;
   document.getElementById("receipt-label").innerText = "Добавить чек";
+  document.getElementById("gallery-preview").innerHTML = "";
+  document.getElementById("in-title").value = "";
+  document.getElementById("in-price").value = "";
+  document.getElementById("in-address").value = "";
 }
 
 function renderProfile() {
@@ -407,7 +519,14 @@ function renderFavs() {
   const container = document.getElementById("favs-content-area");
   const filtered = ads.filter((ad) => favs.includes(ad.id));
   if (filtered.length === 0) {
-    container.innerHTML = `<div class="empty-favs-center"><div style="width:80px; height:80px; background:#2c2c2e; border-radius:20px; display:flex; align-items:center; justify-content:center; margin-bottom:20px; color:var(--yellow-main); font-size:32px;"><i class="fa-solid fa-heart"></i></div><h3 style="margin:0 0 10px 0;">У вас пока нет избранных объявлений</h3><button class="btn-premium-unity" style="width:auto; padding:12px 40px;" onclick="showPage('home')">Поиск</button></div>`;
+    container.innerHTML = `
+      <div class="empty-favs-center">
+        <div style="width:80px; height:80px; background:#2c2c2e; border-radius:20px; display:flex; align-items:center; justify-content:center; margin-bottom:20px; color:var(--yellow-main); font-size:32px;">
+          <i class="fa-solid fa-heart"></i>
+        </div>
+        <h3 style="margin:0 0 10px 0;">У вас пока нет избранных объявлений</h3>
+        <button class="btn-premium-unity" style="width:auto; padding:12px 40px;" onclick="showPage('home')">Поиск</button>
+      </div>`;
   } else {
     container.innerHTML = '<div class="listings-grid" id="fav-grid"></div>';
     filtered.forEach((ad) =>
@@ -428,6 +547,7 @@ function switchProfileTab(t) {
 }
 function closeProduct() {
   document.getElementById("product-modal").classList.add("hidden");
+  tg.BackButton.hide();
 }
 function closeManageModal() {
   document.getElementById("manage-modal").classList.add("hidden");
