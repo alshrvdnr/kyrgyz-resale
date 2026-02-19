@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>Gifts Kyrgyzstan</title>
+    <title>Gifts KG</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link
       rel="stylesheet"
@@ -19,7 +19,7 @@
   </head>
   <body>
     <div id="app">
-      <!-- ГЛАВНАЯ СТРАНИЦА -->
+      <!-- ГЛАВНАЯ -->
       <section id="page-home" class="page">
         <header class="main-header">
           <div class="top-location-bar" onclick="toggleCitySelector()">
@@ -33,15 +33,7 @@
               style="font-size: 10px; margin-left: 4px"
             ></i>
           </div>
-          <div
-            class="search-profile-row"
-            style="
-              display: flex;
-              gap: 10px;
-              align-items: center;
-              margin-bottom: 5px;
-            "
-          >
+          <div class="search-profile-row">
             <div class="search-wrapper">
               <i class="fa fa-search" style="color: var(--gray)"></i>
               <input
@@ -52,18 +44,7 @@
             </div>
             <div
               id="u-avatar-top"
-              style="
-                width: 42px;
-                height: 42px;
-                background: var(--yellow-main);
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: #000;
-                font-weight: bold;
-                cursor: pointer;
-              "
+              class="u-avatar-top-circle"
               onclick="showPage('profile')"
             >
               ?
@@ -136,7 +117,7 @@
         </div>
       </div>
 
-      <!-- УПРАВЛЕНИЕ (ИЗМЕНИТЬ, ПРОДАНО, УДАЛИТЬ) -->
+      <!-- УПРАВЛЕНИЕ -->
       <div id="manage-modal" class="hidden modal-overlay">
         <div class="modal-box">
           <i
@@ -166,7 +147,7 @@
         </div>
       </div>
 
-      <!-- ПОДТВЕРЖДЕНИЕ ДЕЙСТВИЯ -->
+      <!-- ПОДТВЕРЖДЕНИЕ -->
       <div id="confirm-modal" class="hidden modal-overlay">
         <div class="modal-box">
           <h3 id="confirm-title">Вы точно уверены?</h3>
@@ -193,7 +174,7 @@
         </div>
       </div>
 
-      <!-- ПОДАТЬ / ИЗМЕНИТЬ ОБЪЯВЛЕНИЕ -->
+      <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ -->
       <section id="page-add" class="page hidden">
         <header
           style="
@@ -468,7 +449,6 @@
         <main class="listings-grid" id="my-ads-grid"></main>
       </section>
 
-      <!-- МОДАЛКА ТОВАРА -->
       <div
         id="product-modal"
         class="hidden"
@@ -486,7 +466,6 @@
         <div id="pv-content"></div>
       </div>
 
-      <!-- НАВИГАЦИЯ -->
       <nav class="bottom-nav">
         <button class="nav-item active" onclick="showPage('home')" id="n-home">
           <i class="fa-solid fa-house"></i><span>Главное</span>
