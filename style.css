@@ -18,6 +18,7 @@ body {
   overflow-x: hidden;
   width: 100%;
 }
+
 .hidden {
   display: none !important;
 }
@@ -94,7 +95,7 @@ body {
   font-weight: bold;
 }
 
-/* КАРТОЧКИ И VIP */
+/* СЕТКА И КАРТОЧКИ */
 .listings-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -107,6 +108,7 @@ body {
   overflow: hidden;
   position: relative;
   border: 1px solid transparent;
+  transition: 0.3s;
 }
 .card img {
   width: 100%;
@@ -114,6 +116,7 @@ body {
   object-fit: cover;
 }
 
+/* VIP СТАТУС */
 .card-vip {
   border: 1px solid var(--yellow-main) !important;
   animation: vipGlowEffect 1.5s infinite alternate;
@@ -125,6 +128,18 @@ body {
   to {
     box-shadow: 0 0 15px rgba(255, 204, 0, 0.6);
   }
+}
+.vip-badge {
+  position: absolute;
+  top: 10px;
+  left: 42px;
+  background: var(--yellow-main);
+  color: #000;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 900;
+  z-index: 11;
 }
 
 .fav-heart-btn {
@@ -140,8 +155,6 @@ body {
 .fav-heart-btn.active {
   color: var(--yellow-main);
 }
-
-/* КРАСНАЯ НАДПИСЬ ПРОДАНО */
 .sold-badge {
   position: absolute;
   top: 10px;
@@ -154,8 +167,10 @@ body {
   font-weight: bold;
   z-index: 10;
 }
+
+/* BLUR ДЛЯ УДАЛЕННЫХ */
 .blur-img {
-  filter: blur(12px);
+  filter: blur(12px) grayscale(50%);
 }
 
 /* НИЖНЯЯ ПАНЕЛЬ И КРУГЛЫЙ ПЛЮС */
@@ -181,6 +196,7 @@ body {
   align-items: center;
   gap: 5px;
   width: 30%;
+  transition: 0.3s;
 }
 .nav-item i {
   font-size: 32px;
@@ -207,13 +223,10 @@ body {
   align-items: center;
 }
 
-/* ПЛЮС СТРОГО КРУГЛЫЙ */
 .yellow-plus-main {
   width: 65px !important;
   height: 65px !important;
-  min-width: 65px;
-  min-height: 65px;
-  border-radius: 50% !important;
+  border-radius: 50% !important; /* СТРОГИЙ КРУГ */
   background: var(--yellow-main);
   border: 5px solid var(--bg);
   color: #000;
@@ -237,13 +250,25 @@ body {
   color: var(--gray);
   font-weight: bold;
   cursor: pointer;
+  transition: 0.3s;
 }
 .p-tab.active {
   color: var(--yellow-main);
   border-bottom: 3px solid var(--yellow-main);
 }
 
-/* МОДАЛКА УПРАВЛЕНИЯ (Аналогично городу) */
+/* ЦЕНТРОВКА ИЗБРАННОГО */
+.empty-favs-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  height: 60vh; /* СТРОГО ПО ЦЕНТРУ */
+}
+
+/* МОДАЛКА УПРАВЛЕНИЯ */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -324,11 +349,12 @@ body {
   background: rgba(255, 204, 0, 0.1);
 }
 .tariff-card-box.active-vip {
-  border-color: var(--yellow-vip);
-  background: rgba(255, 215, 0, 0.15);
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.7);
+  border-color: var(--yellow-vip) !important;
+  background: rgba(255, 215, 0, 0.15) !important;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.7) !important;
 }
 
+/* ЕДИНЫЙ ДИЗАЙН КНОПОК */
 .btn-premium-unity {
   display: block;
   width: 100%;
@@ -345,6 +371,7 @@ body {
   text-transform: uppercase;
 }
 
+/* МОДАЛКА ТОВАРА */
 .modal-carousel-container {
   position: relative;
   width: 100%;

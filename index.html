@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>Gifts KG</title>
+    <title>Gifts Kyrgyzstan</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link
       rel="stylesheet"
@@ -41,7 +41,11 @@
           >
             <div class="search-wrapper">
               <i class="fa fa-search" style="color: var(--gray)"></i>
-              <input type="text" id="main-search" placeholder="Поиск..." />
+              <input
+                type="text"
+                id="main-search"
+                placeholder="Поиск подарков..."
+              />
             </div>
             <div
               id="u-avatar-top"
@@ -55,6 +59,7 @@
                 justify-content: center;
                 color: #000;
                 font-weight: bold;
+                cursor: pointer;
               "
               onclick="showPage('profile')"
             >
@@ -102,7 +107,7 @@
               font-size: 22px;
             "
           ></i>
-          <h3 style="margin-top: 0">Выберите город</h3>
+          <h3>Выберите город</h3>
           <div
             style="
               display: grid;
@@ -128,7 +133,7 @@
         </div>
       </div>
 
-      <!-- ОКНО УПРАВЛЕНИЯ (ИЗМЕНИТЬ) -->
+      <!-- ОКНО УПРАВЛЕНИЯ -->
       <div id="manage-modal" class="hidden modal-overlay">
         <div class="modal-box">
           <h3>Управление</h3>
@@ -146,7 +151,7 @@
         </div>
       </div>
 
-      <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ -->
+      <!-- ПОДАТЬ / ИЗМЕНИТЬ ОБЪЯВЛЕНИЕ -->
       <section id="page-add" class="page hidden">
         <header
           style="
@@ -159,7 +164,7 @@
           <i
             class="fa fa-times"
             onclick="cancelAdd()"
-            style="font-size: 24px"
+            style="font-size: 24px; cursor: pointer"
           ></i>
           <h2 id="add-title-text" style="font-size: 18px; margin: 0">
             Новое объявление
@@ -167,7 +172,11 @@
           <div style="width: 24px"></div>
         </header>
         <div class="form-scroll">
-          <div style="display: flex; gap: 12px; margin-bottom: 20px">
+          <!-- БЛОК ТАРИФОВ (СКРЫВАЕТСЯ ПРИ РЕДАКТИРОВАНИИ) -->
+          <div
+            id="tariff-block"
+            style="display: flex; gap: 12px; margin-bottom: 20px"
+          >
             <div
               class="tariff-card-box active-std"
               id="tariff-std"
@@ -183,6 +192,7 @@
               <b>VIP</b><br /><small>100 сом</small>
             </div>
           </div>
+
           <div id="vip-block" class="hidden">
             <div
               style="
@@ -213,6 +223,7 @@
                   padding: 14px;
                   border-radius: 12px;
                   font-weight: bold;
+                  cursor: pointer;
                 "
                 onclick="document.getElementById('receipt-input').click()"
               >
@@ -226,14 +237,20 @@
               />
             </div>
           </div>
-          <div class="f-group">
-            <label>Фотографии (до 5)</label>
+
+          <div class="f-group" id="file-group">
+            <label>Фотографии (макс. 5 фото)</label>
             <div
               class="main-input"
               onclick="document.getElementById('file-input').click()"
-              style="text-align: center; border: 1px dashed #555"
+              style="
+                text-align: center;
+                border: 1px dashed #555;
+                cursor: pointer;
+              "
             >
-              <i class="fa fa-camera"></i> Выбрать фото<input
+              <i class="fa fa-camera"></i> Выбрать фото
+              <input
                 type="file"
                 id="file-input"
                 multiple
@@ -251,42 +268,54 @@
               "
             ></div>
           </div>
-          <div class="f-group">
-            <label>Категория</label
-            ><select id="in-cat" class="main-input">
+
+          <div class="f-group" id="cat-group">
+            <label>Категория</label>
+            <select id="in-cat" class="main-input">
               <option value="flowers">Цветы</option>
               <option value="jewelry">Ювелирка</option>
               <option value="gifts">Подарки</option>
               <option value="certs">Сертификаты</option>
             </select>
           </div>
-          <div class="f-group">
-            <label>Город</label
-            ><select id="in-city" class="main-input">
+
+          <div class="f-group" id="city-group">
+            <label>Город</label>
+            <select id="in-city" class="main-input">
               <option value="Бишкек">Бишкек</option>
               <option value="Ош">Ош</option>
               <option value="Манас">Манас</option>
               <option value="Каракол">Каракол</option>
             </select>
           </div>
+
           <div class="f-group">
             <label>Название товара</label
             ><input
               type="text"
               id="in-title"
               class="main-input"
-              placeholder="Например: Букет роз"
+              placeholder="Например: Букет из 25 роз"
             />
           </div>
           <div class="f-group">
             <label>Цена (KGS)</label
             ><input type="number" id="in-price" class="main-input" />
           </div>
-          <div class="f-group">
-            <label>Дата получения</label
+          <div class="f-group" id="date-group">
+            <label>Дата получения товара</label
             ><input type="date" id="in-receive-date" class="main-input" />
           </div>
           <div class="f-group">
+            <label>Адрес / Местоположение</label
+            ><input
+              type="text"
+              id="in-address"
+              class="main-input"
+              placeholder="Улица, дом или район"
+            />
+          </div>
+          <div class="f-group" id="tg-group">
             <label>Telegram (@nick)</label
             ><input
               type="text"
@@ -295,7 +324,7 @@
               placeholder="@nickname"
             />
           </div>
-          <div class="f-group">
+          <div class="f-group" id="phone-group">
             <label>Телефон / WhatsApp</label
             ><input
               type="tel"
@@ -304,12 +333,13 @@
               placeholder="0XXXXXXXXX"
             />
           </div>
-          <div class="f-group">
+          <div class="f-group" id="desc-group">
             <label>Описание</label
             ><textarea id="in-desc" class="main-input" rows="4"></textarea>
           </div>
+
           <button class="btn-premium-unity" onclick="publishAndSend()">
-            Опубликовать
+            Сохранить
           </button>
         </div>
       </section>
@@ -328,7 +358,11 @@
           <h2 style="margin: 0">Избранное</h2>
           <span
             onclick="clearFavs()"
-            style="color: var(--yellow-main); font-weight: bold"
+            style="
+              color: var(--yellow-main);
+              font-weight: bold;
+              cursor: pointer;
+            "
             >Очистить</span
           >
         </header>
@@ -346,6 +380,7 @@
               border: none;
               font-size: 18px;
               font-weight: bold;
+              cursor: pointer;
             "
           >
             <i class="fa fa-arrow-left"></i> Назад
