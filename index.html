@@ -13,6 +13,9 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     />
     <link rel="stylesheet" href="style.css" />
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
   </head>
   <body>
     <div id="app">
@@ -133,7 +136,7 @@
         </div>
       </div>
 
-      <!-- ОКНО УПРАВЛЕНИЯ (ИЗМЕНИТЬ, ПРОДАНО, УДАЛИТЬ) -->
+      <!-- УПРАВЛЕНИЕ (ИЗМЕНИТЬ, ПРОДАНО, УДАЛИТЬ) -->
       <div id="manage-modal" class="hidden modal-overlay">
         <div class="modal-box">
           <i
@@ -148,18 +151,43 @@
             "
           ></i>
           <h3>Управление</h3>
-          <div id="manage-info" class="modal-info-text">
-            <!-- Сюда вставим название, телефон и адрес через JS -->
-          </div>
+          <div id="manage-info" class="modal-info-text"></div>
           <div class="modal-btn-list">
             <div class="modal-action-btn edit" onclick="startAdEdit()">
               Изменить
             </div>
-            <div class="modal-action-btn sold" onclick="setAdStatus('sold')">
+            <div class="modal-action-btn sold" onclick="confirmAction('sold')">
               Продано
             </div>
-            <div class="modal-action-btn" onclick="setAdStatus('deleted')">
+            <div class="modal-action-btn" onclick="confirmAction('delete')">
               Удалить
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ПОДТВЕРЖДЕНИЕ ДЕЙСТВИЯ -->
+      <div id="confirm-modal" class="hidden modal-overlay">
+        <div class="modal-box">
+          <h3 id="confirm-title">Вы точно уверены?</h3>
+          <p
+            id="confirm-text"
+            style="font-size: 14px; color: #aaa; margin-bottom: 20px"
+          ></p>
+          <div style="display: flex; gap: 10px">
+            <div
+              class="modal-action-btn"
+              style="flex: 1; background: #444"
+              onclick="closeConfirmModal()"
+            >
+              Назад
+            </div>
+            <div
+              id="confirm-btn-final"
+              class="modal-action-btn"
+              style="flex: 1; background: var(--yellow-main); color: #000"
+            >
+              Да
             </div>
           </div>
         </div>
@@ -216,7 +244,7 @@
                 text-align: center;
               "
             >
-              <p style="font-size: 14px; margin: 0">
+              <p id="vip-promo-text" style="font-size: 14px; margin: 0">
                 VIP-объявление будет в ТОПе 3 дня.
               </p>
               <img
