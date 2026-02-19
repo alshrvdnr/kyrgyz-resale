@@ -30,18 +30,32 @@
               style="font-size: 10px; margin-left: 4px"
             ></i>
           </div>
-          <div class="search-profile-row">
+          <div
+            class="search-profile-row"
+            style="
+              display: flex;
+              gap: 10px;
+              align-items: center;
+              margin-bottom: 5px;
+            "
+          >
             <div class="search-wrapper">
               <i class="fa fa-search" style="color: var(--gray)"></i>
-              <input
-                type="text"
-                id="main-search"
-                placeholder="Поиск подарков..."
-              />
+              <input type="text" id="main-search" placeholder="Поиск..." />
             </div>
             <div
               id="u-avatar-top"
-              class="u-avatar-top-circle"
+              style="
+                width: 42px;
+                height: 42px;
+                background: var(--yellow-main);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #000;
+                font-weight: bold;
+              "
               onclick="showPage('profile')"
             >
               ?
@@ -75,32 +89,8 @@
       </section>
 
       <!-- ВЫБОР ГОРОДА -->
-      <div
-        id="city-selector"
-        class="hidden"
-        style="
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: rgba(0, 0, 0, 0.85);
-          z-index: 5000;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        "
-      >
-        <div
-          style="
-            background: #1e1e1e;
-            width: 280px;
-            padding: 25px;
-            border-radius: 25px;
-            position: relative;
-            text-align: center;
-          "
-        >
+      <div id="city-selector" class="hidden modal-overlay">
+        <div class="modal-box">
           <i
             class="fa fa-times"
             onclick="toggleCitySelector()"
@@ -121,60 +111,36 @@
               margin-top: 20px;
             "
           >
-            <div
-              onclick="selectCity('Бишкек')"
-              style="
-                background: #333;
-                padding: 15px;
-                border-radius: 12px;
-                cursor: pointer;
-              "
-            >
+            <div class="modal-action-btn" onclick="selectCity('Бишкек')">
               Бишкек
             </div>
-            <div
-              onclick="selectCity('Ош')"
-              style="
-                background: #333;
-                padding: 15px;
-                border-radius: 12px;
-                cursor: pointer;
-              "
-            >
-              Ош
-            </div>
-            <div
-              onclick="selectCity('Манас')"
-              style="
-                background: #333;
-                padding: 15px;
-                border-radius: 12px;
-                cursor: pointer;
-              "
-            >
+            <div class="modal-action-btn" onclick="selectCity('Ош')">Ош</div>
+            <div class="modal-action-btn" onclick="selectCity('Манас')">
               Манас
             </div>
-            <div
-              onclick="selectCity('Токмок')"
-              style="
-                background: #333;
-                padding: 15px;
-                border-radius: 12px;
-                cursor: pointer;
-              "
-            >
+            <div class="modal-action-btn" onclick="selectCity('Токмок')">
               Токмок
             </div>
-            <div
-              onclick="selectCity('Каракол')"
-              style="
-                background: #333;
-                padding: 15px;
-                border-radius: 12px;
-                cursor: pointer;
-              "
-            >
+            <div class="modal-action-btn" onclick="selectCity('Каракол')">
               Каракол
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ОКНО УПРАВЛЕНИЯ (ИЗМЕНИТЬ) -->
+      <div id="manage-modal" class="hidden modal-overlay">
+        <div class="modal-box">
+          <h3>Управление</h3>
+          <div class="modal-btn-list">
+            <div class="modal-action-btn sold" onclick="setAdStatus('sold')">
+              Продано
+            </div>
+            <div class="modal-action-btn" onclick="setAdStatus('deleted')">
+              Удалить
+            </div>
+            <div class="modal-action-btn cancel" onclick="closeManageModal()">
+              Отмена
             </div>
           </div>
         </div>
@@ -193,7 +159,7 @@
           <i
             class="fa fa-times"
             onclick="cancelAdd()"
-            style="font-size: 24px; cursor: pointer"
+            style="font-size: 24px"
           ></i>
           <h2 id="add-title-text" style="font-size: 18px; margin: 0">
             Новое объявление
@@ -217,7 +183,6 @@
               <b>VIP</b><br /><small>100 сом</small>
             </div>
           </div>
-
           <div id="vip-block" class="hidden">
             <div
               style="
@@ -248,7 +213,6 @@
                   padding: 14px;
                   border-radius: 12px;
                   font-weight: bold;
-                  cursor: pointer;
                 "
                 onclick="document.getElementById('receipt-input').click()"
               >
@@ -262,20 +226,14 @@
               />
             </div>
           </div>
-
           <div class="f-group">
-            <label>Фотографии (макс. 5 фото)</label>
+            <label>Фотографии (до 5)</label>
             <div
               class="main-input"
               onclick="document.getElementById('file-input').click()"
-              style="
-                text-align: center;
-                border: 1px dashed #555;
-                cursor: pointer;
-              "
+              style="text-align: center; border: 1px dashed #555"
             >
-              <i class="fa fa-camera"></i> Выбрать фото
-              <input
+              <i class="fa fa-camera"></i> Выбрать фото<input
                 type="file"
                 id="file-input"
                 multiple
@@ -293,10 +251,9 @@
               "
             ></div>
           </div>
-
           <div class="f-group">
-            <label>Категория</label>
-            <select id="in-cat" class="main-input">
+            <label>Категория</label
+            ><select id="in-cat" class="main-input">
               <option value="flowers">Цветы</option>
               <option value="jewelry">Ювелирка</option>
               <option value="gifts">Подарки</option>
@@ -304,8 +261,8 @@
             </select>
           </div>
           <div class="f-group">
-            <label>Город</label>
-            <select id="in-city" class="main-input">
+            <label>Город</label
+            ><select id="in-city" class="main-input">
               <option value="Бишкек">Бишкек</option>
               <option value="Ош">Ош</option>
               <option value="Манас">Манас</option>
@@ -318,7 +275,7 @@
               type="text"
               id="in-title"
               class="main-input"
-              placeholder="Букет из 25 роз"
+              placeholder="Например: Букет роз"
             />
           </div>
           <div class="f-group">
@@ -326,7 +283,7 @@
             ><input type="number" id="in-price" class="main-input" />
           </div>
           <div class="f-group">
-            <label>Дата получения товара</label
+            <label>Дата получения</label
             ><input type="date" id="in-receive-date" class="main-input" />
           </div>
           <div class="f-group">
@@ -351,7 +308,6 @@
             <label>Описание</label
             ><textarea id="in-desc" class="main-input" rows="4"></textarea>
           </div>
-
           <button class="btn-premium-unity" onclick="publishAndSend()">
             Опубликовать
           </button>
@@ -372,11 +328,7 @@
           <h2 style="margin: 0">Избранное</h2>
           <span
             onclick="clearFavs()"
-            style="
-              color: var(--yellow-main);
-              font-weight: bold;
-              cursor: pointer;
-            "
+            style="color: var(--yellow-main); font-weight: bold"
             >Очистить</span
           >
         </header>
@@ -394,7 +346,6 @@
               border: none;
               font-size: 18px;
               font-weight: bold;
-              cursor: pointer;
             "
           >
             <i class="fa fa-arrow-left"></i> Назад
@@ -440,7 +391,7 @@
         <main class="listings-grid" id="my-ads-grid"></main>
       </section>
 
-      <!-- МОДАЛКА -->
+      <!-- МОДАЛКА ТОВАРА -->
       <div
         id="product-modal"
         class="hidden"

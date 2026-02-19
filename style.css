@@ -18,12 +18,11 @@ body {
   overflow-x: hidden;
   width: 100%;
 }
-
 .hidden {
   display: none !important;
 }
 
-/* ХЕДЕР: ГЕОЛОКАЦИЯ И ПОИСК */
+/* ХЕДЕР И ПОИСК */
 .main-header {
   padding: 5px 15px 10px;
   position: sticky;
@@ -31,7 +30,6 @@ body {
   background: var(--bg);
   z-index: 100;
 }
-
 .top-location-bar {
   display: inline-flex;
   align-items: center;
@@ -44,15 +42,6 @@ body {
   font-size: 13px;
   font-weight: 600;
 }
-
-/* ФИКС ИКОНКИ ПРОФИЛЯ (Чтобы не падала) */
-.search-profile-row {
-  display: flex;
-  align-items: center; /* Центрирует иконку и поиск по вертикали */
-  gap: 10px;
-  margin-bottom: 5px;
-}
-
 .search-wrapper {
   background: #2c2c2e;
   flex: 1;
@@ -71,30 +60,13 @@ body {
   font-size: 15px;
 }
 
-.u-avatar-top-circle {
-  width: 42px;
-  height: 42px;
-  min-width: 42px; /* Чтобы не сжималась */
-  background: var(--yellow-main);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #000;
-  font-weight: bold;
-  flex-shrink: 0; /* Чтобы не деформировалась */
-}
-
-/* КАТЕГОРИИ (КВАДРАТНЫЕ КОРОБОЧКИ) */
+/* КАТЕГОРИИ */
 .categories-container {
   display: flex;
   overflow-x: auto;
   gap: 10px;
   padding: 10px 0;
   scrollbar-width: none;
-}
-.categories-container::-webkit-scrollbar {
-  display: none;
 }
 .cat-card {
   min-width: 80px;
@@ -122,7 +94,7 @@ body {
   font-weight: bold;
 }
 
-/* СЕТКА И КАРТОЧКИ (ФОТО 150PX) */
+/* КАРТОЧКИ И VIP */
 .listings-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -142,7 +114,6 @@ body {
   object-fit: cover;
 }
 
-/* VIP СВЕЧЕНИЕ КАРТОЧЕК */
 .card-vip {
   border: 1px solid var(--yellow-main) !important;
   animation: vipGlowEffect 1.5s infinite alternate;
@@ -169,6 +140,8 @@ body {
 .fav-heart-btn.active {
   color: var(--yellow-main);
 }
+
+/* КРАСНАЯ НАДПИСЬ ПРОДАНО */
 .sold-badge {
   position: absolute;
   top: 10px;
@@ -208,7 +181,6 @@ body {
   align-items: center;
   gap: 5px;
   width: 30%;
-  transition: 0.3s;
 }
 .nav-item i {
   font-size: 32px;
@@ -235,6 +207,7 @@ body {
   align-items: center;
 }
 
+/* ПЛЮС СТРОГО КРУГЛЫЙ */
 .yellow-plus-main {
   width: 65px !important;
   height: 65px !important;
@@ -249,6 +222,7 @@ body {
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 15px rgba(255, 204, 0, 0.4);
+  flex-shrink: 0;
 }
 
 /* ПРОФИЛЬ ТАБЫ */
@@ -265,22 +239,53 @@ body {
   cursor: pointer;
 }
 .p-tab.active {
-  color: var(--yellow-main) !important;
-  border-bottom: 3px solid var(--yellow-main) !important;
+  color: var(--yellow-main);
+  border-bottom: 3px solid var(--yellow-main);
 }
 
-/* ИЗБРАННОЕ (ЦЕНТР) */
-.empty-favs-center {
+/* МОДАЛКА УПРАВЛЕНИЯ (Аналогично городу) */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 5000;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+.modal-box {
+  background: #1e1e1e;
+  width: 280px;
+  padding: 25px;
+  border-radius: 25px;
   text-align: center;
-  width: 100%;
-  padding: 100px 0;
+  position: relative;
+}
+.modal-btn-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+.modal-action-btn {
+  background: #333;
+  color: #fff;
+  padding: 15px;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.modal-action-btn.sold {
+  color: #ff3b30;
+}
+.modal-action-btn.cancel {
+  color: var(--yellow-main);
 }
 
-/* ФОРМА ПОДАЧИ (ПОЛНЫЙ ВИД) */
+/* ФОРМА ПОДАЧИ */
 .form-scroll {
   padding: 10px 20px 120px 20px;
 }
@@ -305,7 +310,6 @@ body {
   box-sizing: border-box;
 }
 
-/* ТАРИФЫ (ЖЕЛТОЕ СВЕЧЕНИЕ VIP) */
 .tariff-card-box {
   flex: 1;
   padding: 15px;
@@ -320,12 +324,11 @@ body {
   background: rgba(255, 204, 0, 0.1);
 }
 .tariff-card-box.active-vip {
-  border-color: var(--yellow-vip) !important;
-  background: rgba(255, 215, 0, 0.15) !important;
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8) !important;
+  border-color: var(--yellow-vip);
+  background: rgba(255, 215, 0, 0.15);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.7);
 }
 
-/* ОБЩАЯ КНОПКА */
 .btn-premium-unity {
   display: block;
   width: 100%;
@@ -340,11 +343,8 @@ body {
   text-align: center;
   text-decoration: none;
   text-transform: uppercase;
-  cursor: pointer;
-  box-shadow: 0 4px 15px rgba(255, 204, 0, 0.3);
 }
 
-/* МОДАЛКА */
 .modal-carousel-container {
   position: relative;
   width: 100%;
@@ -379,6 +379,4 @@ body {
 }
 .dot.active {
   background: var(--yellow-main);
-  width: 10px;
-  height: 10px;
 }
