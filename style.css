@@ -23,7 +23,7 @@ body {
   display: none !important;
 }
 
-/* ХЕДЕР И ПОИСК */
+/* ХЕДЕР: ПОИСК И ПРОФИЛЬ */
 .main-header {
   padding: 5px 15px 10px;
   position: sticky;
@@ -43,6 +43,15 @@ body {
   font-size: 13px;
   font-weight: 600;
 }
+
+.search-profile-row {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+
 .search-wrapper {
   background: #2c2c2e;
   flex: 1;
@@ -59,6 +68,21 @@ body {
   outline: none;
   width: 100%;
   font-size: 15px;
+}
+
+/* КРУГЛАЯ ЖЕЛТАЯ ИКОНКА ПРОФИЛЯ */
+.u-avatar-top-circle {
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+  background: var(--yellow-main) !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #000 !important;
+  font-weight: bold !important;
+  flex-shrink: 0 !important;
 }
 
 /* КАТЕГОРИИ */
@@ -108,15 +132,12 @@ body {
   overflow: hidden;
   position: relative;
   border: 1px solid transparent;
-  transition: 0.3s;
 }
 .card img {
   width: 100%;
   height: 150px;
   object-fit: cover;
 }
-
-/* VIP СТАТУС */
 .card-vip {
   border: 1px solid var(--yellow-main) !important;
   animation: vipGlowEffect 1.5s infinite alternate;
@@ -141,7 +162,6 @@ body {
   font-weight: 900;
   z-index: 11;
 }
-
 .fav-heart-btn {
   position: absolute;
   top: 10px;
@@ -167,14 +187,12 @@ body {
   font-weight: bold;
   z-index: 10;
 }
-
-/* ЭФФЕКТ ДЛЯ УДАЛЕННЫХ (РАЗБИТАЯ КАРТОЧКА) */
 .card-deleted {
   filter: grayscale(100%) opacity(0.4);
   border: 1px dashed #555 !important;
 }
 
-/* НИЖНЯЯ ПАНЕЛЬ И КРУГЛЫЙ ПЛЮС */
+/* НИЖНЯЯ ПАНЕЛЬ */
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -209,7 +227,6 @@ body {
 .nav-item.active {
   color: var(--yellow-main);
 }
-
 .nav-center-container {
   width: 40%;
   display: flex;
@@ -223,11 +240,10 @@ body {
   flex-direction: column;
   align-items: center;
 }
-
 .yellow-plus-main {
   width: 65px !important;
   height: 65px !important;
-  border-radius: 50% !important; /* СТРОГИЙ КРУГ */
+  border-radius: 50% !important;
   background: var(--yellow-main);
   border: 5px solid var(--bg);
   color: #000;
@@ -239,7 +255,7 @@ body {
   flex-shrink: 0;
 }
 
-/* ПРОФИЛЬ ТАБЫ */
+/* ПРОФИЛЬ */
 .profile-tabs {
   display: flex;
   border-bottom: 1px solid #333;
@@ -257,8 +273,6 @@ body {
   color: var(--yellow-main);
   border-bottom: 3px solid var(--yellow-main);
 }
-
-/* ЦЕНТРОВКА ИЗБРАННОГО */
 .empty-favs-center {
   display: flex;
   flex-direction: column;
@@ -269,7 +283,7 @@ body {
   height: 60vh;
 }
 
-/* МОДАЛКА УПРАВЛЕНИЯ */
+/* МОДАЛКИ */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -301,7 +315,6 @@ body {
 .modal-info-text b {
   color: var(--yellow-main);
 }
-
 .modal-btn-list {
   display: flex;
   flex-direction: column;
@@ -323,8 +336,6 @@ body {
 .modal-action-btn.edit {
   color: var(--yellow-main);
 }
-
-/* ФОРМА ПОДАЧИ */
 .form-scroll {
   padding: 10px 20px 120px 20px;
 }
@@ -348,7 +359,6 @@ body {
   font-size: 16px;
   box-sizing: border-box;
 }
-
 .tariff-card-box {
   flex: 1;
   padding: 15px;
@@ -357,6 +367,7 @@ body {
   text-align: center;
   border: 2px solid transparent;
   transition: 0.3s;
+  cursor: pointer;
 }
 .tariff-card-box.active-std {
   border-color: var(--yellow-main);
@@ -367,7 +378,6 @@ body {
   background: rgba(255, 215, 0, 0.15) !important;
   box-shadow: 0 0 20px rgba(255, 215, 0, 0.7) !important;
 }
-
 .btn-premium-unity {
   display: block;
   width: 100%;
@@ -383,8 +393,6 @@ body {
   text-decoration: none;
   text-transform: uppercase;
 }
-
-/* МОДАЛКА ТОВАРА */
 .modal-carousel-container {
   position: relative;
   width: 100%;

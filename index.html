@@ -33,6 +33,7 @@
               style="font-size: 10px; margin-left: 4px"
             ></i>
           </div>
+          <!-- ХЕДЕР С ПОИСКОМ И ПРОФИЛЕМ -->
           <div class="search-profile-row">
             <div class="search-wrapper">
               <i class="fa fa-search" style="color: var(--gray)"></i>
@@ -231,10 +232,13 @@
               <img
                 src="https://i.ibb.co/v487YmS6/photo-2025-02-18-19-14-11.jpg"
                 style="
-                  width: 130px;
-                  height: 130px;
+                  width: 180px;
+                  height: 180px;
                   margin: 15px 0;
                   border-radius: 10px;
+                  object-fit: contain;
+                  background: white;
+                  padding: 5px;
                 "
               />
               <div
@@ -271,8 +275,7 @@
                 cursor: pointer;
               "
             >
-              <i class="fa fa-camera"></i> Выбрать фото
-              <input
+              <i class="fa fa-camera"></i> Выбрать фото<input
                 type="file"
                 id="file-input"
                 multiple
@@ -292,18 +295,17 @@
           </div>
 
           <div class="f-group" id="cat-group">
-            <label>Категория</label>
-            <select id="in-cat" class="main-input">
+            <label>Категория</label
+            ><select id="in-cat" class="main-input">
               <option value="flowers">Цветы</option>
               <option value="jewelry">Ювелирка</option>
               <option value="gifts">Подарки</option>
               <option value="certs">Сертификаты</option>
             </select>
           </div>
-
           <div class="f-group" id="city-group">
-            <label>Город</label>
-            <select id="in-city" class="main-input">
+            <label>Город</label
+            ><select id="in-city" class="main-input">
               <option value="Бишкек">Бишкек</option>
               <option value="Ош">Ош</option>
               <option value="Манас">Манас</option>
@@ -311,14 +313,13 @@
               <option value="Каракол">Каракол</option>
             </select>
           </div>
-
           <div class="f-group">
             <label>Название товара</label
             ><input
               type="text"
               id="in-title"
               class="main-input"
-              placeholder="Например: Букет из 25 роз"
+              placeholder="Букет роз"
             />
           </div>
           <div class="f-group">
@@ -360,7 +361,6 @@
             <label>Описание</label
             ><textarea id="in-desc" class="main-input" rows="4"></textarea>
           </div>
-
           <button class="btn-premium-unity" onclick="publishAndSend()">
             Опубликовать
           </button>
@@ -473,9 +473,8 @@
         <div class="nav-center-container">
           <div class="nav-center-content" onclick="showPage('add')">
             <button class="yellow-plus-main">
-              <i class="fa-solid fa-plus"></i>
-            </button>
-            <span
+              <i class="fa-solid fa-plus"></i></button
+            ><span
               style="
                 font-size: 12px;
                 margin-top: 4px;

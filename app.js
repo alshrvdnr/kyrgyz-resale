@@ -13,7 +13,8 @@ const firebaseConfig = {
   measurementId: "G-DH7RXQZ6Y3",
 };
 
-firebase.initializeApp(firebaseConfig);
+// Инициализация
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 const IMGBB_KEY = "94943ea3f656b4bc95e25c86d2880b94";
@@ -72,14 +73,10 @@ function applyHolidayUI() {
   if (holidayMode) {
     tBlock.classList.add("hidden");
     vBlock.classList.remove("hidden");
-    document.getElementById("vip-promo-text").innerText =
-      "Сегодня праздничный день. Все объявления платные.";
   } else {
     tBlock.classList.remove("hidden");
     if (selectedTariff !== "vip") vBlock.classList.add("hidden");
     else vBlock.classList.remove("hidden");
-    document.getElementById("vip-promo-text").innerText =
-      "VIP-объявление будет в ТОПе 3 дня.";
   }
 }
 
@@ -91,16 +88,6 @@ function listenAds() {
       : [];
     renderFeed();
     renderProfile();
-    checkVipExpiration();
-  });
-}
-
-function checkVipExpiration() {
-  const now = Math.floor(Date.now() / 1000);
-  ads.forEach((ad) => {
-    if (ad.tariff === "vip" && ad.approvedAt && now - ad.approvedAt > 259200) {
-      db.ref("ads/" + ad.id).update({ tariff: "standard" });
-    }
   });
 }
 
@@ -109,11 +96,13 @@ function renderFeed() {
   if (!grid) return;
   grid.innerHTML = "";
 
+  // ФИЛЬТР: ПОКАЗЫВАЕМ ТОЛЬКО ACTIVE И SOLD. PENDING СКРЫВАЕМ.
   let filtered = ads.filter(
     (ad) =>
       (curCat === "Все" || ad.cat === curCat) &&
       ad.city === curCity &&
-      ad.status !== "deleted"
+      ad.status !== "deleted" &&
+      ad.status !== "pending"
   );
 
   filtered.sort((a, b) => {
@@ -178,14 +167,14 @@ function toggleFav(id, event) {
     renderFavs();
 }
 
-function filterByCat(cat, el) {
-  curCat = cat;
+function filterByCat(c, el) {
+  curCat = c;
   document
     .querySelectorAll(".cat-card")
     .forEach((i) => i.classList.remove("active"));
   el.classList.add("active");
   document.getElementById("dynamic-feed-title").innerText =
-    catTitles[cat] || "Свежие предложения";
+    catTitles[c] || "Свежие предложения";
   renderFeed();
 }
 
@@ -280,32 +269,12 @@ async function publishAndSend() {
     tariff: selectedTariff,
     userId: tg.initDataUnsafe?.user?.id || 0,
     createdAt: Math.floor(Date.now() / 1000),
-    notified: false,
   };
 
   await db.ref("ads").push(newAd);
   tg.MainButton.hide();
-  alert("Ваше объявление отправлено на модерацию!");
+  alert("На модерации!");
   showPage("home");
-}
-
-function handleFileSelect(input) {
-  selectedFiles = Array.from(input.files).slice(0, 5);
-  const prev = document.getElementById("gallery-preview");
-  prev.innerHTML = "";
-  selectedFiles.forEach((f) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = document.createElement("img");
-      img.src = e.target.result;
-      img.style.width = "60px";
-      img.style.height = "60px";
-      img.style.objectFit = "cover";
-      img.style.borderRadius = "8px";
-      prev.appendChild(img);
-    };
-    reader.readAsDataURL(f);
-  });
 }
 
 function openManageModal(id) {
@@ -374,6 +343,9 @@ function selectTariff(t) {
   document.getElementById("tariff-vip").className =
     "tariff-card-box" + (t === "vip" ? " active-vip" : "");
   applyHolidayUI();
+}
+function handleFileSelect(i) {
+  selectedFiles = Array.from(i.files).slice(0, 5);
 }
 function handleReceiptSelect(i) {
   if (i.files[0]) {
