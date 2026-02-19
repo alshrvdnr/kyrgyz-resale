@@ -168,9 +168,10 @@ body {
   z-index: 10;
 }
 
-/* BLUR ДЛЯ УДАЛЕННЫХ */
-.blur-img {
-  filter: blur(12px) grayscale(50%);
+/* ЭФФЕКТ ДЛЯ УДАЛЕННЫХ (РАЗБИТАЯ КАРТОЧКА) */
+.card-deleted {
+  filter: grayscale(100%) opacity(0.4);
+  border: 1px dashed #555 !important;
 }
 
 /* НИЖНЯЯ ПАНЕЛЬ И КРУГЛЫЙ ПЛЮС */
@@ -265,7 +266,7 @@ body {
   justify-content: center;
   text-align: center;
   width: 100%;
-  height: 60vh; /* СТРОГО ПО ЦЕНТРУ */
+  height: 60vh;
 }
 
 /* МОДАЛКА УПРАВЛЕНИЯ */
@@ -289,6 +290,18 @@ body {
   text-align: center;
   position: relative;
 }
+.modal-info-text {
+  margin-bottom: 15px;
+  text-align: left;
+  font-size: 14px;
+  color: #ccc;
+  border-bottom: 1px solid #333;
+  padding-bottom: 10px;
+}
+.modal-info-text b {
+  color: var(--yellow-main);
+}
+
 .modal-btn-list {
   display: flex;
   flex-direction: column;
@@ -302,11 +315,12 @@ body {
   border-radius: 12px;
   font-weight: bold;
   cursor: pointer;
+  text-align: center;
 }
 .modal-action-btn.sold {
   color: #ff3b30;
 }
-.modal-action-btn.cancel {
+.modal-action-btn.edit {
   color: var(--yellow-main);
 }
 
@@ -354,7 +368,6 @@ body {
   box-shadow: 0 0 20px rgba(255, 215, 0, 0.7) !important;
 }
 
-/* ЕДИНЫЙ ДИЗАЙН КНОПОК */
 .btn-premium-unity {
   display: block;
   width: 100%;

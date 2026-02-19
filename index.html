@@ -107,7 +107,7 @@
               font-size: 22px;
             "
           ></i>
-          <h3>Выберите город</h3>
+          <h3 style="margin-top: 0">Выберите город</h3>
           <div
             style="
               display: grid;
@@ -133,19 +133,33 @@
         </div>
       </div>
 
-      <!-- ОКНО УПРАВЛЕНИЯ -->
+      <!-- ОКНО УПРАВЛЕНИЯ (ИЗМЕНИТЬ, ПРОДАНО, УДАЛИТЬ) -->
       <div id="manage-modal" class="hidden modal-overlay">
         <div class="modal-box">
+          <i
+            class="fa fa-times"
+            onclick="closeManageModal()"
+            style="
+              position: absolute;
+              top: 15px;
+              right: 15px;
+              color: var(--yellow-main);
+              font-size: 22px;
+            "
+          ></i>
           <h3>Управление</h3>
+          <div id="manage-info" class="modal-info-text">
+            <!-- Сюда вставим название, телефон и адрес через JS -->
+          </div>
           <div class="modal-btn-list">
+            <div class="modal-action-btn edit" onclick="startAdEdit()">
+              Изменить
+            </div>
             <div class="modal-action-btn sold" onclick="setAdStatus('sold')">
               Продано
             </div>
             <div class="modal-action-btn" onclick="setAdStatus('deleted')">
               Удалить
-            </div>
-            <div class="modal-action-btn cancel" onclick="closeManageModal()">
-              Отмена
             </div>
           </div>
         </div>
@@ -172,7 +186,6 @@
           <div style="width: 24px"></div>
         </header>
         <div class="form-scroll">
-          <!-- БЛОК ТАРИФОВ (СКРЫВАЕТСЯ ПРИ РЕДАКТИРОВАНИИ) -->
           <div
             id="tariff-block"
             style="display: flex; gap: 12px; margin-bottom: 20px"
@@ -285,6 +298,7 @@
               <option value="Бишкек">Бишкек</option>
               <option value="Ош">Ош</option>
               <option value="Манас">Манас</option>
+              <option value="Токмок">Токмок</option>
               <option value="Каракол">Каракол</option>
             </select>
           </div>
@@ -339,7 +353,7 @@
           </div>
 
           <button class="btn-premium-unity" onclick="publishAndSend()">
-            Сохранить
+            Опубликовать
           </button>
         </div>
       </section>
