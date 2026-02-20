@@ -256,7 +256,7 @@ function resetAddForm() {
   document.getElementById("gallery-preview").innerHTML = "";
   document.getElementById("receipt-label").innerText = "Добавить чек";
   [
-    "tariff-block",
+    // СЮДА НЕЛЬЗЯ ПИСАТЬ "tariff-block"
     "file-group",
     "cat-group",
     "city-group",
@@ -265,6 +265,9 @@ function resetAddForm() {
     "phone-group",
     "desc-group",
   ].forEach((id) => document.getElementById(id).classList.remove("hidden"));
+
+  // ДОБАВЛЯЕМ ЭТУ СТРОЧКУ ЗДЕСЬ:
+  applyHolidayUI();
 }
 
 // ОСТАЛЬНЫЕ ФУНКЦИИ (БЕЗ СОКРАЩЕНИЙ)
