@@ -272,6 +272,7 @@ function renderFeed() {
       ad.city === curCity &&
       ad.status !== "deleted" &&
       ad.status !== "pending"
+      ad.status !== "rejected"
   );
   filtered.sort(
     (a, b) =>
