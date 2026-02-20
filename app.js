@@ -107,8 +107,6 @@ function openProduct(ad) {
   const modal = document.getElementById("product-modal");
   const isSold = ad.status === "sold";
   const isFav = favs.includes(ad.id);
-
-  // ВОТ ТУТ МЫ ВЫЗЫВАЕМ НОВУЮ ЛОГИКУ ДАТЫ
   const dateStr = formatRelativeDate(ad.approvedAt);
 
   // ЛОГИКА КОНТАКТОВ
@@ -144,6 +142,12 @@ function openProduct(ad) {
       <div style="font-size:28px; font-weight:800; color:var(--yellow-main);">${
         ad.price
       } KGS</div>
+      
+      <!-- НОВАЯ СТРОЧКА: ДАТА ПОЛУЧЕНИЯ -->
+      <div style="margin:5px 0; font-size:14px; color:#4cd964;">📅 Дата получения: ${
+        ad.receiveDate || "Не указана"
+      }</div>
+      
       <div style="margin:10px 0;"><b>${catMap[ad.cat] || "Товар"}</b> — ${
     ad.title
   }</div>
