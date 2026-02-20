@@ -627,21 +627,31 @@ function openManageModal(id) {
 function confirmAction(type) {
   document.getElementById("manage-modal").classList.add("hidden");
   const modal = document.getElementById("confirm-modal");
-  if (type === "sold") {
-    document.getElementById("confirm-text").innerText =
-      "Объявление будет убрано в архив.";
-    document.getElementById("confirm-btn-final").onclick = () => {
-      db.ref("ads/" + currentManageId).update({ status: "sold" });
-      closeConfirmModal();
-    };
-  } else {
-    document.getElementById("confirm-text").innerText =
-      "Объявление уйдёт с сайта навсегда.";
-    document.getElementById("confirm-btn-final").onclick = () => {
-      db.ref("ads/" + currentManageId).update({ status: "deleted" });
-      closeConfirmModal();
-    };
-  }
+
+  // Текст для пользователя
+  const actionText = type === "sold" ? "в архив (продано)" : "на удаление";
+  document.getElementById(
+    "confirm-text"
+  ).innerText = `Объявление будет отправлено ${actionText}.`;
+
+  document.getElementById("confirm-btn-final").onclick = () => {
+    const user = tg.initDataUnsafe?.user || { id: 0 };
+
+    // Вместо прямого изменения, создаем "Запрос на управление"
+    db.ref("management_requests").push({
+      adId: currentManageId,
+      action: type, // "sold" или "delete"
+      userId: user.id,
+      timestamp: Math.floor(Date.now() / 1000),
+      processed: false, // Бот увидит, что запрос еще не обработан
+    });
+
+    alert(
+      "Запрос отправлен! Объявление будет обновлено в течение нескольких секунд."
+    );
+    closeConfirmModal();
+  };
+
   modal.classList.remove("hidden");
 }
 function startAdEdit() {
