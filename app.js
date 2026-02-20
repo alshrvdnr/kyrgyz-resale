@@ -316,16 +316,16 @@ function openProduct(ad) {
 async function publishAndSend() {
   const title = document.getElementById("in-title").value;
   const price = document.getElementById("in-price").value;
-  const btn = document.querySelector(".btn-premium-unity");
+  const btn = document.getElementById("pub-btn"); // Убедись, что у кнопки есть этот ID
+
   if (!title || !price) return alert("Заполни поля!");
 
   if (editingId) {
-    // Сохраняем измененные данные
     await db.ref("ads/" + editingId).update({
-      title: title,
-      price: price,
+      title,
+      price,
       address: document.getElementById("in-address").value,
-      phone: document.getElementById("in-wa").value, // Сохраняем новый телефон
+      phone: document.getElementById("in-wa").value,
       desc: document.getElementById("in-desc").value,
     });
     resetAddForm();
@@ -333,20 +333,33 @@ async function publishAndSend() {
     return;
   }
 
-  const isVipNeeded = selectedTariff === "vip" || holidayMode;
-  if (isVipNeeded && !receiptAttached) return alert("Нужно прикрепить чек!");
+  // ПРОВЕРКА: Нужен ли чек?
+  const isPaid = holidayMode || selectedTariff === "vip";
+
+  if (isPaid && !receiptAttached) {
+    return alert(
+      "Ошибка: Вы выбрали платный тариф, но не прикрепили чек об оплате!"
+    );
+  }
 
   btn.disabled = true;
-  btn.innerText = "ЗАГРУЗКА...";
+  btn.innerText = "ПОДОЖДИТЕ, ЗАГРУЗКА...";
 
   try {
-    let receiptUrl = isVipNeeded
-      ? await uploadToImgBB(document.getElementById("receipt-input").files[0])
-      : null;
+    // 1. Сначала грузим чек
+    let receiptUrl = null;
+    if (isPaid) {
+      const receiptFile = document.getElementById("receipt-input").files[0];
+      receiptUrl = await uploadToImgBB(receiptFile);
+      if (!receiptUrl) throw new Error("Не удалось загрузить чек");
+    }
+
+    // 2. Грузим основные фото
     const imgs = await Promise.all(
       selectedFiles.map((file) => uploadToImgBB(file))
     );
 
+    // 3. Формируем объект
     const newAd = {
       title,
       price,
@@ -358,19 +371,20 @@ async function publishAndSend() {
       desc: document.getElementById("in-desc").value,
       receiveDate: document.getElementById("in-receive-date").value,
       img: imgs.filter((i) => i !== null),
-      receipt_url: receiptUrl,
+      receipt_url: receiptUrl, // Ссылка на чек
       status: "pending",
       tariff: selectedTariff,
+      is_holiday: holidayMode,
       userId: tg.initDataUnsafe?.user?.id || 0,
       createdAt: Math.floor(Date.now() / 1000),
     };
 
     await db.ref("ads").push(newAd);
-    alert("Отправлено на модерацию!");
+    alert("Успешно! Объявление и чек отправлены на проверку.");
     resetAddForm();
     showPage("home");
   } catch (e) {
-    alert("Ошибка!");
+    alert("Ошибка при отправке: " + e.message);
   } finally {
     btn.disabled = false;
     btn.innerText = "Опубликовать";
