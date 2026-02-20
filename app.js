@@ -171,10 +171,13 @@ async function publishAndSend() {
   if (!title || !price) return alert("Заполни поля!");
 
   if (editingId) {
+    // Сохраняем измененные данные
     await db.ref("ads/" + editingId).update({
-      title,
-      price,
+      title: title,
+      price: price,
       address: document.getElementById("in-address").value,
+      phone: document.getElementById("in-wa").value, // Сохраняем новый телефон
+      desc: document.getElementById("in-desc").value,
     });
     resetAddForm();
     showPage("home");
@@ -430,22 +433,32 @@ function confirmAction(type) {
 function startAdEdit() {
   const ad = ads.find((a) => a.id === currentManageId);
   if (!ad) return;
+
   editingId = currentManageId;
-  showPage("add");
+  showPage("add"); // Открываем страницу формы
+
+  // Меняем заголовок, чтобы юзер понимал, что он редактирует
   document.getElementById("add-title-text").innerText = "Редактирование";
-  [
-    "tariff-block",
-    "file-group",
-    "cat-group",
-    "city-group",
-    "date-group",
-    "tg-group",
-    "phone-group",
-    "desc-group",
-  ].forEach((id) => document.getElementById(id).classList.add("hidden"));
+
+  // СКРЫВАЕМ блоки, которые не нужны при редактировании
+  document.getElementById("tariff-block").classList.add("hidden");
+  document.getElementById("vip-block").classList.add("hidden"); // Убираем чек и QR
+  document.getElementById("file-group").classList.add("hidden"); // Фото менять нельзя
+  document.getElementById("cat-group").classList.add("hidden");
+  document.getElementById("city-group").classList.add("hidden");
+  document.getElementById("date-group").classList.add("hidden");
+
+  // ПОКАЗЫВАЕМ поле телефона и описания
+  document.getElementById("phone-group").classList.remove("hidden");
+  document.getElementById("desc-group").classList.remove("hidden");
+
+  // ЗАПОЛНЯЕМ поля текущими данными из базы
   document.getElementById("in-title").value = ad.title || "";
   document.getElementById("in-price").value = ad.price || "";
   document.getElementById("in-address").value = ad.address || "";
+  document.getElementById("in-wa").value = ad.phone || ""; // Теперь телефон подтягивается
+  document.getElementById("in-desc").value = ad.desc || "";
+
   closeManageModal();
 }
 function closeProduct() {
