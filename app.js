@@ -274,11 +274,20 @@ function renderFeed() {
       ad.status !== "pending" &&
       ad.status !== "rejected"
   );
-  filtered.sort(
-    (a, b) =>
-      (a.status === "sold") - (b.status === "sold") ||
-      (a.tariff === "vip" && a.status === "active" ? -1 : 1)
-  );
+  filtered.sort((a, b) => {
+    // 1. Проданные всегда в самый низ
+    if (a.status !== b.status) {
+      return a.status === "sold" ? 1 : -1;
+    }
+
+    // 2. Если оба активны, VIP ставим выше обычных
+    if (a.tariff !== b.tariff) {
+      return a.tariff === "vip" ? -1 : 1;
+    }
+
+    // 3. Если тарифы одинаковые, свежие ставим выше (по дате создания)
+    return (b.createdAt || 0) - (a.createdAt || 0);
+  });
   filtered.forEach((ad) => grid.appendChild(createAdCard(ad)));
 }
 function createAdCard(ad, isProfile = false) {
