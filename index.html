@@ -6,20 +6,19 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>Gifts KG</title>
+    <title>Gifts Kyrgyzstan</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     />
     <link rel="stylesheet" href="style.css" />
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
   </head>
   <body>
     <div id="app">
-      <!-- ГЛАВНАЯ -->
+      <!-- ГЛАВНАЯ СТРАНИЦА -->
       <section id="page-home" class="page">
         <header class="main-header">
           <div class="top-location-bar" onclick="toggleCitySelector()">
@@ -33,7 +32,6 @@
               style="font-size: 10px; margin-left: 4px"
             ></i>
           </div>
-          <!-- ХЕДЕР С ПОИСКОМ И ПРОФИЛЕМ -->
           <div class="search-profile-row">
             <div class="search-wrapper">
               <i class="fa fa-search" style="color: var(--gray)"></i>
@@ -77,6 +75,19 @@
         </h2>
         <main class="listings-grid" id="home-grid"></main>
       </section>
+
+      <!-- ОКНО РЕЗУЛЬТАТОВ ПОИСКА -->
+      <div id="search-results-page" class="hidden">
+        <div class="search-header">
+          <h3 style="margin: 0">Результаты поиска</h3>
+          <i
+            class="fa fa-times"
+            onclick="closeSearch()"
+            style="font-size: 24px; color: var(--yellow-main); cursor: pointer"
+          ></i>
+        </div>
+        <div id="search-results-area" class="listings-grid"></div>
+      </div>
 
       <!-- ВЫБОР ГОРОДА -->
       <div id="city-selector" class="hidden modal-overlay">
@@ -215,7 +226,6 @@
               <b>VIP</b><br /><small>100 сом</small>
             </div>
           </div>
-
           <div id="vip-block" class="hidden">
             <div
               style="
@@ -232,13 +242,10 @@
               <img
                 src="https://i.ibb.co/v487YmS6/photo-2025-02-18-19-14-11.jpg"
                 style="
-                  width: 180px;
-                  height: 180px;
+                  width: 130px;
+                  height: 130px;
                   margin: 15px 0;
                   border-radius: 10px;
-                  object-fit: contain;
-                  background: white;
-                  padding: 5px;
                 "
               />
               <div
@@ -263,7 +270,6 @@
               />
             </div>
           </div>
-
           <div class="f-group" id="file-group">
             <label>Фотографии (макс. 5 фото)</label>
             <div
@@ -293,7 +299,6 @@
               "
             ></div>
           </div>
-
           <div class="f-group" id="cat-group">
             <label>Категория</label
             ><select id="in-cat" class="main-input">
@@ -319,7 +324,7 @@
               type="text"
               id="in-title"
               class="main-input"
-              placeholder="Букет роз"
+              placeholder="Например: Букет из 25 роз"
             />
           </div>
           <div class="f-group">
@@ -367,7 +372,6 @@
         </div>
       </section>
 
-      <!-- ИЗБРАННОЕ -->
       <section id="page-favs" class="page hidden">
         <header
           style="
@@ -392,7 +396,6 @@
         <main id="favs-content-area"></main>
       </section>
 
-      <!-- ПРОФИЛЬ -->
       <section id="page-profile" class="page hidden">
         <header style="padding: 15px">
           <button

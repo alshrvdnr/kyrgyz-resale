@@ -18,12 +18,11 @@ body {
   overflow-x: hidden;
   width: 100%;
 }
-
 .hidden {
   display: none !important;
 }
 
-/* ХЕДЕР: ПОИСК И ПРОФИЛЬ */
+/* ХЕДЕР И ПОИСК */
 .main-header {
   padding: 5px 15px 10px;
   position: sticky;
@@ -43,15 +42,6 @@ body {
   font-size: 13px;
   font-weight: 600;
 }
-
-.search-profile-row {
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  gap: 10px;
-  margin-bottom: 5px;
-}
-
 .search-wrapper {
   background: #2c2c2e;
   flex: 1;
@@ -69,20 +59,18 @@ body {
   width: 100%;
   font-size: 15px;
 }
-
-/* КРУГЛАЯ ЖЕЛТАЯ ИКОНКА ПРОФИЛЯ */
 .u-avatar-top-circle {
-  width: 42px !important;
-  height: 42px !important;
-  min-width: 42px !important;
-  background: var(--yellow-main) !important;
-  border-radius: 50% !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  color: #000 !important;
-  font-weight: bold !important;
-  flex-shrink: 0 !important;
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  background: var(--yellow-main);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+  font-weight: bold;
+  flex-shrink: 0;
 }
 
 /* КАТЕГОРИИ */
@@ -132,17 +120,20 @@ body {
   overflow: hidden;
   position: relative;
   border: 1px solid transparent;
+  transition: 0.3s;
 }
 .card img {
   width: 100%;
   height: 150px;
   object-fit: cover;
 }
+
+/* VIP ЭФФЕКТЫ */
 .card-vip {
   border: 1px solid var(--yellow-main) !important;
-  animation: vipGlowEffect 1.5s infinite alternate;
+  animation: vipGlow 1.5s infinite alternate;
 }
-@keyframes vipGlowEffect {
+@keyframes vipGlow {
   from {
     box-shadow: 0 0 5px rgba(255, 204, 0, 0.3);
   }
@@ -162,6 +153,7 @@ body {
   font-weight: 900;
   z-index: 11;
 }
+
 .fav-heart-btn {
   position: absolute;
   top: 10px;
@@ -192,7 +184,7 @@ body {
   border: 1px dashed #555 !important;
 }
 
-/* НИЖНЯЯ ПАНЕЛЬ */
+/* НИЖНЯЯ ПАНЕЛЬ И КРУГЛЫЙ ПЛЮС */
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -255,6 +247,75 @@ body {
   flex-shrink: 0;
 }
 
+/* КАРУСЕЛЬ ВНУТРИ ОБЪЯВЛЕНИЯ */
+.modal-carousel-container {
+  position: relative;
+  width: 100%;
+  height: 350px;
+  background: #000;
+  overflow: hidden;
+}
+.product-gallery-slider {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  height: 100%;
+  scrollbar-width: none;
+}
+.product-gallery-slider::-webkit-scrollbar {
+  display: none;
+}
+.product-gallery-slider img {
+  min-width: 100%;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  scroll-snap-align: start;
+}
+.carousel-dots {
+  position: absolute;
+  bottom: 15px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  z-index: 10;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  transition: 0.3s;
+}
+.dot.active {
+  background: var(--yellow-main);
+  transform: scale(1.2);
+}
+
+/* ОКНО ПОИСКА */
+#search-results-page {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  z-index: 5000;
+  overflow-y: auto;
+}
+.search-header {
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #333;
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 10;
+}
+
 /* ПРОФИЛЬ */
 .profile-tabs {
   display: flex;
@@ -283,7 +344,7 @@ body {
   height: 60vh;
 }
 
-/* МОДАЛКИ */
+/* МОДАЛКИ УПРАВЛЕНИЯ */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -333,9 +394,8 @@ body {
 .modal-action-btn.sold {
   color: #ff3b30;
 }
-.modal-action-btn.edit {
-  color: var(--yellow-main);
-}
+
+/* ФОРМА ПОДАЧИ */
 .form-scroll {
   padding: 10px 20px 120px 20px;
 }
@@ -392,39 +452,6 @@ body {
   text-align: center;
   text-decoration: none;
   text-transform: uppercase;
-}
-.modal-carousel-container {
-  position: relative;
-  width: 100%;
-  height: 350px;
-  background: #000;
-}
-.product-gallery-slider {
-  display: flex;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  height: 100%;
-  scrollbar-width: none;
-}
-.product-gallery-slider img {
-  min-width: 100%;
-  object-fit: contain;
-  scroll-snap-align: start;
-}
-.carousel-dots {
-  display: flex;
-  justify-content: center;
-  gap: 6px;
-  position: absolute;
-  bottom: 15px;
-  width: 100%;
-}
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.4);
-}
-.dot.active {
-  background: var(--yellow-main);
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(255, 204, 0, 0.3);
 }

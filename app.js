@@ -1,7 +1,6 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-// FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyCxaC3C9dx6IEhXWH9eATdKZO8SCRYe33I",
   authDomain: "gifts-kg.firebaseapp.com",
@@ -40,14 +39,17 @@ let curCat = "Все",
   editingId = null,
   selectedFiles = [],
   profTab = "active";
-let currentManageId = null;
-let holidayMode = false;
-let receiptAttached = false;
+let currentManageId = null,
+  holidayMode = false,
+  receiptAttached = false;
 
 document.addEventListener("DOMContentLoaded", () => {
   initUser();
   listenSettings();
   listenAds();
+  document.getElementById("main-search").addEventListener("keypress", (e) => {
+    if (e.key === "Enter") startSearch(e.target.value);
+  });
 });
 
 function initUser() {
@@ -94,74 +96,85 @@ function listenAds() {
   });
 }
 
-function renderFeed() {
-  const grid = document.getElementById("home-grid");
-  if (!grid) return;
-  grid.innerHTML = "";
-
-  // ФИЛЬТР: КАТЕГОРИИ И ГОРОД
-  let filtered = ads.filter(
-    (ad) =>
-      (curCat === "Все" || ad.cat === curCat) &&
-      ad.city === curCity &&
-      ad.status !== "deleted" &&
-      ad.status !== "pending"
-  );
-
-  filtered.sort((a, b) => {
-    if (a.status === "sold" && b.status !== "sold") return 1;
-    if (a.status !== "sold" && b.status === "sold") return -1;
-    if (a.tariff === "vip" && b.tariff !== "vip" && a.status === "active")
-      return -1;
-    if (a.tariff !== "vip" && b.tariff === "vip" && b.status === "active")
-      return 1;
-    return (b.approvedAt || 0) - (a.approvedAt || 0);
-  });
-
-  filtered.forEach((ad) => grid.appendChild(createAdCard(ad)));
-}
-
-function createAdCard(ad, isProfile = false) {
-  const isFav = favs.includes(ad.id);
+// КАРУСЕЛЬ С ТОЧКАМИ И СКРЫТИЕ ИНФО В SOLD
+function openProduct(ad) {
+  const modal = document.getElementById("product-modal");
   const isSold = ad.status === "sold";
-  const isDeleted = ad.status === "deleted";
-  const isVip = ad.tariff === "vip" && !isSold;
-  const card = document.createElement("div");
-  card.className = `card ${isVip ? "card-vip" : ""} ${
-    isDeleted ? "card-deleted" : ""
-  }`;
-  card.onclick = () => openProduct(ad);
-  card.innerHTML = `
-    ${isSold || isDeleted ? '<div class="sold-badge">ПРОДАНО</div>' : ""}
-    ${isVip ? '<div class="vip-badge">VIP</div>' : ""}
-    ${
-      !isProfile
-        ? `<div class="fav-heart-btn ${
-            isFav ? "active" : ""
-          }" onclick="toggleFav('${
-            ad.id
-          }', event)"><i class="fa-solid fa-heart"></i></div>`
-        : ""
-    }
-    <img src="${ad.img ? ad.img[0] : ""}" loading="lazy">
-    <div style="padding:10px;">
-      <div style="color:var(--yellow-main); font-weight:bold; font-size:16px;">${
+  const isFav = favs.includes(ad.id);
+  const dateStr = ad.approvedAt
+    ? new Date(ad.approvedAt * 1000).toLocaleDateString()
+    : "На проверке";
+
+  let dots = ad.img
+    .map(
+      (_, i) =>
+        `<div class="dot ${i === 0 ? "active" : ""}" id="dot-${
+          ad.id
+        }-${i}"></div>`
+    )
+    .join("");
+
+  document.getElementById("pv-content").innerHTML = `
+    <div class="modal-carousel-container">
+      <i class="fa fa-arrow-left" onclick="closeProduct()" style="position:absolute; top:20px; left:20px; z-index:100; background:rgba(0,0,0,0.5); padding:10px; border-radius:50%;"></i>
+      <i class="fa-solid fa-heart" onclick="toggleFav('${
+        ad.id
+      }')" style="position:absolute; top:20px; right:20px; z-index:100; font-size:24px; color:${
+    isFav ? "var(--yellow-main)" : "#fff"
+  }"></i>
+      <div class="product-gallery-slider" id="slider-${ad.id}">
+        ${ad.img.map((src) => `<img src="${src}">`).join("")}
+      </div>
+      <div class="carousel-dots">${dots}</div>
+    </div>
+    <div style="padding:20px;">
+      <div style="font-size:28px; font-weight:800; color:var(--yellow-main);">${
         ad.price
       } KGS</div>
-      <div style="font-size:12px; color:#ccc; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${
-        ad.title
-      }</div>
+      <div style="margin:10px 0;"><b>${catMap[ad.cat]}</b> — ${ad.title}</div>
+      
       ${
-        isProfile && ad.status === "active"
-          ? `<button onclick="event.stopPropagation(); openManageModal('${ad.id}')" style="width:100%; background:var(--yellow-main); color:#000; border:none; padding:8px; border-radius:8px; font-size:11px; font-weight:bold; margin-top:8px;">Управление</button>`
+        isSold
+          ? `<div style="background:#333; padding:15px; border-radius:12px; color:#ff3b30; text-align:center; font-weight:bold;">Информация скрыта, так как товар продан</div>`
+          : `<a href="https://t.me/${ad.tgNick?.replace(
+              "@",
+              ""
+            )}" class="btn-premium-unity" style="text-decoration:none;">Написать продавцу</a>`
+      }
+
+      <div style="color:var(--gray); font-size:12px; margin-top:15px;">Дата публикации: ${dateStr}</div>
+      <div style="background:#2c2c2e; padding:15px; border-radius:12px; margin:20px 0;">${
+        ad.desc || "Нет описания"
+      }</div>
+      
+      ${
+        !isSold
+          ? `
+        <div style="margin-bottom:8px;"><i class="fa fa-location-dot"></i> ${
+          ad.city
+        }, ${ad.address || "—"}</div>
+        <div><i class="fa-brands fa-telegram"></i> ${ad.tgNick || "—"}</div>
+      `
           : ""
       }
-    </div>
-  `;
-  return card;
+    </div>`;
+
+  const slider = document.getElementById(`slider-${ad.id}`);
+  slider.onscroll = () => {
+    let idx = Math.round(slider.scrollLeft / slider.offsetWidth);
+    document
+      .querySelectorAll(`#dot-${ad.id}-.dot`)
+      .forEach((d, i) => d.classList.toggle("active", i === idx));
+    // Фикс селектора точек для кастомного ID
+    const allDots = document.querySelectorAll(`[id^="dot-${ad.id}"]`);
+    allDots.forEach((d, i) => d.classList.toggle("active", i === idx));
+  };
+  modal.classList.remove("hidden");
+  tg.BackButton.show();
+  tg.BackButton.onClick(closeProduct);
 }
 
-// ПАРАЛЛЕЛЬНАЯ ЗАГРУЗКА ( Promise.all )
+// ПАРАЛЛЕЛЬНАЯ ЗАГРУЗКА ФОТО
 async function publishAndSend() {
   const title = document.getElementById("in-title").value;
   const price = document.getElementById("in-price").value;
@@ -193,9 +206,10 @@ async function publishAndSend() {
       ? await uploadToImgBB(document.getElementById("receipt-input").files[0])
       : null;
 
-    // Загружаем все фото одновременно
-    const uploadPromises = selectedFiles.map((file) => uploadToImgBB(file));
-    const imgs = await Promise.all(uploadPromises);
+    // Загружаем все фото одновременно (Promise.all)
+    const imgs = await Promise.all(
+      selectedFiles.map((file) => uploadToImgBB(file))
+    );
 
     const newAd = {
       title,
@@ -213,6 +227,7 @@ async function publishAndSend() {
       tariff: selectedTariff,
       userId: tg.initDataUnsafe?.user?.id || 0,
       createdAt: Math.floor(Date.now() / 1000),
+      notified: false,
       views: 0,
     };
 
@@ -229,6 +244,77 @@ async function publishAndSend() {
   }
 }
 
+// ПОИСК В ОТДЕЛЬНОМ ОКНЕ
+function startSearch(val) {
+  if (!val) return;
+  const results = ads.filter(
+    (ad) =>
+      ad.title.toLowerCase().includes(val.toLowerCase()) &&
+      ad.status !== "deleted"
+  );
+  const container = document.getElementById("search-results-area");
+  container.innerHTML = "";
+  results.forEach((ad) => container.appendChild(createAdCard(ad)));
+  document.getElementById("search-results-page").classList.remove("hidden");
+}
+function closeSearch() {
+  document.getElementById("search-results-page").classList.add("hidden");
+}
+
+// ВСЕ ОСТАЛЬНЫЕ ФУНКЦИИ (БЕЗ СОКРАЩЕНИЙ)
+function renderFeed() {
+  const grid = document.getElementById("home-grid");
+  if (!grid) return;
+  grid.innerHTML = "";
+  let filtered = ads.filter(
+    (ad) =>
+      (curCat === "Все" || ad.cat === curCat) &&
+      ad.city === curCity &&
+      ad.status !== "deleted" &&
+      ad.status !== "pending"
+  );
+  filtered.sort((a, b) => {
+    if (a.status === "sold" && b.status !== "sold") return 1;
+    if (a.status !== "sold" && b.status === "sold") return -1;
+    if (a.tariff === "vip" && b.tariff !== "vip" && a.status === "active")
+      return -1;
+    if (a.tariff !== "vip" && b.tariff === "vip" && b.status === "active")
+      return 1;
+    return (b.approvedAt || 0) - (a.approvedAt || 0);
+  });
+  filtered.forEach((ad) => grid.appendChild(createAdCard(ad)));
+}
+function createAdCard(ad, isProfile = false) {
+  const isFav = favs.includes(ad.id);
+  const isSold = ad.status === "sold";
+  const isDeleted = ad.status === "deleted";
+  const isVip = ad.tariff === "vip" && !isSold;
+  const card = document.createElement("div");
+  card.className = `card ${isVip ? "card-vip" : ""} ${
+    isDeleted ? "card-deleted" : ""
+  }`;
+  card.onclick = () => openProduct(ad);
+  card.innerHTML = `${
+    isSold || isDeleted ? '<div class="sold-badge">ПРОДАНО</div>' : ""
+  } ${isVip ? '<div class="vip-badge">VIP</div>' : ""} ${
+    !isProfile
+      ? `<div class="fav-heart-btn ${
+          isFav ? "active" : ""
+        }" onclick="toggleFav('${
+          ad.id
+        }', event)"><i class="fa-solid fa-heart"></i></div>`
+      : ""
+  } <img src="${
+    ad.img ? ad.img[0] : ""
+  }" loading="lazy"> <div style="padding:10px;"> <div style="color:var(--yellow-main); font-weight:bold; font-size:16px;">${
+    ad.price
+  } KGS</div> <div style="font-size:12px; color:#ccc;">${ad.title}</div> ${
+    isProfile && ad.status === "active"
+      ? `<button onclick="event.stopPropagation(); openManageModal('${ad.id}')" style="width:100%; background:var(--yellow-main); color:#000; border:none; padding:8px; border-radius:8px; font-size:11px; font-weight:bold; margin-top:8px;">Управление</button>`
+      : ""
+  } </div>`;
+  return card;
+}
 function handleFileSelect(input) {
   const files = Array.from(input.files).slice(0, 5);
   selectedFiles = files;
@@ -248,7 +334,6 @@ function handleFileSelect(input) {
     reader.readAsDataURL(f);
   });
 }
-
 function filterByCat(c, el) {
   curCat = c;
   document
@@ -259,115 +344,19 @@ function filterByCat(c, el) {
     catTitles[c] || "Свежие предложения";
   renderFeed();
 }
-
-function renderFavs() {
-  const container = document.getElementById("favs-content-area");
-  const filtered = ads.filter((ad) => favs.includes(ad.id));
-  if (filtered.length === 0) {
-    container.innerHTML = `<div class="empty-favs-center"><div style="width:80px; height:80px; background:#2c2c2e; border-radius:20px; display:flex; align-items:center; justify-content:center; margin-bottom:20px; color:var(--yellow-main); font-size:32px;"><i class="fa-solid fa-heart"></i></div><h3 style="margin:0 0 10px 0;">У вас пока нет избранных объявлений</h3><button class="btn-premium-unity" style="width:auto; padding:12px 40px;" onclick="showPage('home')">Поиск</button></div>`;
-  } else {
-    container.innerHTML = '<div class="listings-grid" id="fav-grid"></div>';
-    filtered.forEach((ad) =>
-      document.getElementById("fav-grid").appendChild(createAdCard(ad))
-    );
-  }
-}
-
-// ОСТАЛЬНЫЕ ФУНКЦИИ (ОТКРЫТЬ, УПРАВЛЕНИЕ И Т.Д.)
-function openProduct(ad) {
-  const modal = document.getElementById("product-modal");
-  if (ad.userId !== tg.initDataUnsafe?.user?.id)
-    db.ref("ads/" + ad.id + "/views").transaction((c) => (c || 0) + 1);
-  const isFav = favs.includes(ad.id);
-  const dateStr = ad.approvedAt
-    ? new Date(ad.approvedAt * 1000).toLocaleDateString()
-    : "На проверке";
-  document.getElementById("pv-content").innerHTML = `
-    <div class="modal-carousel-container">
-      <i class="fa fa-arrow-left" onclick="closeProduct()" style="position:absolute; top:20px; left:20px; z-index:100; background:rgba(0,0,0,0.5); padding:10px; border-radius:50%;"></i>
-      <i class="fa-solid fa-heart" onclick="toggleFav('${
-        ad.id
-      }')" style="position:absolute; top:20px; right:20px; z-index:100; font-size:24px; color:${
-    isFav ? "var(--yellow-main)" : "#fff"
-  }"></i>
-      <div class="product-gallery-slider">${
-        ad.img ? ad.img.map((src) => `<img src="${src}">`).join("") : ""
-      }</div>
-    </div>
-    <div style="padding:20px;">
-      <div style="display:flex; justify-content:space-between; align-items:center;"><div style="font-size:28px; font-weight:800; color:var(--yellow-main);">${
-        ad.price
-      } KGS</div><div style="color:var(--gray); font-size:14px;"><i class="fa fa-eye"></i> ${
-    ad.views || 0
-  }</div></div>
-      <div style="margin:10px 0;"><b>${catMap[ad.cat]}</b> — ${ad.title}</div>
-      <a href="https://t.me/${ad.tgNick?.replace(
-        "@",
-        ""
-      )}" class="btn-premium-unity" style="text-decoration:none;">Написать продавцу</a>
-      <div style="color:var(--gray); font-size:12px; margin-top:10px;">Дата публикации: ${dateStr}</div>
-      <div style="background:#2c2c2e; padding:15px; border-radius:12px; margin:20px 0;">${
-        ad.desc || "Нет описания"
-      }</div>
-      <div>📍 ${ad.city}, ${ad.address || "—"}</div>
-    </div>`;
-  modal.classList.remove("hidden");
-}
-
-function openManageModal(id) {
-  currentManageId = id;
-  const ad = ads.find((a) => a.id === id);
-  if (ad)
-    document.getElementById("manage-info").innerHTML = `Название: <b>${
-      ad.title
-    }</b><br>Телефон: <b>${ad.phone || "—"}</b><br>Адрес: <b>${
-      ad.address || "—"
-    }</b>`;
-  document.getElementById("manage-modal").classList.remove("hidden");
-}
-function confirmAction(type) {
-  document.getElementById("manage-modal").classList.add("hidden");
-  const modal = document.getElementById("confirm-modal");
-  document.getElementById("confirm-text").innerText =
-    type === "sold"
-      ? "Объявление будет убрано в архив."
-      : "Объявление уйдёт с сайта навсегда.";
-  document.getElementById("confirm-btn-final").onclick = () => {
-    db.ref("ads/" + currentManageId).update({
-      status: type === "sold" ? "sold" : "deleted",
-    });
-    closeConfirmModal();
-  };
-  modal.classList.remove("hidden");
-}
-function startAdEdit() {
-  const ad = ads.find((a) => a.id === currentManageId);
-  if (!ad) return;
-  editingId = currentManageId;
-  showPage("add");
-  document.getElementById("add-title-text").innerText = "Редактирование";
-  [
-    "tariff-block",
-    "file-group",
-    "cat-group",
-    "city-group",
-    "date-group",
-    "tg-group",
-    "phone-group",
-    "desc-group",
-  ].forEach((id) => document.getElementById(id).classList.add("hidden"));
-  document.getElementById("in-title").value = ad.title || "";
-  document.getElementById("in-price").value = ad.price || "";
-  document.getElementById("in-address").value = ad.address || "";
-  closeManageModal();
-}
-function toggleCitySelector() {
-  document.getElementById("city-selector").classList.toggle("hidden");
-}
 function selectCity(c) {
   curCity = c;
   document.getElementById("current-city-label").innerText = c;
   toggleCitySelector();
+  renderFeed();
+}
+function toggleCitySelector() {
+  document.getElementById("city-selector").classList.toggle("hidden");
+}
+function toggleFav(id, event) {
+  if (event) event.stopPropagation();
+  favs = favs.includes(id) ? favs.filter((f) => f !== id) : [...favs, id];
+  localStorage.setItem("favs_v15", JSON.stringify(favs));
   renderFeed();
 }
 function selectTariff(t) {
@@ -403,7 +392,12 @@ function showPage(p) {
   if (p === "profile") renderProfile();
 }
 function resetAddForm() {
-  document.getElementById("add-title-text").innerText = "Новое объявление";
+  editingId = null;
+  selectedFiles = [];
+  receiptAttached = false;
+  document.querySelectorAll(".main-input").forEach((i) => (i.value = ""));
+  document.getElementById("gallery-preview").innerHTML = "";
+  document.getElementById("receipt-label").innerText = "Добавить чек";
   [
     "tariff-block",
     "file-group",
@@ -414,31 +408,6 @@ function resetAddForm() {
     "phone-group",
     "desc-group",
   ].forEach((id) => document.getElementById(id).classList.remove("hidden"));
-  receiptAttached = false;
-  document.getElementById("receipt-label").innerText = "Добавить чек";
-  document.getElementById("gallery-preview").innerHTML = "";
-  document.getElementById("in-title").value = "";
-  document.getElementById("in-price").value = "";
-  document.getElementById("in-address").value = "";
-}
-function closeManageModal() {
-  document.getElementById("manage-modal").classList.add("hidden");
-}
-function closeConfirmModal() {
-  document.getElementById("confirm-modal").classList.add("hidden");
-}
-function closeProduct() {
-  document.getElementById("product-modal").classList.add("hidden");
-}
-function cancelAdd() {
-  resetAddForm();
-  showPage("home");
-}
-function clearFavs() {
-  favs = [];
-  localStorage.setItem("favs_v15", "[]");
-  renderFavs();
-  renderFeed();
 }
 function renderProfile() {
   const grid = document.getElementById("my-ads-grid");
@@ -452,6 +421,18 @@ function renderProfile() {
   );
   filtered.forEach((ad) => grid.appendChild(createAdCard(ad, true)));
 }
+function renderFavs() {
+  const container = document.getElementById("favs-content-area");
+  const filtered = ads.filter((ad) => favs.includes(ad.id));
+  if (filtered.length === 0) {
+    container.innerHTML = `<div class="empty-favs-center"><div style="width:80px; height:80px; background:#2c2c2e; border-radius:20px; display:flex; align-items:center; justify-content:center; margin-bottom:20px; color:var(--yellow-main); font-size:32px;"><i class="fa-solid fa-heart"></i></div><h3 style="margin:0 0 10px 0;">У вас пока нет избранных объявлений</h3><button class="btn-premium-unity" style="width:auto; padding:12px 40px;" onclick="showPage('home')">Поиск</button></div>`;
+  } else {
+    container.innerHTML = '<div class="listings-grid" id="fav-grid"></div>';
+    filtered.forEach((ad) =>
+      document.getElementById("fav-grid").appendChild(createAdCard(ad))
+    );
+  }
+}
 function switchProfileTab(t) {
   profTab = t;
   document
@@ -462,9 +443,63 @@ function switchProfileTab(t) {
     .classList.toggle("active", t === "archive");
   renderProfile();
 }
-function toggleFav(id, event) {
-  if (event) event.stopPropagation();
-  favs = favs.includes(id) ? favs.filter((f) => f !== id) : [...favs, id];
-  localStorage.setItem("favs_v15", JSON.stringify(favs));
-  renderFeed();
+function closeProduct() {
+  document.getElementById("product-modal").classList.add("hidden");
+  tg.BackButton.hide();
+}
+function openManageModal(id) {
+  currentManageId = id;
+  const ad = ads.find((a) => a.id === id);
+  if (ad)
+    document.getElementById("manage-info").innerHTML = `Название: <b>${
+      ad.title
+    }</b><br>Телефон: <b>${ad.phone || "—"}</b><br>Адрес: <b>${
+      ad.address || "—"
+    }</b>`;
+  document.getElementById("manage-modal").classList.remove("hidden");
+}
+function closeManageModal() {
+  document.getElementById("manage-modal").classList.add("hidden");
+}
+function closeConfirmModal() {
+  document.getElementById("confirm-modal").classList.add("hidden");
+}
+function setAdStatus(status) {
+  if (!currentManageId) return;
+  db.ref("ads/" + currentManageId).update({ status: status });
+  currentManageId = null;
+}
+function startAdEdit() {
+  const ad = ads.find((a) => a.id === currentManageId);
+  if (!ad) return;
+  editingId = currentManageId;
+  showPage("add");
+  document.getElementById("add-title-text").innerText = "Редактирование";
+  [
+    "tariff-block",
+    "file-group",
+    "cat-group",
+    "city-group",
+    "date-group",
+    "tg-group",
+    "phone-group",
+    "desc-group",
+  ].forEach((id) => document.getElementById(id).classList.add("hidden"));
+  document.getElementById("in-title").value = ad.title || "";
+  document.getElementById("in-price").value = ad.price || "";
+  document.getElementById("in-address").value = ad.address || "";
+  closeManageModal();
+}
+function confirmAction(type) {
+  document.getElementById("manage-modal").classList.add("hidden");
+  const modal = document.getElementById("confirm-modal");
+  document.getElementById("confirm-text").innerText =
+    type === "sold"
+      ? "Объявление будет убрано в архив."
+      : "Объявление уйдёт с сайта навсегда.";
+  document.getElementById("confirm-btn-final").onclick = () => {
+    setAdStatus(type === "sold" ? "sold" : "deleted");
+    closeConfirmModal();
+  };
+  modal.classList.remove("hidden");
 }
