@@ -13,6 +13,7 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     />
     <link rel="stylesheet" href="style.css" />
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
   </head>
@@ -32,6 +33,8 @@
               style="font-size: 10px; margin-left: 4px"
             ></i>
           </div>
+
+          <!-- СТРОКА ПОИСКА И ПРОФИЛЬ (ВЕРНУЛИ НАВЕРХ) -->
           <div class="search-profile-row">
             <div class="search-wrapper">
               <i class="fa fa-search" style="color: var(--gray)"></i>
@@ -49,6 +52,7 @@
               ?
             </div>
           </div>
+
           <div class="categories-container">
             <div class="cat-card active" onclick="filterByCat('Все', this)">
               <i class="fa-solid fa-border-all"></i><span>Все</span>
