@@ -111,10 +111,10 @@ function openProduct(ad) {
     ? new Date(ad.approvedAt * 1000).toLocaleDateString()
     : "На проверке";
 
-  // ЛОГИКА КОНТАКТОВ: TG ПРИОРЕТЕТ
+  // Логика ссылки
   let contactLink = ad.tgNick
     ? `https://t.me/${ad.tgNick.replace("@", "")}`
-    : `https://wa.me/${ad.phone.replace(/[^0-9]/g, "")}`;
+    : `https://wa.me/${ad.phone ? ad.phone.replace(/[^0-9]/g, "") : ""}`;
 
   let dots = ad.img
     .map(
@@ -142,17 +142,40 @@ function openProduct(ad) {
       <div style="font-size:28px; font-weight:800; color:var(--yellow-main);">${
         ad.price
       } KGS</div>
-      <div style="margin:10px 0;"><b>${catMap[ad.cat]}</b> — ${ad.title}</div>
+      <div style="margin:10px 0;"><b>${catMap[ad.cat] || "Товар"}</b> — ${
+    ad.title
+  }</div>
+      
       ${
         isSold
           ? `<div style="background:#333; padding:15px; border-radius:12px; color:#ff3b30; text-align:center; font-weight:bold;">Информация скрыта, так как товар продан</div>`
-          : `<a href="${contactLink}" class="btn-premium-unity" style="text-decoration:none;">Написать продавцу</a>`
+          : `
+          <div style="margin-bottom: 20px;">
+            <a href="${contactLink}" class="btn-premium-unity" style="text-decoration:none;">Написать продавцу</a>
+            <div style="margin-top:15px; background:#1c1c1e; padding:12px; border-radius:10px; border:1px solid #333;">
+               <div style="font-size:13px; color:var(--gray); margin-bottom:5px;">Контакты продавца:</div>
+               <div style="font-size:16px; font-weight:bold;">📞 ${
+                 ad.phone || "Не указан"
+               }</div>
+               ${
+                 ad.tgNick
+                   ? `<div style="font-size:16px; font-weight:bold; margin-top:5px;">✈️ ${ad.tgNick}</div>`
+                   : ""
+               }
+            </div>
+          </div>
+        `
       }
+
       <div style="color:var(--gray); font-size:12px; margin-top:10px;">Дата публикации: ${dateStr}</div>
-      <div style="background:#2c2c2e; padding:15px; border-radius:12px; margin:20px 0;">${
+      <div style="background:#2c2c2e; padding:15px; border-radius:12px; margin:20px 0; white-space: pre-wrap;">${
         ad.desc || "Нет описания"
       }</div>
-      ${!isSold ? `<div>📍 ${ad.city}, ${ad.address || "—"}</div>` : ""}
+      ${
+        !isSold
+          ? `<div style="color:#ccc;">📍 ${ad.city}, ${ad.address || "—"}</div>`
+          : ""
+      }
     </div>`;
 
   const slider = document.getElementById(`slider-${ad.id}`);
