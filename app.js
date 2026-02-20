@@ -223,7 +223,9 @@ function openProduct(ad) {
   const isFav = favs.includes(ad.id);
   const dateStr = formatRelativeDate(ad.approvedAt);
 
-  // Ссылка для кнопки
+  // Проверка: есть ли у продавца статус проверенного
+  const isVerified = ad.verified === true;
+
   let contactLink = ad.tgNick
     ? `https://t.me/${ad.tgNick.replace("@", "")}`
     : `https://wa.me/${ad.phone ? ad.phone.replace(/[^0-9]/g, "") : ""}`;
@@ -254,56 +256,58 @@ function openProduct(ad) {
     </div>
 
     <div style="padding:20px;">
-      <!-- ВЕРХНИЙ БЛОК -->
       <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
         <div style="font-size:28px; font-weight:800; color:var(--yellow-main); line-height:1;">
           ${ad.price} KGS
         </div>
-        
         <div style="display:flex; flex-direction:column; align-items:flex-end; gap:5px;">
-          <!-- Просто дата публикации без лишних слов -->
           <div style="color:var(--gray); font-size:11px;">${dateStr}</div>
-          <!-- Аккуратная рамка поступления -->
           <div style="font-size:11px; color:#4cd964; font-weight:bold; background:rgba(76,217,100,0.1); padding:4px 8px; border-radius:6px; border:1px solid rgba(76,217,100,0.2);">
             Поступление: ${ad.receiveDate || "—"}
           </div>
         </div>
       </div>
 
-      <div style="margin-bottom:20px; font-size:16px; line-height:1.4;">
+      <div style="margin-bottom:20px; font-size:16px; line-height:1.4; display:flex; align-items:center; gap:8px;">
         <b style="color:#fff;">${catMap[ad.cat] || "Товар"}</b> — ${ad.title}
+        <!-- ГАЛОЧКА ТУТ -->
+        ${
+          isVerified
+            ? `<i class="fa-solid fa-circle-check" style="color:#0088cc; font-size:18px;" title="Проверенный продавец"></i>`
+            : ""
+        }
       </div>
       
       ${
         isSold
           ? `<div style="background:#333; padding:15px; border-radius:12px; color:#ff3b30; text-align:center; font-weight:bold;">Информация скрыта, так как товар продан</div>`
           : `
+          <div style="background:rgba(255,59,48,0.1); border:1px solid rgba(255,59,48,0.3); padding:12px; border-radius:12px; margin-bottom:15px; display:flex; gap:10px; align-items:center;">
+             <i class="fa-solid fa-shield-halved" style="color:#ff3b30; font-size:20px;"></i>
+             <div style="font-size:12px; color:#ff3b30; line-height:1.3;">
+               <b>ВНИМАНИЕ:</b> Не вносите предоплату! Встречайтесь в живую.
+             </div>
+          </div>
+
           <a href="${contactLink}" class="btn-premium-unity" style="text-decoration:none; margin-bottom:20px;">Написать продавцу</a>
 
           <div style="background:#2c2c2e; padding:15px; border-radius:12px; margin:20px 0; white-space: pre-wrap; line-height:1.5; color:#efeff4; font-size:15px;">${
             ad.desc || "Нет описания"
           }</div>
 
-          <!-- БЛОК КОНТАКТОВ -->
           <div style="background:#1c1c1e; padding:18px; border-radius:15px; border:1px solid #333; display:flex; flex-direction:column; gap:15px;">
-             
-             <!-- Локация -->
              <div style="display:flex; align-items:center; gap:12px;">
                 <i class="fa-solid fa-location-dot" style="color:#ff3b30; font-size:18px; width:20px; text-align:center;"></i>
                 <div style="font-size:14px; color:#ccc;">${ad.city}, ${
               ad.address || "—"
             }</div>
              </div>
-
-             <!-- Телефон -->
              <div style="display:flex; align-items:center; gap:12px;">
                 <i class="fa-solid fa-phone" style="color:var(--yellow-main); font-size:16px; width:20px; text-align:center;"></i>
                 <div style="font-size:15px; font-weight:bold; color:#fff;">${
                   ad.phone || "—"
                 }</div>
              </div>
-
-             <!-- Telegram (Убрал слово Telegram, оставил только иконку и ник) -->
              ${
                ad.tgNick
                  ? `
@@ -314,13 +318,18 @@ function openProduct(ad) {
              `
                  : ""
              }
+          </div>
 
+          <!-- КНОПКА ЖАЛОБЫ ТУТ -->
+          <div onclick="reportAd('${ad.id}', '${
+              ad.userId
+            }')" style="margin-top:25px; color:#555; font-size:13px; text-align:center; text-decoration:underline; cursor:pointer;">
+             Пожаловаться на объявление
           </div>
         `
       }
     </div>`;
 
-  // Логика слайдера
   const slider = document.getElementById(`slider-${ad.id}`);
   if (slider) {
     slider.onscroll = () => {
@@ -743,4 +752,37 @@ function formatRelativeDate(timestamp) {
 
   // Если не сегодня и не вчера — возвращаем дату (например, 20.02.2026)
   return date.toLocaleDateString();
+}
+
+function reportAd(adId, sellerId) {
+  // 1. Проверяем, не жаловался ли он уже в этот раз (сохраним в памяти телефона)
+  let myReports = JSON.parse(localStorage.getItem("my_reports") || "[]");
+  if (myReports.includes(adId)) {
+    alert(
+      "Вы уже отправили жалобу на это объявление. Модератор скоро его проверит."
+    );
+    return;
+  }
+
+  // 2. Спрашиваем подтверждение (защита от случайного нажатия)
+  const confirmText =
+    "Вы уверены? Жалоба будет передана модератору.\n\nВнимание: ложные жалобы могут привести к блокировке вашего аккаунта.";
+  if (!confirm(confirmText)) return;
+
+  const user = tg.initDataUnsafe?.user || { id: 0, username: "Guest" };
+
+  // 3. Отправляем в Firebase
+  db.ref("reports").push({
+    adId: adId,
+    sellerId: sellerId,
+    reporterId: user.id,
+    reporterName: user.username || user.first_name,
+    timestamp: Math.floor(Date.now() / 1000),
+  });
+
+  // 4. Запоминаем, что он пожаловался, чтобы кнопка больше не работала для него
+  myReports.push(adId);
+  localStorage.setItem("my_reports", JSON.stringify(myReports));
+
+  alert("Жалоба отправлена. Спасибо за помощь!");
 }
