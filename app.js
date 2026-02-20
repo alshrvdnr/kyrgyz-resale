@@ -464,7 +464,7 @@ function renderFeed() {
   if (!grid) return;
   grid.innerHTML = "";
 
-  // Фильтруем объявления по городу, категории и статусу (скрываем удаленные и на проверке)
+  // 1. Фильтруем (только активные и проданные для выбранного города/категории)
   let filtered = ads.filter(
     (ad) =>
       (curCat === "Все" || ad.cat === curCat) &&
@@ -474,33 +474,68 @@ function renderFeed() {
       ad.status !== "rejected"
   );
 
-  // ПРАВИЛЬНАЯ СОРТИРОВКА
+  // 2. СОРТИРОВКА ПО ВЕСУ И ВРЕМЕНИ
   filtered.sort((a, b) => {
-    // 1. Статус Продано (Активные всегда выше проданных)
-    const aIsSold = a.status === "sold";
-    const bIsSold = b.status === "sold";
-    if (aIsSold !== bIsSold) {
-      return aIsSold ? 1 : -1; // Если a продано — оно идет вниз
+    // Функция определения веса группы
+    const getWeight = (ad) => {
+      if (ad.status === "sold") return 3; // Проданные — в самый низ
+      if (ad.tariff === "vip") return 1; // VIP — на самый верх
+      return 2; // Обычные — посередине
+    };
+
+    const weightA = getWeight(a);
+    const weightB = getWeight(getWeight(b)); // Ошибка в коде выше, исправляю:
+    // Исправленный вариант ниже:
+  });
+
+  // Переписываю блок сортировки для точности:
+  filtered.sort((a, b) => {
+    const weightA = a.status === "sold" ? 3 : a.tariff === "vip" ? 1 : 2;
+    const weightB = b.status === "sold" ? 3 : b.tariff === "vip" ? 1 : 2;
+
+    // Сначала сравниваем веса групп (VIP vs Обычные vs Продано)
+    if (weightA !== weightB) {
+      return weightA - weightB; // Вернет 1 наверх, 3 вниз
     }
 
-    // 2. Тариф VIP (VIP выше Обычных, если оба активны)
-    // Мы проверяем тариф только если ОБА объявления не проданы
-    if (!aIsSold && !bIsSold) {
-      if (a.tariff !== b.tariff) {
-        return a.tariff === "vip" ? -1 : 1; // VIP наверх
-      }
-    }
+    // Если объявления в одной группе (например, оба Обычные),
+    // сравниваем их по времени (самое свежее выше)
+    const timeA = Number(a.approvedAt || a.createdAt || 0);
+    const timeB = Number(b.approvedAt || b.createdAt || 0);
 
-    // 3. Дата публикации (Новые выше старых)
-    // Используем дату одобрения (approvedAt), если её нет — дату создания (createdAt)
-    const aTime = a.approvedAt || a.createdAt || 0;
-    const bTime = b.approvedAt || b.createdAt || 0;
-
-    return bTime - aTime; // Самое большое время (самое свежее) — наверх
+    return timeB - timeA; // От большего времени к меньшему
   });
 
   filtered.forEach((ad) => grid.appendChild(createAdCard(ad)));
 }
+
+// ПРАВИЛЬНАЯ СОРТИРОВКА
+filtered.sort((a, b) => {
+  // 1. Статус Продано (Активные всегда выше проданных)
+  const aIsSold = a.status === "sold";
+  const bIsSold = b.status === "sold";
+  if (aIsSold !== bIsSold) {
+    return aIsSold ? 1 : -1; // Если a продано — оно идет вниз
+  }
+
+  // 2. Тариф VIP (VIP выше Обычных, если оба активны)
+  // Мы проверяем тариф только если ОБА объявления не проданы
+  if (!aIsSold && !bIsSold) {
+    if (a.tariff !== b.tariff) {
+      return a.tariff === "vip" ? -1 : 1; // VIP наверх
+    }
+  }
+
+  // 3. Дата публикации (Новые выше старых)
+  // Используем дату одобрения (approvedAt), если её нет — дату создания (createdAt)
+  const aTime = a.approvedAt || a.createdAt || 0;
+  const bTime = b.approvedAt || b.createdAt || 0;
+
+  return bTime - aTime; // Самое большое время (самое свежее) — наверх
+});
+
+filtered.forEach((ad) => grid.appendChild(createAdCard(ad)));
+
 function createAdCard(ad, isProfile = false) {
   const isFav = favs.includes(ad.id);
   const isSold = ad.status === "sold";
