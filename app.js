@@ -12,6 +12,28 @@ const firebaseConfig = {
   appId: "1:419866659643:web:2332c8856698705780451e",
   measurementId: "G-DH7RXQZ6Y3",
 };
+function checkBanStatus(userId) {
+  db.ref("blacklist/" + userId).on("value", (snap) => {
+    if (snap.val()) {
+      // Если пользователь в черном списке, заменяем весь контент сайта на сообщение о бане
+      document.body.innerHTML = `
+        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#121212; color:white; text-align:center; padding:20px;">
+          <i class="fa-solid fa-user-slash" style="font-size:60px; color:#ff3b30; margin-bottom:20px;"></i>
+          <h1>Доступ заблокирован</h1>
+          <p>Ваш аккаунт внесен в черный список за нарушение правил сообщества (мошенничество).</p>
+          <button onclick="window.close()" style="margin-top:20px; padding:12px 20px; border-radius:10px; border:none; background:#333; color:white;">Закрыть</button>
+        </div>
+      `;
+    }
+  });
+}
+
+// В функции initUser добавь вызов:
+function initUser() {
+  const user = tg.initDataUnsafe?.user || { first_name: "Гость", id: 0 };
+  if (user.id !== 0) checkBanStatus(user.id); // Проверяем бан
+  // ... остальной код
+}
 
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
