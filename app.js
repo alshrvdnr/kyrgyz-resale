@@ -64,7 +64,10 @@ function initUser() {
 
 function listenSettings() {
   db.ref("settings").on("value", (snap) => {
-    const s = snap.val() || {};
+    const dataFromFirebase = snap.val(); // Получаем данные
+    console.log("ДАННЫЕ ИЗ БАЗЫ:", dataFromFirebase); // ВЫВОДИМ В КОНСОЛЬ
+
+    const s = dataFromFirebase || {};
     holidayMode = s.holiday_mode || false;
     currentQrUrl = s.qr_url || "";
     applyHolidayUI();
