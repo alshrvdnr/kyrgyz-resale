@@ -559,8 +559,29 @@ async function uploadToImgBB(file) {
   return data.success ? data.data.url : null;
 }
 function showPage(p) {
+  // 1. Скрываем все страницы
   document.querySelectorAll(".page").forEach((s) => s.classList.add("hidden"));
-  document.getElementById(`page-${p}`).classList.remove("hidden");
+
+  // 2. Показываем нужную страницу
+  const targetPage = document.getElementById(`page-${p}`);
+  if (targetPage) targetPage.classList.remove("hidden");
+
+  // 3. ОБНОВЛЯЕМ ЦВЕТ КНОПОК НАВИГАЦИИ
+  // Сначала убираем желтый цвет (класс active) у всех кнопок
+  document.querySelectorAll(".nav-item").forEach((item) => {
+    item.classList.remove("active");
+  });
+
+  // Теперь добавляем желтый цвет нужной кнопке
+  if (p === "home") {
+    document.getElementById("n-home").classList.add("active");
+  } else if (p === "favs") {
+    document.getElementById("n-favs").classList.add("active");
+  }
+  // При переходе на страницу 'add' или 'profile' кнопки 'Главное' и 'Избранное'
+  // останутся серыми, так как они не активны.
+
+  // 4. Дополнительная логика разделов
   if (p === "favs") renderFavs();
   if (p === "add" && !editingId) resetAddForm();
   if (p === "profile") renderProfile();
