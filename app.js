@@ -109,7 +109,7 @@ function openProduct(ad) {
   const isFav = favs.includes(ad.id);
   const dateStr = formatRelativeDate(ad.approvedAt);
 
-  // ЛОГИКА КОНТАКТОВ
+  // Логика ссылки (TG или WhatsApp)
   let contactLink = ad.tgNick
     ? `https://t.me/${ad.tgNick.replace("@", "")}`
     : `https://wa.me/${ad.phone ? ad.phone.replace(/[^0-9]/g, "") : ""}`;
@@ -138,49 +138,74 @@ function openProduct(ad) {
       </div>
       <div class="carousel-dots">${dots}</div>
     </div>
+
     <div style="padding:20px;">
-      <div style="font-size:28px; font-weight:800; color:var(--yellow-main);">${
-        ad.price
-      } KGS</div>
-      
-      <!-- НОВАЯ СТРОЧКА: ДАТА ПОЛУЧЕНИЯ -->
-      <div style="margin:5px 0; font-size:14px; color:#4cd964;">📅 Дата получения: ${
-        ad.receiveDate || "Не указана"
-      }</div>
-      
-      <div style="margin:10px 0;"><b>${catMap[ad.cat] || "Товар"}</b> — ${
-    ad.title
-  }</div>
+      <!-- 1. ВЕРХНЯЯ ПАНЕЛЬ: ЦЕНА И ДВЕ ДАТЫ -->
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
+        <!-- Цена слева -->
+        <div style="font-size:28px; font-weight:800; color:var(--yellow-main); line-height:1.1;">
+          ${ad.price} KGS
+        </div>
+        
+        <!-- Даты справа (колонкой) -->
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+          <div style="color:var(--gray); font-size:11px;">Опубликовано: ${dateStr}</div>
+          <div style="font-size:12px; color:#4cd964; font-weight:bold; background:rgba(76,217,100,0.1); padding:4px 8px; border-radius:6px; white-space:nowrap;">
+            📅 ${ad.receiveDate || "—"}
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. КАТЕГОРИЯ И НАЗВАНИЕ -->
+      <div style="margin-bottom:20px; font-size:16px; line-height:1.4;">
+        <b style="color:#fff;">${catMap[ad.cat] || "Товар"}</b> — ${ad.title}
+      </div>
       
       ${
         isSold
           ? `<div style="background:#333; padding:15px; border-radius:12px; color:#ff3b30; text-align:center; font-weight:bold;">Информация скрыта, так как товар продан</div>`
           : `
-          <div style="margin-bottom: 20px;">
-            <a href="${contactLink}" class="btn-premium-unity" style="text-decoration:none;">Написать продавцу</a>
-            <div style="margin-top:15px; background:#1c1c1e; padding:12px; border-radius:10px; border:1px solid #333;">
-               <div style="font-size:13px; color:var(--gray); margin-bottom:5px;">Контакты продавца:</div>
-               <div style="font-size:16px; font-weight:bold;">📞 ${
-                 ad.phone || "Не указан"
-               }</div>
-               ${
-                 ad.tgNick
-                   ? `<div style="font-size:16px; font-weight:bold; margin-top:5px;">✈️ ${ad.tgNick}</div>`
-                   : ""
-               }
-            </div>
+          <!-- 3. КНОПКА СВЯЗИ -->
+          <a href="${contactLink}" class="btn-premium-unity" style="text-decoration:none; margin-bottom:20px;">Написать продавцу</a>
+
+          <!-- 4. ОПИСАНИЕ -->
+          <div style="background:#2c2c2e; padding:15px; border-radius:12px; margin:20px 0; white-space: pre-wrap; line-height:1.5; color:#efeff4; font-size:15px;">${
+            ad.desc || "Нет описания"
+          }</div>
+
+          <!-- 5. БЛОК КОНТАКТОВ -->
+          <div style="background:#1c1c1e; padding:18px; border-radius:15px; border:1px solid #333; display:flex; flex-direction:column; gap:15px;">
+             
+             <!-- Локация (Красный значок) -->
+             <div style="display:flex; align-items:center; gap:12px;">
+                <i class="fa-solid fa-location-dot" style="color:#ff3b30; font-size:18px; width:20px; text-align:center;"></i>
+                <div style="font-size:14px; color:#ccc;">${ad.city}, ${
+              ad.address || "Адрес не указан"
+            }</div>
+             </div>
+
+             <!-- Телефон (Желтый значок) -->
+             <div style="display:flex; align-items:center; gap:12px;">
+                <i class="fa-solid fa-phone" style="color:var(--yellow-main); font-size:16px; width:20px; text-align:center;"></i>
+                <div style="font-size:15px; font-weight:bold; color:#fff;">${
+                  ad.phone || "Номер не указан"
+                }</div>
+             </div>
+
+             <!-- Telegram (Синий значок + Текст) -->
+             ${
+               ad.tgNick
+                 ? `
+             <div style="display:flex; align-items:center; gap:12px;">
+                <i class="fa-brands fa-telegram" style="color:#0088cc; font-size:19px; width:20px; text-align:center;"></i>
+                <div style="font-size:15px; font-weight:bold; color:#fff;">Telegram: ${ad.tgNick}</div>
+             </div>
+             `
+                 : ""
+             }
+
           </div>
         `
-      }
-
-      <div style="color:var(--gray); font-size:12px; margin-top:10px;">Дата публикации: ${dateStr}</div>
-      <div style="background:#2c2c2e; padding:15px; border-radius:12px; margin:20px 0; white-space: pre-wrap;">${
-        ad.desc || "Нет описания"
-      }</div>
-      ${
-        !isSold
-          ? `<div style="color:#ccc;">📍 ${ad.city}, ${ad.address || "—"}</div>`
-          : ""
       }
     </div>`;
 
