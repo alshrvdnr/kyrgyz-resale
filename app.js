@@ -222,8 +222,6 @@ function openProduct(ad) {
   const isSold = ad.status === "sold";
   const isFav = favs.includes(ad.id);
   const dateStr = formatRelativeDate(ad.approvedAt);
-
-  // Проверка: есть ли у продавца статус проверенного
   const isVerified = ad.verified === true;
 
   let contactLink = ad.tgNick
@@ -256,6 +254,7 @@ function openProduct(ad) {
     </div>
 
     <div style="padding:20px;">
+      <!-- ВЕРХНИЙ БЛОК -->
       <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
         <div style="font-size:28px; font-weight:800; color:var(--yellow-main); line-height:1;">
           ${ad.price} KGS
@@ -270,32 +269,24 @@ function openProduct(ad) {
 
       <div style="margin-bottom:20px; font-size:16px; line-height:1.4; display:flex; align-items:center; gap:8px;">
         <b style="color:#fff;">${catMap[ad.cat] || "Товар"}</b> — ${ad.title}
-        <!-- ГАЛОЧКА ТУТ -->
         ${
           isVerified
-            ? `<i class="fa-solid fa-circle-check" style="color:#0088cc; font-size:18px;" title="Проверенный продавец"></i>`
+            ? `<i class="fa-solid fa-circle-check" style="color:#0088cc; font-size:18px;"></i>`
             : ""
         }
       </div>
       
       ${
         isSold
-          ? `<div style="background:#333; padding:15px; border-radius:12px; color:#ff3b30; text-align:center; font-weight:bold;">Информация скрыта, так как товар продан</div>`
+          ? `<div style="background:#333; padding:15px; border-radius:12px; color:#ff3b30; text-align:center; font-weight:bold;">Продано</div>`
           : `
-          <div style="background:rgba(255,59,48,0.1); border:1px solid rgba(255,59,48,0.3); padding:12px; border-radius:12px; margin-bottom:15px; display:flex; gap:10px; align-items:center;">
-             <i class="fa-solid fa-shield-halved" style="color:#ff3b30; font-size:20px;"></i>
-             <div style="font-size:12px; color:#ff3b30; line-height:1.3;">
-               <b>ВНИМАНИЕ:</b> Не вносите предоплату! Встречайтесь в живую.
-             </div>
-          </div>
-
           <a href="${contactLink}" class="btn-premium-unity" style="text-decoration:none; margin-bottom:20px;">Написать продавцу</a>
 
           <div style="background:#2c2c2e; padding:15px; border-radius:12px; margin:20px 0; white-space: pre-wrap; line-height:1.5; color:#efeff4; font-size:15px;">${
             ad.desc || "Нет описания"
           }</div>
 
-          <div style="background:#1c1c1e; padding:18px; border-radius:15px; border:1px solid #333; display:flex; flex-direction:column; gap:15px;">
+          <div style="background:#1c1c1e; padding:18px; border-radius:15px; border:1px solid #333; display:flex; flex-direction:column; gap:15px; margin-bottom:25px;">
              <div style="display:flex; align-items:center; gap:12px;">
                 <i class="fa-solid fa-location-dot" style="color:#ff3b30; font-size:18px; width:20px; text-align:center;"></i>
                 <div style="font-size:14px; color:#ccc;">${ad.city}, ${
@@ -320,11 +311,10 @@ function openProduct(ad) {
              }
           </div>
 
-          <!-- КНОПКА ЖАЛОБЫ ТУТ -->
-          <div onclick="reportAd('${ad.id}', '${
-              ad.userId
-            }')" style="margin-top:25px; color:#555; font-size:13px; text-align:center; text-decoration:underline; cursor:pointer;">
-             Пожаловаться на объявление
+          <!-- ЖЕЛТАЯ КНОПКА ЖАЛОБЫ -->
+          <div onclick="reportAd('${ad.id}', '${ad.userId}')" 
+               style="background:rgba(255,204,0,0.1); color:var(--yellow-main); border:1px solid var(--yellow-main); padding:12px; border-radius:12px; text-align:center; font-size:14px; font-weight:bold; cursor:pointer;">
+             <i class="fa-solid fa-triangle-exclamation" style="margin-right:8px;"></i> Пожаловаться на мошенника
           </div>
         `
       }
@@ -785,4 +775,34 @@ function reportAd(adId, sellerId) {
   localStorage.setItem("my_reports", JSON.stringify(myReports));
 
   alert("Жалоба отправлена. Спасибо за помощь!");
+}
+
+function reportAd(adId, sellerId) {
+  let myReports = JSON.parse(localStorage.getItem("my_reports") || "[]");
+  if (myReports.includes(adId)) {
+    alert("Вы уже отправили жалобу. Модератор скоро проверит это объявление.");
+    return;
+  }
+
+  if (
+    !confirm(
+      "Вы уверены, что это мошенник? Жалоба будет немедленно передана администратору."
+    )
+  )
+    return;
+
+  const user = tg.initDataUnsafe?.user || { id: 0, username: "Guest" };
+
+  db.ref("reports").push({
+    adId: adId,
+    sellerId: sellerId,
+    reporterId: user.id,
+    reporterName: user.username || user.first_name,
+    timestamp: Math.floor(Date.now() / 1000),
+  });
+
+  myReports.push(adId);
+  localStorage.setItem("my_reports", JSON.stringify(myReports));
+
+  alert("Жалоба отправлена модератору. Спасибо!");
 }
