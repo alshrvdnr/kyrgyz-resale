@@ -1,6 +1,7 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
+// FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyCxaC3C9dx6IEhXWH9eATdKZO8SCRYe33I",
   authDomain: "gifts-kg.firebaseapp.com",
@@ -41,7 +42,8 @@ let curCat = "Все",
   profTab = "active";
 let currentManageId = null,
   holidayMode = false,
-  receiptAttached = false;
+  receiptAttached = false,
+  currentQrUrl = "";
 
 document.addEventListener("DOMContentLoaded", () => {
   initUser();
@@ -64,6 +66,7 @@ function listenSettings() {
   db.ref("settings").on("value", (snap) => {
     const s = snap.val() || {};
     holidayMode = s.holiday_mode || false;
+    currentQrUrl = s.qr_url || "";
     applyHolidayUI();
   });
 }
@@ -71,6 +74,8 @@ function listenSettings() {
 function applyHolidayUI() {
   const tBlock = document.getElementById("tariff-block");
   const vBlock = document.getElementById("vip-block");
+  const qrImg = document.getElementById("qr-display");
+  if (qrImg) qrImg.src = currentQrUrl;
   if (holidayMode) {
     tBlock.classList.add("hidden");
     vBlock.classList.remove("hidden");
@@ -80,8 +85,6 @@ function applyHolidayUI() {
     tBlock.classList.remove("hidden");
     if (selectedTariff !== "vip") vBlock.classList.add("hidden");
     else vBlock.classList.remove("hidden");
-    document.getElementById("vip-promo-text").innerText =
-      "VIP-объявление будет в ТОПе 3 дня.";
   }
 }
 
@@ -96,7 +99,7 @@ function listenAds() {
   });
 }
 
-// КАРУСЕЛЬ С ТОЧКАМИ И СКРЫТИЕ ИНФО В SOLD
+// КАРУСЕЛЬ И ЛОГИКА КОНТАКТОВ
 function openProduct(ad) {
   const modal = document.getElementById("product-modal");
   const isSold = ad.status === "sold";
@@ -104,6 +107,11 @@ function openProduct(ad) {
   const dateStr = ad.approvedAt
     ? new Date(ad.approvedAt * 1000).toLocaleDateString()
     : "На проверке";
+
+  // ЛОГИКА КОНТАКТОВ: TG ПРИОРЕТЕТ
+  let contactLink = ad.tgNick
+    ? `https://t.me/${ad.tgNick.replace("@", "")}`
+    : `https://wa.me/${ad.phone.replace(/[^0-9]/g, "")}`;
 
   let dots = ad.img
     .map(
@@ -123,7 +131,7 @@ function openProduct(ad) {
     isFav ? "var(--yellow-main)" : "#fff"
   }"></i>
       <div class="product-gallery-slider" id="slider-${ad.id}">
-        ${ad.img.map((src) => `<img src="${src}">`).join("")}
+        ${ad.img ? ad.img.map((src) => `<img src="${src}">`).join("") : ""}
       </div>
       <div class="carousel-dots">${dots}</div>
     </div>
@@ -132,40 +140,21 @@ function openProduct(ad) {
         ad.price
       } KGS</div>
       <div style="margin:10px 0;"><b>${catMap[ad.cat]}</b> — ${ad.title}</div>
-      
       ${
         isSold
           ? `<div style="background:#333; padding:15px; border-radius:12px; color:#ff3b30; text-align:center; font-weight:bold;">Информация скрыта, так как товар продан</div>`
-          : `<a href="https://t.me/${ad.tgNick?.replace(
-              "@",
-              ""
-            )}" class="btn-premium-unity" style="text-decoration:none;">Написать продавцу</a>`
+          : `<a href="${contactLink}" class="btn-premium-unity" style="text-decoration:none;">Написать продавцу</a>`
       }
-
-      <div style="color:var(--gray); font-size:12px; margin-top:15px;">Дата публикации: ${dateStr}</div>
+      <div style="color:var(--gray); font-size:12px; margin-top:10px;">Дата публикации: ${dateStr}</div>
       <div style="background:#2c2c2e; padding:15px; border-radius:12px; margin:20px 0;">${
         ad.desc || "Нет описания"
       }</div>
-      
-      ${
-        !isSold
-          ? `
-        <div style="margin-bottom:8px;"><i class="fa fa-location-dot"></i> ${
-          ad.city
-        }, ${ad.address || "—"}</div>
-        <div><i class="fa-brands fa-telegram"></i> ${ad.tgNick || "—"}</div>
-      `
-          : ""
-      }
+      ${!isSold ? `<div>📍 ${ad.city}, ${ad.address || "—"}</div>` : ""}
     </div>`;
 
   const slider = document.getElementById(`slider-${ad.id}`);
   slider.onscroll = () => {
     let idx = Math.round(slider.scrollLeft / slider.offsetWidth);
-    document
-      .querySelectorAll(`#dot-${ad.id}-.dot`)
-      .forEach((d, i) => d.classList.toggle("active", i === idx));
-    // Фикс селектора точек для кастомного ID
     const allDots = document.querySelectorAll(`[id^="dot-${ad.id}"]`);
     allDots.forEach((d, i) => d.classList.toggle("active", i === idx));
   };
@@ -174,7 +163,7 @@ function openProduct(ad) {
   tg.BackButton.onClick(closeProduct);
 }
 
-// ПАРАЛЛЕЛЬНАЯ ЗАГРУЗКА ФОТО
+// ПАРАЛЛЕЛЬНАЯ ЗАГРУЗКА
 async function publishAndSend() {
   const title = document.getElementById("in-title").value;
   const price = document.getElementById("in-price").value;
@@ -205,8 +194,6 @@ async function publishAndSend() {
     let receiptUrl = isVipNeeded
       ? await uploadToImgBB(document.getElementById("receipt-input").files[0])
       : null;
-
-    // Загружаем все фото одновременно (Promise.all)
     const imgs = await Promise.all(
       selectedFiles.map((file) => uploadToImgBB(file))
     );
@@ -227,8 +214,6 @@ async function publishAndSend() {
       tariff: selectedTariff,
       userId: tg.initDataUnsafe?.user?.id || 0,
       createdAt: Math.floor(Date.now() / 1000),
-      notified: false,
-      views: 0,
     };
 
     await db.ref("ads").push(newAd);
@@ -236,7 +221,7 @@ async function publishAndSend() {
     resetAddForm();
     showPage("home");
   } catch (e) {
-    alert("Ошибка загрузки!");
+    alert("Ошибка!");
   } finally {
     btn.disabled = false;
     btn.innerText = "Опубликовать";
@@ -244,7 +229,6 @@ async function publishAndSend() {
   }
 }
 
-// ПОИСК В ОТДЕЛЬНОМ ОКНЕ
 function startSearch(val) {
   if (!val) return;
   const results = ads.filter(
@@ -257,11 +241,31 @@ function startSearch(val) {
   results.forEach((ad) => container.appendChild(createAdCard(ad)));
   document.getElementById("search-results-page").classList.remove("hidden");
 }
-function closeSearch() {
-  document.getElementById("search-results-page").classList.add("hidden");
+
+function cancelAdd() {
+  resetAddForm();
+  showPage("home");
+}
+function resetAddForm() {
+  editingId = null;
+  selectedFiles = [];
+  receiptAttached = false;
+  document.querySelectorAll(".main-input").forEach((i) => (i.value = ""));
+  document.getElementById("gallery-preview").innerHTML = "";
+  document.getElementById("receipt-label").innerText = "Добавить чек";
+  [
+    "tariff-block",
+    "file-group",
+    "cat-group",
+    "city-group",
+    "date-group",
+    "tg-group",
+    "phone-group",
+    "desc-group",
+  ].forEach((id) => document.getElementById(id).classList.remove("hidden"));
 }
 
-// ВСЕ ОСТАЛЬНЫЕ ФУНКЦИИ (БЕЗ СОКРАЩЕНИЙ)
+// ОСТАЛЬНЫЕ ФУНКЦИИ (БЕЗ СОКРАЩЕНИЙ)
 function renderFeed() {
   const grid = document.getElementById("home-grid");
   if (!grid) return;
@@ -273,15 +277,11 @@ function renderFeed() {
       ad.status !== "deleted" &&
       ad.status !== "pending"
   );
-  filtered.sort((a, b) => {
-    if (a.status === "sold" && b.status !== "sold") return 1;
-    if (a.status !== "sold" && b.status === "sold") return -1;
-    if (a.tariff === "vip" && b.tariff !== "vip" && a.status === "active")
-      return -1;
-    if (a.tariff !== "vip" && b.tariff === "vip" && b.status === "active")
-      return 1;
-    return (b.approvedAt || 0) - (a.approvedAt || 0);
-  });
+  filtered.sort(
+    (a, b) =>
+      (a.status === "sold") - (b.status === "sold") ||
+      (a.tariff === "vip" && a.status === "active" ? -1 : 1)
+  );
   filtered.forEach((ad) => grid.appendChild(createAdCard(ad)));
 }
 function createAdCard(ad, isProfile = false) {
@@ -315,23 +315,22 @@ function createAdCard(ad, isProfile = false) {
   } </div>`;
   return card;
 }
-function handleFileSelect(input) {
-  const files = Array.from(input.files).slice(0, 5);
-  selectedFiles = files;
-  const prev = document.getElementById("gallery-preview");
-  prev.innerHTML = "";
-  files.forEach((f) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
+function handleFileSelect(i) {
+  selectedFiles = Array.from(i.files).slice(0, 5);
+  const p = document.getElementById("gallery-preview");
+  p.innerHTML = "";
+  selectedFiles.forEach((f) => {
+    const r = new FileReader();
+    r.onload = (e) => {
       const img = document.createElement("img");
       img.src = e.target.result;
       img.style.width = "60px";
       img.style.height = "60px";
       img.style.objectFit = "cover";
       img.style.borderRadius = "8px";
-      prev.appendChild(img);
+      p.appendChild(img);
     };
-    reader.readAsDataURL(f);
+    r.readAsDataURL(f);
   });
 }
 function filterByCat(c, el) {
@@ -391,13 +390,43 @@ function showPage(p) {
   if (p === "add" && !editingId) resetAddForm();
   if (p === "profile") renderProfile();
 }
-function resetAddForm() {
-  editingId = null;
-  selectedFiles = [];
-  receiptAttached = false;
-  document.querySelectorAll(".main-input").forEach((i) => (i.value = ""));
-  document.getElementById("gallery-preview").innerHTML = "";
-  document.getElementById("receipt-label").innerText = "Добавить чек";
+function openManageModal(id) {
+  currentManageId = id;
+  const ad = ads.find((a) => a.id === id);
+  if (ad)
+    document.getElementById("manage-info").innerHTML = `Название: <b>${
+      ad.title
+    }</b><br>Телефон: <b>${ad.phone || "—"}</b><br>Адрес: <b>${
+      ad.address || "—"
+    }</b>`;
+  document.getElementById("manage-modal").classList.remove("hidden");
+}
+function confirmAction(type) {
+  document.getElementById("manage-modal").classList.add("hidden");
+  const modal = document.getElementById("confirm-modal");
+  if (type === "sold") {
+    document.getElementById("confirm-text").innerText =
+      "Объявление будет убрано в архив.";
+    document.getElementById("confirm-btn-final").onclick = () => {
+      db.ref("ads/" + currentManageId).update({ status: "sold" });
+      closeConfirmModal();
+    };
+  } else {
+    document.getElementById("confirm-text").innerText =
+      "Объявление уйдёт с сайта навсегда.";
+    document.getElementById("confirm-btn-final").onclick = () => {
+      db.ref("ads/" + currentManageId).update({ status: "deleted" });
+      closeConfirmModal();
+    };
+  }
+  modal.classList.remove("hidden");
+}
+function startAdEdit() {
+  const ad = ads.find((a) => a.id === currentManageId);
+  if (!ad) return;
+  editingId = currentManageId;
+  showPage("add");
+  document.getElementById("add-title-text").innerText = "Редактирование";
   [
     "tariff-block",
     "file-group",
@@ -407,7 +436,30 @@ function resetAddForm() {
     "tg-group",
     "phone-group",
     "desc-group",
-  ].forEach((id) => document.getElementById(id).classList.remove("hidden"));
+  ].forEach((id) => document.getElementById(id).classList.add("hidden"));
+  document.getElementById("in-title").value = ad.title || "";
+  document.getElementById("in-price").value = ad.price || "";
+  document.getElementById("in-address").value = ad.address || "";
+  closeManageModal();
+}
+function closeProduct() {
+  document.getElementById("product-modal").classList.add("hidden");
+  tg.BackButton.hide();
+}
+function closeManageModal() {
+  document.getElementById("manage-modal").classList.add("hidden");
+}
+function closeConfirmModal() {
+  document.getElementById("confirm-modal").classList.add("hidden");
+}
+function closeSearch() {
+  document.getElementById("search-results-page").classList.add("hidden");
+}
+function clearFavs() {
+  favs = [];
+  localStorage.setItem("favs_v15", "[]");
+  renderFavs();
+  renderFeed();
 }
 function renderProfile() {
   const grid = document.getElementById("my-ads-grid");
@@ -442,64 +494,4 @@ function switchProfileTab(t) {
     .getElementById("tab-archive")
     .classList.toggle("active", t === "archive");
   renderProfile();
-}
-function closeProduct() {
-  document.getElementById("product-modal").classList.add("hidden");
-  tg.BackButton.hide();
-}
-function openManageModal(id) {
-  currentManageId = id;
-  const ad = ads.find((a) => a.id === id);
-  if (ad)
-    document.getElementById("manage-info").innerHTML = `Название: <b>${
-      ad.title
-    }</b><br>Телефон: <b>${ad.phone || "—"}</b><br>Адрес: <b>${
-      ad.address || "—"
-    }</b>`;
-  document.getElementById("manage-modal").classList.remove("hidden");
-}
-function closeManageModal() {
-  document.getElementById("manage-modal").classList.add("hidden");
-}
-function closeConfirmModal() {
-  document.getElementById("confirm-modal").classList.add("hidden");
-}
-function setAdStatus(status) {
-  if (!currentManageId) return;
-  db.ref("ads/" + currentManageId).update({ status: status });
-  currentManageId = null;
-}
-function startAdEdit() {
-  const ad = ads.find((a) => a.id === currentManageId);
-  if (!ad) return;
-  editingId = currentManageId;
-  showPage("add");
-  document.getElementById("add-title-text").innerText = "Редактирование";
-  [
-    "tariff-block",
-    "file-group",
-    "cat-group",
-    "city-group",
-    "date-group",
-    "tg-group",
-    "phone-group",
-    "desc-group",
-  ].forEach((id) => document.getElementById(id).classList.add("hidden"));
-  document.getElementById("in-title").value = ad.title || "";
-  document.getElementById("in-price").value = ad.price || "";
-  document.getElementById("in-address").value = ad.address || "";
-  closeManageModal();
-}
-function confirmAction(type) {
-  document.getElementById("manage-modal").classList.add("hidden");
-  const modal = document.getElementById("confirm-modal");
-  document.getElementById("confirm-text").innerText =
-    type === "sold"
-      ? "Объявление будет убрано в архив."
-      : "Объявление уйдёт с сайта навсегда.";
-  document.getElementById("confirm-btn-final").onclick = () => {
-    setAdStatus(type === "sold" ? "sold" : "deleted");
-    closeConfirmModal();
-  };
-  modal.classList.remove("hidden");
 }
