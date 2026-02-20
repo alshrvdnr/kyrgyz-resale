@@ -75,19 +75,111 @@ function listenSettings() {
 }
 
 function applyHolidayUI() {
-  const tBlock = document.getElementById("tariff-block");
   const vBlock = document.getElementById("vip-block");
   const qrImg = document.getElementById("qr-display");
-  if (qrImg) qrImg.src = currentQrUrl;
+  const promoText = document.getElementById("vip-promo-text");
+
+  // Элементы цен и названий
+  const priceStd = document.getElementById("price-std");
+  const priceVip = document.getElementById("price-vip");
+  const labelStd = document.getElementById("label-std");
+
+  if (qrImg && currentQrUrl) qrImg.src = currentQrUrl;
+
   if (holidayMode) {
-    tBlock.classList.add("hidden");
+    // ПРАЗДНИЧНЫЙ РЕЖИМ
+    labelStd.innerText = "Стандарт + ТОП";
+    priceStd.innerText = "100 сом";
+    priceVip.innerText = "200 сом";
+
+    // В праздники блок оплаты (чек) виден ВСЕГДА для обоих тарифов
     vBlock.classList.remove("hidden");
-    document.getElementById("vip-promo-text").innerText =
-      "Сегодня праздничный день. Все объявления платные.";
+    promoText.innerText =
+      "В праздничные дни все объявления платные. Стандарт идет в ТОП, VIP — выше всех.";
   } else {
-    tBlock.classList.remove("hidden");
-    if (selectedTariff !== "vip") vBlock.classList.add("hidden");
-    else vBlock.classList.remove("hidden");
+    // ОБЫЧНЫЙ РЕЖИМ
+    labelStd.innerText = "Стандарт";
+    priceStd.innerText = "Бесплатно";
+    priceVip.innerText = "100 сом";
+
+    // Блок оплаты виден только если выбран VIP
+    if (selectedTariff === "vip") {
+      vBlock.classList.remove("hidden");
+      promoText.innerText = "VIP-объявление будет в ТОПе 3 дня.";
+    } else {
+      vBlock.classList.add("hidden");
+    }
+  }
+}
+
+// Обновим также проверку при публикации
+async function publishAndSend() {
+  const title = document.getElementById("in-title").value;
+  const price = document.getElementById("in-price").value;
+  const btn = document.querySelector(".btn-premium-unity");
+  if (!title || !price) return alert("Заполни поля!");
+
+  // РЕДАКТИРОВАНИЕ
+  if (editingId) {
+    await db.ref("ads/" + editingId).update({
+      title: title,
+      price: price,
+      address: document.getElementById("in-address").value,
+      phone: document.getElementById("in-wa").value,
+      desc: document.getElementById("in-desc").value,
+    });
+    resetAddForm();
+    showPage("home");
+    return;
+  }
+
+  // ПРОВЕРКА ОПЛАТЫ
+  // Теперь оплата нужна если: (Праздник ВКЛ) ИЛИ (Выбран VIP)
+  const isPaid = holidayMode || selectedTariff === "vip";
+  if (isPaid && !receiptAttached) {
+    return alert("В праздничные дни или для VIP нужно прикрепить чек!");
+  }
+
+  btn.disabled = true;
+  btn.innerText = "ЗАГРУЗКА...";
+
+  try {
+    let receiptUrl = isPaid
+      ? await uploadToImgBB(document.getElementById("receipt-input").files[0])
+      : null;
+
+    const imgs = await Promise.all(
+      selectedFiles.map((file) => uploadToImgBB(file))
+    );
+
+    const newAd = {
+      title,
+      price,
+      cat: document.getElementById("in-cat").value,
+      city: document.getElementById("in-city").value,
+      address: document.getElementById("in-address").value,
+      phone: document.getElementById("in-wa").value,
+      tgNick: document.getElementById("in-tg").value,
+      desc: document.getElementById("in-desc").value,
+      receiveDate: document.getElementById("in-receive-date").value,
+      img: imgs.filter((i) => i !== null),
+      receipt_url: receiptUrl,
+      status: "pending",
+      tariff: selectedTariff,
+      holiday_active: holidayMode, // Пометка для админа, что подано в праздник
+      userId: tg.initDataUnsafe?.user?.id || 0,
+      createdAt: Math.floor(Date.now() / 1000),
+    };
+
+    await db.ref("ads").push(newAd);
+    alert("Отправлено на модерацию!");
+    resetAddForm();
+    showPage("home");
+  } catch (e) {
+    alert("Ошибка загрузки!");
+  } finally {
+    btn.disabled = false;
+    btn.innerText = "Опубликовать";
   }
 }
 
