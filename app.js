@@ -107,9 +107,9 @@ function openProduct(ad) {
   const modal = document.getElementById("product-modal");
   const isSold = ad.status === "sold";
   const isFav = favs.includes(ad.id);
-  const dateStr = ad.approvedAt
-    ? new Date(ad.approvedAt * 1000).toLocaleDateString()
-    : "На проверке";
+
+  // ВОТ ТУТ МЫ ВЫЗЫВАЕМ НОВУЮ ЛОГИКУ ДАТЫ
+  const dateStr = formatRelativeDate(ad.approvedAt);
 
   // ЛОГИКА КОНТАКТОВ
   let contactLink = ad.tgNick
@@ -546,4 +546,25 @@ function switchProfileTab(t) {
     .getElementById("tab-archive")
     .classList.toggle("active", t === "archive");
   renderProfile();
+}
+
+function formatRelativeDate(timestamp) {
+  if (!timestamp) return "На проверке";
+
+  const date = new Date(timestamp * 1000);
+  const now = new Date();
+
+  // Проверка на "Сегодня"
+  const isToday = date.toDateString() === now.toDateString();
+
+  // Проверка на "Вчера"
+  const yesterday = new Date();
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday = date.toDateString() === yesterday.toDateString();
+
+  if (isToday) return "Сегодня";
+  if (isYesterday) return "Вчера";
+
+  // Если не сегодня и не вчера — возвращаем дату (например, 20.02.2026)
+  return date.toLocaleDateString();
 }
