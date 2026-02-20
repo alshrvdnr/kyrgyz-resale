@@ -111,19 +111,21 @@ function openProduct(ad) {
     ? new Date(ad.approvedAt * 1000).toLocaleDateString()
     : "На проверке";
 
-  // Логика ссылки
+  // ЛОГИКА КОНТАКТОВ
   let contactLink = ad.tgNick
     ? `https://t.me/${ad.tgNick.replace("@", "")}`
     : `https://wa.me/${ad.phone ? ad.phone.replace(/[^0-9]/g, "") : ""}`;
 
   let dots = ad.img
-    .map(
-      (_, i) =>
-        `<div class="dot ${i === 0 ? "active" : ""}" id="dot-${
-          ad.id
-        }-${i}"></div>`
-    )
-    .join("");
+    ? ad.img
+        .map(
+          (_, i) =>
+            `<div class="dot ${i === 0 ? "active" : ""}" id="dot-${
+              ad.id
+            }-${i}"></div>`
+        )
+        .join("")
+    : "";
 
   document.getElementById("pv-content").innerHTML = `
     <div class="modal-carousel-container">
@@ -179,11 +181,13 @@ function openProduct(ad) {
     </div>`;
 
   const slider = document.getElementById(`slider-${ad.id}`);
-  slider.onscroll = () => {
-    let idx = Math.round(slider.scrollLeft / slider.offsetWidth);
-    const allDots = document.querySelectorAll(`[id^="dot-${ad.id}"]`);
-    allDots.forEach((d, i) => d.classList.toggle("active", i === idx));
-  };
+  if (slider) {
+    slider.onscroll = () => {
+      let idx = Math.round(slider.scrollLeft / slider.offsetWidth);
+      const allDots = document.querySelectorAll(`[id^="dot-${ad.id}"]`);
+      allDots.forEach((d, i) => d.classList.toggle("active", i === idx));
+    };
+  }
   modal.classList.remove("hidden");
   tg.BackButton.show();
   tg.BackButton.onClick(closeProduct);
