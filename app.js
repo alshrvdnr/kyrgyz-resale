@@ -171,13 +171,11 @@ async function publishAndSend() {
   if (!title || !price) return alert("Заполни поля!");
 
   if (editingId) {
-    await db
-      .ref("ads/" + editingId)
-      .update({
-        title,
-        price,
-        address: document.getElementById("in-address").value,
-      });
+    await db.ref("ads/" + editingId).update({
+      title,
+      price,
+      address: document.getElementById("in-address").value,
+    });
     resetAddForm();
     showPage("home");
     return;
@@ -188,7 +186,6 @@ async function publishAndSend() {
 
   btn.disabled = true;
   btn.innerText = "ЗАГРУЗКА...";
-  tg.showProgress();
 
   try {
     let receiptUrl = isVipNeeded
@@ -225,7 +222,6 @@ async function publishAndSend() {
   } finally {
     btn.disabled = false;
     btn.innerText = "Опубликовать";
-    tg.hideProgress();
   }
 }
 
