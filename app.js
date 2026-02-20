@@ -13,19 +13,25 @@ const firebaseConfig = {
   measurementId: "G-DH7RXQZ6Y3",
 };
 function checkBanStatus(userId) {
-  db.ref("blacklist/" + userId).on("value", (snap) => {
-    if (snap.val()) {
-      // Если пользователь в черном списке, заменяем весь контент сайта на сообщение о бане
-      document.body.innerHTML = `
-        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#121212; color:white; text-align:center; padding:20px;">
-          <i class="fa-solid fa-user-slash" style="font-size:60px; color:#ff3b30; margin-bottom:20px;"></i>
-          <h1>Доступ заблокирован</h1>
-          <p>Ваш аккаунт внесен в черный список за нарушение правил сообщества (мошенничество).</p>
-          <button onclick="window.close()" style="margin-top:20px; padding:12px 20px; border-radius:10px; border:none; background:#333; color:white;">Закрыть</button>
+  if (!userId) return;
+  // Используем .once чтобы быстро проверить при входе
+  db.ref("blacklist/" + userId)
+    .once("value")
+    .then((snap) => {
+      if (snap.val()) {
+        // Полностью очищаем страницу и останавливаем выполнение скриптов
+        window.stop();
+        document.documentElement.innerHTML = ""; // Стираем всё
+        document.body.innerHTML = `
+        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#000; color:#ff3b30; font-family:sans-serif; text-align:center; padding:30px;">
+          <h1 style="font-size:80px;">🚫</h1>
+          <h2 style="text-transform:uppercase; letter-spacing:2px;">Доступ заблокирован</h2>
+          <p style="color:#888; max-width:300px;">Ваш аккаунт внесен в черный список. По всем вопросам пишите в поддержку.</p>
         </div>
       `;
-    }
-  });
+        throw new Error("User is banned"); // Останавливаем JS
+      }
+    });
 }
 
 // В функции initUser добавь вызов:
