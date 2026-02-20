@@ -227,7 +227,8 @@ function openProduct(ad) {
   const modal = document.getElementById("product-modal");
   const isSold = ad.status === "sold";
   const isFav = favs.includes(ad.id);
-  const dateStr = formatRelativeDate(ad.approvedAt);
+  const timestamp = ad.approvedAt || ad.createdAt;
+  const dateStr = formatRelativeDate(timestamp);
   const isVerified = ad.verified === true;
 
   let contactLink = ad.tgNick
@@ -491,30 +492,46 @@ function createAdCard(ad, isProfile = false) {
   const isSold = ad.status === "sold";
   const isDeleted = ad.status === "deleted";
   const isVip = ad.tariff === "vip" && !isSold;
+
+  // Определяем дату для карточки
+  const timeLabel = formatRelativeDate(ad.approvedAt || ad.createdAt);
+
   const card = document.createElement("div");
   card.className = `card ${isVip ? "card-vip" : ""} ${
     isDeleted ? "card-deleted" : ""
   }`;
   card.onclick = () => openProduct(ad);
-  card.innerHTML = `${
-    isSold || isDeleted ? '<div class="sold-badge">ПРОДАНО</div>' : ""
-  } ${isVip ? '<div class="vip-badge">VIP</div>' : ""} ${
-    !isProfile
-      ? `<div class="fav-heart-btn ${
-          isFav ? "active" : ""
-        }" onclick="toggleFav('${
-          ad.id
-        }', event)"><i class="fa-solid fa-heart"></i></div>`
-      : ""
-  } <img src="${
-    ad.img ? ad.img[0] : ""
-  }" loading="lazy"> <div style="padding:10px;"> <div style="color:var(--yellow-main); font-weight:bold; font-size:16px;">${
-    ad.price
-  } KGS</div> <div style="font-size:12px; color:#ccc;">${ad.title}</div> ${
-    isProfile && ad.status === "active"
-      ? `<button onclick="event.stopPropagation(); openManageModal('${ad.id}')" style="width:100%; background:var(--yellow-main); color:#000; border:none; padding:8px; border-radius:8px; font-size:11px; font-weight:bold; margin-top:8px;">Управление</button>`
-      : ""
-  } </div>`;
+
+  card.innerHTML = `
+    ${isSold || isDeleted ? '<div class="sold-badge">ПРОДАНО</div>' : ""}
+    ${isVip ? '<div class="vip-badge">VIP</div>' : ""}
+    ${
+      !isProfile
+        ? `<div class="fav-heart-btn ${
+            isFav ? "active" : ""
+          }" onclick="toggleFav('${
+            ad.id
+          }', event)"><i class="fa-solid fa-heart"></i></div>`
+        : ""
+    }
+    <img src="${ad.img ? ad.img[0] : ""}" loading="lazy">
+    <div style="padding:10px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+        <div style="color:var(--yellow-main); font-weight:bold; font-size:15px;">${
+          ad.price
+        } KGS</div>
+        <div style="color:var(--gray); font-size:10px;">${timeLabel}</div>
+      </div>
+      <div style="font-size:12px; color:#ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${
+        ad.title
+      }</div>
+      ${
+        isProfile && ad.status === "active"
+          ? `<button onclick="event.stopPropagation(); openManageModal('${ad.id}')" style="width:100%; background:var(--yellow-main); color:#000; border:none; padding:8px; border-radius:8px; font-size:11px; font-weight:bold; margin-top:8px;">Управление</button>`
+          : ""
+      }
+    </div>
+  `;
   return card;
 }
 function handleFileSelect(i) {
@@ -740,26 +757,35 @@ function switchProfileTab(t) {
 }
 
 function formatRelativeDate(timestamp) {
-  if (!timestamp) return "На проверке";
+  if (!timestamp) return "Только что";
 
+  // Работаем с датами без учета времени для точного сравнения "Сегодня/Вчера"
   const date = new Date(timestamp * 1000);
   const now = new Date();
 
-  // Проверка на "Сегодня"
-  const isToday = date.toDateString() === now.toDateString();
+  const dateDate = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate()
+  ).getTime();
+  const nowDate = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
+  ).getTime();
 
-  // Проверка на "Вчера"
-  const yesterday = new Date();
-  yesterday.setDate(now.getDate() - 1);
-  const isYesterday = date.toDateString() === yesterday.toDateString();
+  const diffDays = (nowDate - dateDate) / (1000 * 60 * 60 * 24);
 
-  if (isToday) return "Сегодня";
-  if (isYesterday) return "Вчера";
+  if (diffDays === 0) return "Сегодня";
+  if (diffDays === 1) return "Вчера";
 
-  // Если не сегодня и не вчера — возвращаем дату (например, 20.02.2026)
-  return date.toLocaleDateString();
+  // Если больше 2 дней — возвращаем дату в формате 20.02.2026
+  return date.toLocaleDateString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 }
-
 function reportAd(adId, sellerId) {
   // 1. Проверяем, не жаловался ли он уже в этот раз (сохраним в памяти телефона)
   let myReports = JSON.parse(localStorage.getItem("my_reports") || "[]");
