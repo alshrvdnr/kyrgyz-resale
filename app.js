@@ -109,7 +109,7 @@ function openProduct(ad) {
   const isFav = favs.includes(ad.id);
   const dateStr = formatRelativeDate(ad.approvedAt);
 
-  // Логика ссылки (TG или WhatsApp)
+  // Ссылка для кнопки
   let contactLink = ad.tgNick
     ? `https://t.me/${ad.tgNick.replace("@", "")}`
     : `https://wa.me/${ad.phone ? ad.phone.replace(/[^0-9]/g, "") : ""}`;
@@ -140,23 +140,22 @@ function openProduct(ad) {
     </div>
 
     <div style="padding:20px;">
-      <!-- 1. ВЕРХНЯЯ ПАНЕЛЬ: ЦЕНА И ДВЕ ДАТЫ -->
+      <!-- ВЕРХНИЙ БЛОК -->
       <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
-        <!-- Цена слева -->
-        <div style="font-size:28px; font-weight:800; color:var(--yellow-main); line-height:1.1;">
+        <div style="font-size:28px; font-weight:800; color:var(--yellow-main); line-height:1;">
           ${ad.price} KGS
         </div>
         
-        <!-- Даты справа (колонкой) -->
-        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
-          <div style="color:var(--gray); font-size:11px;">Опубликовано: ${dateStr}</div>
-          <div style="font-size:12px; color:#4cd964; font-weight:bold; background:rgba(76,217,100,0.1); padding:4px 8px; border-radius:6px; white-space:nowrap;">
-            📅 ${ad.receiveDate || "—"}
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:5px;">
+          <!-- Просто дата публикации без лишних слов -->
+          <div style="color:var(--gray); font-size:11px;">${dateStr}</div>
+          <!-- Аккуратная рамка поступления -->
+          <div style="font-size:11px; color:#4cd964; font-weight:bold; background:rgba(76,217,100,0.1); padding:4px 8px; border-radius:6px; border:1px solid rgba(76,217,100,0.2);">
+            Поступление: ${ad.receiveDate || "—"}
           </div>
         </div>
       </div>
 
-      <!-- 2. КАТЕГОРИЯ И НАЗВАНИЕ -->
       <div style="margin-bottom:20px; font-size:16px; line-height:1.4;">
         <b style="color:#fff;">${catMap[ad.cat] || "Товар"}</b> — ${ad.title}
       </div>
@@ -165,40 +164,38 @@ function openProduct(ad) {
         isSold
           ? `<div style="background:#333; padding:15px; border-radius:12px; color:#ff3b30; text-align:center; font-weight:bold;">Информация скрыта, так как товар продан</div>`
           : `
-          <!-- 3. КНОПКА СВЯЗИ -->
           <a href="${contactLink}" class="btn-premium-unity" style="text-decoration:none; margin-bottom:20px;">Написать продавцу</a>
 
-          <!-- 4. ОПИСАНИЕ -->
           <div style="background:#2c2c2e; padding:15px; border-radius:12px; margin:20px 0; white-space: pre-wrap; line-height:1.5; color:#efeff4; font-size:15px;">${
             ad.desc || "Нет описания"
           }</div>
 
-          <!-- 5. БЛОК КОНТАКТОВ -->
+          <!-- БЛОК КОНТАКТОВ -->
           <div style="background:#1c1c1e; padding:18px; border-radius:15px; border:1px solid #333; display:flex; flex-direction:column; gap:15px;">
              
-             <!-- Локация (Красный значок) -->
+             <!-- Локация -->
              <div style="display:flex; align-items:center; gap:12px;">
                 <i class="fa-solid fa-location-dot" style="color:#ff3b30; font-size:18px; width:20px; text-align:center;"></i>
                 <div style="font-size:14px; color:#ccc;">${ad.city}, ${
-              ad.address || "Адрес не указан"
+              ad.address || "—"
             }</div>
              </div>
 
-             <!-- Телефон (Желтый значок) -->
+             <!-- Телефон -->
              <div style="display:flex; align-items:center; gap:12px;">
                 <i class="fa-solid fa-phone" style="color:var(--yellow-main); font-size:16px; width:20px; text-align:center;"></i>
                 <div style="font-size:15px; font-weight:bold; color:#fff;">${
-                  ad.phone || "Номер не указан"
+                  ad.phone || "—"
                 }</div>
              </div>
 
-             <!-- Telegram (Синий значок + Текст) -->
+             <!-- Telegram (Убрал слово Telegram, оставил только иконку и ник) -->
              ${
                ad.tgNick
                  ? `
              <div style="display:flex; align-items:center; gap:12px;">
-                <i class="fa-brands fa-telegram" style="color:#0088cc; font-size:19px; width:20px; text-align:center;"></i>
-                <div style="font-size:15px; font-weight:bold; color:#fff;">Telegram: ${ad.tgNick}</div>
+                <i class="fa-brands fa-telegram" style="color:#0088cc; font-size:20px; width:20px; text-align:center;"></i>
+                <div style="font-size:15px; font-weight:bold; color:#fff;">${ad.tgNick}</div>
              </div>
              `
                  : ""
@@ -209,6 +206,7 @@ function openProduct(ad) {
       }
     </div>`;
 
+  // Логика слайдера
   const slider = document.getElementById(`slider-${ad.id}`);
   if (slider) {
     slider.onscroll = () => {
