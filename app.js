@@ -270,8 +270,8 @@ function renderFeed() {
     (ad) =>
       (curCat === "Все" || ad.cat === curCat) &&
       ad.city === curCity &&
-      (ad.status === "active" || ad.status === "sold") // Изменили это место
-  );
+      ad.status !== "deleted" &&
+      ad.status !== "pending"
   );
   filtered.sort(
     (a, b) =>
