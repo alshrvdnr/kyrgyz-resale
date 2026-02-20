@@ -144,45 +144,71 @@ function applyHolidayUI() {
 async function publishAndSend() {
   const title = document.getElementById("in-title").value;
   const price = document.getElementById("in-price").value;
-  const btn = document.querySelector(".btn-premium-unity");
+  const btn = document.getElementById("pub-btn"); // Убедись, что ID кнопки совпадает
+
   if (!title || !price) return alert("Заполни поля!");
 
-  // РЕДАКТИРОВАНИЕ
+  // --- 1. ЛОГИКА РЕДАКТИРОВАНИЯ СУЩЕСТВУЮЩЕГО ОБЪЯВЛЕНИЯ ---
   if (editingId) {
-    await db.ref("ads/" + editingId).update({
-      title: title,
-      price: price,
-      address: document.getElementById("in-address").value,
-      phone: document.getElementById("in-wa").value,
-      desc: document.getElementById("in-desc").value,
-    });
-    resetAddForm();
-    showPage("home");
+    btn.disabled = true;
+    btn.innerText = "СОХРАНЕНИЕ...";
+
+    try {
+      await db.ref("ads/" + editingId).update({
+        title: title,
+        price: price,
+        address: document.getElementById("in-address").value,
+        phone: document.getElementById("in-wa").value,
+        desc: document.getElementById("in-desc").value,
+        // ВАЖНО: говорим боту, что нужно обновить пост в Telegram
+        needs_sync_tg: true,
+      });
+
+      alert(
+        "Изменения сохранены! Данные в Telegram обновятся в течение минуты."
+      );
+      resetAddForm();
+      showPage("home");
+    } catch (e) {
+      alert("Ошибка при обновлении: " + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerText = "Опубликовать";
+    }
     return;
   }
 
-  // ПРОВЕРКА ОПЛАТЫ
-  // Теперь оплата нужна если: (Праздник ВКЛ) ИЛИ (Выбран VIP)
+  // --- 2. ЛОГИКА СОЗДАНИЯ НОВОГО ОБЪЯВЛЕНИЯ ---
+
+  // ПРОВЕРКА ОПЛАТЫ: (Праздник ВКЛ) ИЛИ (Выбран VIP)
   const isPaid = holidayMode || selectedTariff === "vip";
   if (isPaid && !receiptAttached) {
-    return alert("В праздничные дни или для VIP нужно прикрепить чек!");
+    return alert(
+      "В праздничные дни или для VIP нужно прикрепить чек об оплате!"
+    );
   }
 
   btn.disabled = true;
-  btn.innerText = "ЗАГРУЗКА...";
+  btn.innerText = "ЗАГРУЗКА ФОТО...";
 
   try {
-    let receiptUrl = isPaid
-      ? await uploadToImgBB(document.getElementById("receipt-input").files[0])
-      : null;
+    // А. Загрузка чека (если нужно)
+    let receiptUrl = null;
+    if (isPaid) {
+      const receiptFile = document.getElementById("receipt-input").files[0];
+      receiptUrl = await uploadToImgBB(receiptFile);
+      if (!receiptUrl) throw new Error("Не удалось загрузить чек");
+    }
 
+    // Б. Загрузка основных фотографий товара
     const imgs = await Promise.all(
       selectedFiles.map((file) => uploadToImgBB(file))
     );
 
+    // В. Формирование объекта для Firebase
     const newAd = {
-      title,
-      price,
+      title: title,
+      price: price,
       cat: document.getElementById("in-cat").value,
       city: document.getElementById("in-city").value,
       address: document.getElementById("in-address").value,
@@ -192,19 +218,22 @@ async function publishAndSend() {
       receiveDate: document.getElementById("in-receive-date").value,
       img: imgs.filter((i) => i !== null),
       receipt_url: receiptUrl,
-      status: "pending",
+      status: "pending", // Бот ищет статус ожидания
+      bot_notified: false, // ОБЯЗАТЕЛЬНО: чтобы бот прислал уведомление админу
       tariff: selectedTariff,
-      holiday_active: holidayMode, // Пометка для админа, что подано в праздник
+      holiday_active: holidayMode,
       userId: tg.initDataUnsafe?.user?.id || 0,
       createdAt: Math.floor(Date.now() / 1000),
     };
 
+    // Г. Отправка в базу
     await db.ref("ads").push(newAd);
-    alert("Отправлено на модерацию!");
+
+    alert("Успешно! Ваше объявление отправлено на модерацию.");
     resetAddForm();
     showPage("home");
   } catch (e) {
-    alert("Ошибка загрузки!");
+    alert("Ошибка загрузки: " + e.message);
   } finally {
     btn.disabled = false;
     btn.innerText = "Опубликовать";
