@@ -271,7 +271,7 @@ function renderFeed() {
       (curCat === "Все" || ad.cat === curCat) &&
       ad.city === curCity &&
       ad.status !== "deleted" &&
-      ad.status !== "pending"
+      ad.status !== "pending" &&
       ad.status !== "rejected"
   );
   filtered.sort(
