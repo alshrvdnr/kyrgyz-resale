@@ -463,6 +463,8 @@ function renderFeed() {
   const grid = document.getElementById("home-grid");
   if (!grid) return;
   grid.innerHTML = "";
+
+  // Фильтруем объявления по городу, категории и статусу (скрываем удаленные и на проверке)
   let filtered = ads.filter(
     (ad) =>
       (curCat === "Все" || ad.cat === curCat) &&
@@ -471,20 +473,32 @@ function renderFeed() {
       ad.status !== "pending" &&
       ad.status !== "rejected"
   );
+
+  // ПРАВИЛЬНАЯ СОРТИРОВКА
   filtered.sort((a, b) => {
-    // 1. Проданные всегда в самый низ
-    if (a.status !== b.status) {
-      return a.status === "sold" ? 1 : -1;
+    // 1. Статус Продано (Активные всегда выше проданных)
+    const aIsSold = a.status === "sold";
+    const bIsSold = b.status === "sold";
+    if (aIsSold !== bIsSold) {
+      return aIsSold ? 1 : -1; // Если a продано — оно идет вниз
     }
 
-    // 2. Если оба активны, VIP ставим выше обычных
-    if (a.tariff !== b.tariff) {
-      return a.tariff === "vip" ? -1 : 1;
+    // 2. Тариф VIP (VIP выше Обычных, если оба активны)
+    // Мы проверяем тариф только если ОБА объявления не проданы
+    if (!aIsSold && !bIsSold) {
+      if (a.tariff !== b.tariff) {
+        return a.tariff === "vip" ? -1 : 1; // VIP наверх
+      }
     }
 
-    // 3. Если тарифы одинаковые, свежие ставим выше (по дате создания)
-    return (b.createdAt || 0) - (a.createdAt || 0);
+    // 3. Дата публикации (Новые выше старых)
+    // Используем дату одобрения (approvedAt), если её нет — дату создания (createdAt)
+    const aTime = a.approvedAt || a.createdAt || 0;
+    const bTime = b.approvedAt || b.createdAt || 0;
+
+    return bTime - aTime; // Самое большое время (самое свежее) — наверх
   });
+
   filtered.forEach((ad) => grid.appendChild(createAdCard(ad)));
 }
 function createAdCard(ad, isProfile = false) {
