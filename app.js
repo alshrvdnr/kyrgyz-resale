@@ -79,13 +79,6 @@ function initUser() {
 
   // 2. Если не забанен, грузим остальное
   const initial = user.first_name ? user.first_name[0].toUpperCase() : "?";
-  if (document.getElementById("u-avatar-top")) document.getElementById("u-avatar-top").innerText = initial;
-  if (document.getElementById("u-avatar-big")) document.getElementById("u-avatar-big").innerText = initial;
-  if (document.getElementById("u-name")) document.getElementById("u-name").innerText = user.first_name || "Гость";
-}
-
-  // 2. Дальше уже грузим остальное (имя, аватар и т.д.)
-  const initial = user.first_name ? user.first_name[0].toUpperCase() : "?";
   if (document.getElementById("u-avatar-top"))
     document.getElementById("u-avatar-top").innerText = initial;
   if (document.getElementById("u-avatar-big"))
@@ -93,6 +86,15 @@ function initUser() {
   if (document.getElementById("u-name"))
     document.getElementById("u-name").innerText = user.first_name || "Гость";
 }
+
+// 2. Дальше уже грузим остальное (имя, аватар и т.д.)
+const initial = user.first_name ? user.first_name[0].toUpperCase() : "?";
+if (document.getElementById("u-avatar-top"))
+  document.getElementById("u-avatar-top").innerText = initial;
+if (document.getElementById("u-avatar-big"))
+  document.getElementById("u-avatar-big").innerText = initial;
+if (document.getElementById("u-name"))
+  document.getElementById("u-name").innerText = user.first_name || "Гость";
 
 // 3. НАВИГАЦИЯ (showPage)
 function showPage(p) {
@@ -339,9 +341,11 @@ async function publishAndSend() {
   // 2. АНТИ-СПАМ: Ограничение 1 минута между постами
   const lastPost = localStorage.getItem("last_post_time");
   const now = Date.now();
-  if (lastPost && (now - lastPost < 60000)) {
+  if (lastPost && now - lastPost < 60000) {
     const secondsLeft = Math.ceil((60000 - (now - lastPost)) / 1000);
-    return alert(`Слишком часто! Подождите ${secondsLeft} сек. перед следующей публикацией.`);
+    return alert(
+      `Слишком часто! Подождите ${secondsLeft} сек. перед следующей публикацией.`
+    );
   }
 
   // --- ЛОГИКА РЕДАКТИРОВАНИЯ ---
@@ -371,10 +375,12 @@ async function publishAndSend() {
 
   // --- ЛОГИКА СОЗДАНИЯ НОВОГО ОБЪЯВЛЕНИЯ ---
   const isPaid = holidayMode || selectedTariff === "vip";
-  
+
   // Проверка прикрепленного чека для платных тарифов
   if (isPaid && !receiptAttached) {
-    return alert("В праздничные дни или для VIP нужно прикрепить чек об оплате!");
+    return alert(
+      "В праздничные дни или для VIP нужно прикрепить чек об оплате!"
+    );
   }
 
   btn.disabled = true;
@@ -424,7 +430,6 @@ async function publishAndSend() {
     alert("Успешно! Объявление и чек отправлены на проверку модератору.");
     resetAddForm();
     showPage("home");
-
   } catch (e) {
     alert("Ошибка при публикации: " + e.message);
   } finally {
