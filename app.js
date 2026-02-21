@@ -34,13 +34,6 @@ function checkBanStatus(userId) {
     });
 }
 
-// В функции initUser добавь вызов:
-function initUser() {
-  const user = tg.initDataUnsafe?.user || { first_name: "Гость", id: 0 };
-  if (user.id !== 0) checkBanStatus(user.id); // Проверяем бан
-  // ... остальной код
-}
-
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
@@ -88,6 +81,9 @@ function initUser() {
   document.getElementById("u-avatar-top").innerText = initial;
   document.getElementById("u-avatar-big").innerText = initial;
   document.getElementById("u-name").innerText = user.first_name || "Гость";
+
+  // Проверка бана должна быть здесь!
+  if (user.id !== 0) checkBanStatus(user.id);
 }
 
 function listenSettings() {
@@ -493,7 +489,7 @@ function renderFeed() {
   if (!grid) return;
   grid.innerHTML = "";
 
-  // 1. Фильтруем объявления
+  // 1. Фильтруем (только те, что не на проверке и не удалены)
   let filtered = ads.filter(
     (ad) =>
       (curCat === "Все" || ad.cat === curCat) &&
@@ -503,25 +499,22 @@ function renderFeed() {
       ad.status !== "rejected"
   );
 
-  // 2. Сортируем: сначала VIP, потом новые, в самом низу - ПРОДАНО
+  // 2. Сортируем (VIP выше всех, Проданные в самый низ, остальное по дате)
   filtered.sort((a, b) => {
-    // Сначала по статусу (проданные вниз)
     const aIsSold = a.status === "sold";
     const bIsSold = b.status === "sold";
     if (aIsSold !== bIsSold) return aIsSold ? 1 : -1;
 
-    // Потом по тарифу (VIP наверх)
     if (!aIsSold && !bIsSold) {
       if (a.tariff !== b.tariff) return a.tariff === "vip" ? -1 : 1;
     }
 
-    // Потом по времени (новые выше)
     const aTime = a.approvedAt || a.createdAt || 0;
     const bTime = b.approvedAt || b.createdAt || 0;
     return bTime - aTime;
   });
 
-  // 3. Рисуем карточки
+  // 3. Отображаем
   filtered.forEach((ad) => grid.appendChild(createAdCard(ad)));
 }
 
@@ -853,34 +846,31 @@ function formatRelativeDate(timestamp) {
 }
 
 function reportAd(adId, sellerId) {
-  // 1. Проверяем, не жаловался ли он уже в этот раз (сохраним в памяти телефона)
   let myReports = JSON.parse(localStorage.getItem("my_reports") || "[]");
   if (myReports.includes(adId)) {
-    alert(
-      "Вы уже отправили жалобу на это объявление. Модератор скоро его проверит."
-    );
+    alert("Вы уже пожаловались на это объявление.");
     return;
   }
 
-  // 2. Спрашиваем подтверждение (защита от случайного нажатия)
-  const confirmText =
-    "Вы уверены? Жалоба будет передана модератору.\n\nВнимание: ложные жалобы могут привести к блокировке вашего аккаунта.";
-  if (!confirm(confirmText)) return;
+  if (
+    !confirm(
+      "Вы уверены, что это мошенник? Жалоба будет передана администратору."
+    )
+  )
+    return;
 
   const user = tg.initDataUnsafe?.user || { id: 0, username: "Guest" };
 
-  // 3. Отправляем в Firebase
   db.ref("reports").push({
     adId: adId,
     sellerId: sellerId,
     reporterId: user.id,
     reporterName: user.username || user.first_name,
     timestamp: Math.floor(Date.now() / 1000),
+    bot_notified: false, // Чтобы бот увидел
   });
 
-  // 4. Запоминаем, что он пожаловался, чтобы кнопка больше не работала для него
   myReports.push(adId);
   localStorage.setItem("my_reports", JSON.stringify(myReports));
-
-  alert("Жалоба отправлена. Спасибо за помощь!");
+  alert("Жалоба отправлена модератору. Спасибо!");
 }
