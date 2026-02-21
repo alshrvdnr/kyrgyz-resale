@@ -493,7 +493,7 @@ function renderFeed() {
   if (!grid) return;
   grid.innerHTML = "";
 
-  // 1. Фильтруем (только активные и проданные для выбранного города/категории)
+  // 1. Фильтруем объявления
   let filtered = ads.filter(
     (ad) =>
       (curCat === "Все" || ad.cat === curCat) &&
@@ -503,38 +503,25 @@ function renderFeed() {
       ad.status !== "rejected"
   );
 
-  // 2. СОРТИРОВКА ПО ВЕСУ И ВРЕМЕНИ
+  // 2. Сортируем: сначала VIP, потом новые, в самом низу - ПРОДАНО
   filtered.sort((a, b) => {
-    // Функция определения веса группы
-    const getWeight = (ad) => {
-      if (ad.status === "sold") return 3; // Проданные — в самый низ
-      if (ad.tariff === "vip") return 1; // VIP — на самый верх
-      return 2; // Обычные — посередине
-    };
+    // Сначала по статусу (проданные вниз)
+    const aIsSold = a.status === "sold";
+    const bIsSold = b.status === "sold";
+    if (aIsSold !== bIsSold) return aIsSold ? 1 : -1;
 
-    const weightA = getWeight(a);
-    const weightB = getWeight(getWeight(b)); // Ошибка в коде выше, исправляю:
-    // Исправленный вариант ниже:
-  });
-
-  // Переписываю блок сортировки для точности:
-  filtered.sort((a, b) => {
-    const weightA = a.status === "sold" ? 3 : a.tariff === "vip" ? 1 : 2;
-    const weightB = b.status === "sold" ? 3 : b.tariff === "vip" ? 1 : 2;
-
-    // Сначала сравниваем веса групп (VIP vs Обычные vs Продано)
-    if (weightA !== weightB) {
-      return weightA - weightB; // Вернет 1 наверх, 3 вниз
+    // Потом по тарифу (VIP наверх)
+    if (!aIsSold && !bIsSold) {
+      if (a.tariff !== b.tariff) return a.tariff === "vip" ? -1 : 1;
     }
 
-    // Если объявления в одной группе (например, оба Обычные),
-    // сравниваем их по времени (самое свежее выше)
-    const timeA = Number(a.approvedAt || a.createdAt || 0);
-    const timeB = Number(b.approvedAt || b.createdAt || 0);
-
-    return timeB - timeA; // От большего времени к меньшему
+    // Потом по времени (новые выше)
+    const aTime = a.approvedAt || a.createdAt || 0;
+    const bTime = b.approvedAt || b.createdAt || 0;
+    return bTime - aTime;
   });
 
+  // 3. Рисуем карточки
   filtered.forEach((ad) => grid.appendChild(createAdCard(ad)));
 }
 
