@@ -15,7 +15,7 @@ const firebaseConfig = {
 
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-const storage = firebase.storage();
+const storage = firebase.storage(); // Теперь это заработает!
 
 const catMap = {
   flowers: "Цветы",
@@ -319,16 +319,14 @@ async function publishAndSend() {
   if (editingId) {
     btn.disabled = true;
     try {
-      await db
-        .ref("ads/" + editingId)
-        .update({
-          title: document.getElementById("in-title").value,
-          price: document.getElementById("in-price").value,
-          address: document.getElementById("in-address").value,
-          phone: document.getElementById("in-wa").value,
-          desc: document.getElementById("in-desc").value,
-          needs_sync_tg: true,
-        });
+      await db.ref("ads/" + editingId).update({
+        title: document.getElementById("in-title").value,
+        price: document.getElementById("in-price").value,
+        address: document.getElementById("in-address").value,
+        phone: document.getElementById("in-wa").value,
+        desc: document.getElementById("in-desc").value,
+        needs_sync_tg: true,
+      });
       alert("Сохранено!");
       resetAddForm();
       showPage("home");
