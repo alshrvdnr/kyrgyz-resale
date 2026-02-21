@@ -333,19 +333,12 @@ async function publishAndSend() {
   const title = document.getElementById("in-title").value;
   const price = document.getElementById("in-price").value;
 
-  // 1. Проверка обязательных полей
-  if (!title || !price) {
-    return alert("Заполните название и цену!");
-  }
-
-  // 2. АНТИ-СПАМ: Ограничение 1 минута между постами
+  // --- АНТИ-СПАМ: Ограничение 1 минута ---
   const lastPost = localStorage.getItem("last_post_time");
   const now = Date.now();
   if (lastPost && now - lastPost < 60000) {
-    const secondsLeft = Math.ceil((60000 - (now - lastPost)) / 1000);
-    return alert(
-      `Слишком часто! Подождите ${secondsLeft} сек. перед следующей публикацией.`
-    );
+    const waitSec = Math.ceil((60000 - (now - lastPost)) / 1000);
+    return alert(`Слишком часто! Подождите ${waitSec} сек.`);
   }
 
   // --- ЛОГИКА РЕДАКТИРОВАНИЯ ---
@@ -423,8 +416,6 @@ async function publishAndSend() {
 
     // Г. Отправка в базу данных Firebase
     await db.ref("ads").push(newAd);
-
-    // ЗАПОМИНАЕМ ВРЕМЯ для анти-спама
     localStorage.setItem("last_post_time", Date.now());
 
     alert("Успешно! Объявление и чек отправлены на проверку модератору.");
