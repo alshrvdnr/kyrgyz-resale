@@ -58,26 +58,32 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function initUser() {
-  const user = tg.initDataUnsafe?.user || { first_name: "Гость", id: 0 };
-  const initial = user.first_name ? user.first_name[0].toUpperCase() : "?";
+  const user = tg.initDataUnsafe?.user || { id: 0 };
 
+  // 1. ПЕРВЫМ ДЕЛОМ ПРОВЕРЯЕМ БАН
+  if (user.id !== 0) {
+    db.ref("blacklist/" + user.id).on("value", (snap) => {
+      if (snap.val()) {
+        window.stop(); // Остановить все процессы
+        document.body.innerHTML = `
+          <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#000; color:#ff3b30; text-align:center; padding:30px; font-family:sans-serif;">
+            <h1 style="font-size:80px;">🚫</h1>
+            <h2>ДОСТУП ЗАБЛОКИРОВАН</h2>
+            <p style="color:#888;">Ваш аккаунт внесен в черный список за мошенничество.</p>
+          </div>`;
+        return;
+      }
+    });
+  }
+
+  // 2. Дальше уже грузим остальное (имя, аватар и т.д.)
+  const initial = user.first_name ? user.first_name[0].toUpperCase() : "?";
   if (document.getElementById("u-avatar-top"))
     document.getElementById("u-avatar-top").innerText = initial;
   if (document.getElementById("u-avatar-big"))
     document.getElementById("u-avatar-big").innerText = initial;
   if (document.getElementById("u-name"))
     document.getElementById("u-name").innerText = user.first_name || "Гость";
-
-  if (user.id !== 0) {
-    db.ref("blacklist/" + user.id)
-      .once("value")
-      .then((snap) => {
-        if (snap.val()) {
-          window.stop();
-          document.body.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#000; color:#ff3b30; text-align:center; padding:30px;"><h1>🚫 Доступ заблокирован</h1></div>`;
-        }
-      });
-  }
 }
 
 // 3. НАВИГАЦИЯ (showPage)
