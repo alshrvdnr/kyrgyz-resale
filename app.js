@@ -60,21 +60,29 @@ document.addEventListener("DOMContentLoaded", () => {
 function initUser() {
   const user = tg.initDataUnsafe?.user || { id: 0 };
 
-  // 1. ПЕРВЫМ ДЕЛОМ ПРОВЕРЯЕМ БАН
+  // 1. ЖЕСТКАЯ ПРОВЕРКА БАНА
   if (user.id !== 0) {
     db.ref("blacklist/" + user.id).on("value", (snap) => {
-      if (snap.val()) {
-        window.stop(); // Остановить все процессы
+      if (snap.val() === true) {
+        window.stop(); // Остановить выполнение всех скриптов
+        document.documentElement.innerHTML = ""; // Стереть весь HTML
         document.body.innerHTML = `
           <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#000; color:#ff3b30; text-align:center; padding:30px; font-family:sans-serif;">
-            <h1 style="font-size:80px;">🚫</h1>
-            <h2>ДОСТУП ЗАБЛОКИРОВАН</h2>
-            <p style="color:#888;">Ваш аккаунт внесен в черный список за мошенничество.</p>
+            <h1 style="font-size:80px; margin-bottom:10px;">🚫</h1>
+            <h2 style="text-transform:uppercase; letter-spacing:2px;">Доступ заблокирован</h2>
+            <p style="color:#888; max-width:300px; line-height:1.5;">Ваш аккаунт внесен в черный список за мошенничество или спам.</p>
           </div>`;
-        return;
+        return; // Прекращаем работу функции
       }
     });
   }
+
+  // 2. Если не забанен, грузим остальное
+  const initial = user.first_name ? user.first_name[0].toUpperCase() : "?";
+  if (document.getElementById("u-avatar-top")) document.getElementById("u-avatar-top").innerText = initial;
+  if (document.getElementById("u-avatar-big")) document.getElementById("u-avatar-big").innerText = initial;
+  if (document.getElementById("u-name")) document.getElementById("u-name").innerText = user.first_name || "Гость";
+}
 
   // 2. Дальше уже грузим остальное (имя, аватар и т.д.)
   const initial = user.first_name ? user.first_name[0].toUpperCase() : "?";
@@ -320,41 +328,76 @@ async function uploadFile(file) {
 
 async function publishAndSend() {
   const btn = document.getElementById("pub-btn");
-  if (!document.getElementById("in-title").value)
-    return alert("Заполни название!");
+  const title = document.getElementById("in-title").value;
+  const price = document.getElementById("in-price").value;
+
+  // 1. Проверка обязательных полей
+  if (!title || !price) {
+    return alert("Заполните название и цену!");
+  }
+
+  // 2. АНТИ-СПАМ: Ограничение 1 минута между постами
+  const lastPost = localStorage.getItem("last_post_time");
+  const now = Date.now();
+  if (lastPost && (now - lastPost < 60000)) {
+    const secondsLeft = Math.ceil((60000 - (now - lastPost)) / 1000);
+    return alert(`Слишком часто! Подождите ${secondsLeft} сек. перед следующей публикацией.`);
+  }
+
+  // --- ЛОГИКА РЕДАКТИРОВАНИЯ ---
   if (editingId) {
     btn.disabled = true;
+    btn.innerText = "СОХРАНЕНИЕ...";
     try {
       await db.ref("ads/" + editingId).update({
-        title: document.getElementById("in-title").value,
-        price: document.getElementById("in-price").value,
+        title: title,
+        price: price,
         address: document.getElementById("in-address").value,
         phone: document.getElementById("in-wa").value,
         desc: document.getElementById("in-desc").value,
-        needs_sync_tg: true,
+        needs_sync_tg: true, // Флаг для бота, чтобы обновил пост в канале
       });
-      alert("Сохранено!");
+      alert("Изменения сохранены! Данные в Telegram обновятся скоро.");
       resetAddForm();
       showPage("home");
     } catch (e) {
-      alert(e.message);
+      alert("Ошибка при сохранении: " + e.message);
     } finally {
       btn.disabled = false;
+      btn.innerText = "Опубликовать";
     }
     return;
   }
+
+  // --- ЛОГИКА СОЗДАНИЯ НОВОГО ОБЪЯВЛЕНИЯ ---
   const isPaid = holidayMode || selectedTariff === "vip";
-  if (isPaid && !receiptAttached) return alert("Прикрепите чек!");
+  
+  // Проверка прикрепленного чека для платных тарифов
+  if (isPaid && !receiptAttached) {
+    return alert("В праздничные дни или для VIP нужно прикрепить чек об оплате!");
+  }
+
   btn.disabled = true;
   btn.innerText = "ЗАГРУЗКА...";
+
   try {
-    let receiptUrl = isPaid
-      ? await uploadFile(document.getElementById("receipt-input").files[0])
-      : null;
-    const imgs = await Promise.all(selectedFiles.map((f) => uploadFile(f)));
+    // А. Загрузка чека на Firebase Storage
+    let receiptUrl = null;
+    if (isPaid) {
+      const receiptFile = document.getElementById("receipt-input").files[0];
+      receiptUrl = await uploadFile(receiptFile); // Использует твою функцию uploadFile
+      if (!receiptUrl) throw new Error("Не удалось загрузить чек об оплате.");
+    }
+
+    // Б. Загрузка фотографий товара на Firebase Storage
+    const imgs = await Promise.all(
+      selectedFiles.map((file) => uploadFile(file))
+    );
+
+    // В. Формирование объекта объявления
     const newAd = {
-      title: document.getElementById("in-title").value,
-      price: document.getElementById("in-price").value,
+      title: title,
+      price: price,
       cat: document.getElementById("in-cat").value,
       city: document.getElementById("in-city").value,
       address: document.getElementById("in-address").value,
@@ -362,21 +405,28 @@ async function publishAndSend() {
       tgNick: document.getElementById("in-tg").value,
       desc: document.getElementById("in-desc").value,
       receiveDate: document.getElementById("in-receive-date").value,
-      img: imgs.filter((i) => i),
+      img: imgs.filter((i) => i !== null), // Очищаем от пустых ссылок
       receipt_url: receiptUrl,
-      status: "pending",
-      bot_notified: false,
+      status: "pending", // Отправляем на модерацию
+      bot_notified: false, // Важно: чтобы бот увидел новую запись в sync_job
       tariff: selectedTariff,
       is_holiday: holidayMode,
       userId: tg.initDataUnsafe?.user?.id || 0,
       createdAt: Math.floor(Date.now() / 1000),
     };
+
+    // Г. Отправка в базу данных Firebase
     await db.ref("ads").push(newAd);
-    alert("Отправлено!");
+
+    // ЗАПОМИНАЕМ ВРЕМЯ для анти-спама
+    localStorage.setItem("last_post_time", Date.now());
+
+    alert("Успешно! Объявление и чек отправлены на проверку модератору.");
     resetAddForm();
     showPage("home");
+
   } catch (e) {
-    alert("Ошибка загрузки");
+    alert("Ошибка при публикации: " + e.message);
   } finally {
     btn.disabled = false;
     btn.innerText = "Опубликовать";
@@ -482,17 +532,29 @@ function formatRelativeDate(ts) {
 }
 
 function reportAd(adId, sellerId) {
-  if (!confirm("Пожаловаться на мошенника?")) return;
+  // Защита от случайного нажатия
+  if (
+    !confirm(
+      "Вы уверены, что это мошенник? Жалоба будет немедленно передана модератору."
+    )
+  )
+    return;
+
+  // Берем ник продавца из карточки, чтобы админу было легче
+  const ad = ads.find((a) => a.id === adId);
+  const sellerNick = ad ? ad.tgNick || ad.phone || "Не указан" : "Неизвестно";
+
   db.ref("reports").push({
-    adId,
-    sellerId,
+    adId: adId,
+    sellerId: sellerId,
+    sellerNick: sellerNick, // Добавляем ник, чтобы ты его сразу видел в боте
     reporterName: tg.initDataUnsafe?.user?.first_name || "Guest",
     timestamp: Math.floor(Date.now() / 1000),
-    bot_notified: false,
+    bot_notified: false, // ОБЯЗАТЕЛЬНО: чтобы бот прислал уведомление
   });
-  alert("Отправлено!");
-}
 
+  alert("Жалоба отправлена! Мы проверим этого пользователя.");
+}
 function confirmAction(type) {
   if (!confirm("Подтвердить действие?")) return;
   db.ref("management_requests").push({
