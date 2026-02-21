@@ -1,10 +1,7 @@
-alert("САЙТ ОБНОВИЛСЯ! ВЕРСИЯ 2.1");
-console.log("DEBUG: КОД ЗАПУЩЕН");
-
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-// 1. КОНФИГУРАЦИЯ FIREBASE
+// 1. CONFIG (Firebase & Storage)
 const firebaseConfig = {
   apiKey: "AIzaSyCxaC3C9dx6IEhXWH9eATdKZO8SCRYe33I",
   authDomain: "gifts-kg.firebaseapp.com",
@@ -20,7 +17,6 @@ if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const storage = firebase.storage();
 
-const IMGBB_KEY = "94943ea3f656b4bc95e25c86d2880b94";
 const catMap = {
   flowers: "Цветы",
   jewelry: "Ювелирка",
@@ -46,45 +42,48 @@ let curCat = "Все",
   profTab = "active";
 let currentManageId = null,
   holidayMode = false,
-  receiptAttached = false,
-  currentQrUrl = "";
+  currentQrUrl = "",
+  receiptAttached = false;
 
 // 2. ИНИЦИАЛИЗАЦИЯ
 document.addEventListener("DOMContentLoaded", () => {
   initUser();
   listenSettings();
   listenAds();
-  document.getElementById("main-search").addEventListener("keypress", (e) => {
-    if (e.key === "Enter") startSearch(e.target.value);
-  });
+
+  const searchInput = document.getElementById("main-search");
+  if (searchInput) {
+    searchInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") startSearch(e.target.value);
+    });
+  }
 });
 
 function initUser() {
   const user = tg.initDataUnsafe?.user || { first_name: "Гость", id: 0 };
   const initial = user.first_name ? user.first_name[0].toUpperCase() : "?";
 
-  if (document.getElementById("u-avatar-top"))
-    document.getElementById("u-avatar-top").innerText = initial;
-  if (document.getElementById("u-avatar-big"))
-    document.getElementById("u-avatar-big").innerText = initial;
-  if (document.getElementById("u-name"))
-    document.getElementById("u-name").innerText = user.first_name || "Гость";
+  // Заполняем аватарки и имя (с проверкой на существование ID)
+  const elTop = document.getElementById("u-avatar-top");
+  const elBig = document.getElementById("u-avatar-big");
+  const elName = document.getElementById("u-name");
 
-  if (user.id !== 0) checkBanStatus(user.id);
-}
+  if (elTop) elTop.innerText = initial;
+  if (elBig) elBig.innerText = initial;
+  if (elName) elName.innerText = user.first_name || "Гость";
 
-function checkBanStatus(userId) {
-  db.ref("blacklist/" + userId)
-    .once("value")
-    .then((snap) => {
+  // Бан-чек
+  if (user.id !== 0) {
+    db.ref("blacklist/" + user.id).on("value", (snap) => {
       if (snap.val()) {
         window.stop();
-        document.body.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#000; color:#ff3b30; text-align:center; padding:30px;"><h1>🚫 Доступ заблокирован</h1><p>Ваш аккаунт в черном списке.</p></div>`;
+        document.body.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#000; color:#ff3b30; text-align:center; padding:30px;"><h1>🚫 Доступ заблокирован</h1><p>Вы в черном списке за нарушение правил.</p></div>`;
       }
     });
+  }
 }
 
-// 3. СИНХРОНИЗАЦИЯ С БАЗОЙ
+// 3. СИНХРОНИЗАЦИЯ (SETTINGS & ADS)
 function listenSettings() {
   db.ref("settings").on("value", (snap) => {
     const s = snap.val() || {};
@@ -108,6 +107,7 @@ function listenAds() {
 function applyHolidayUI() {
   const vBlock = document.getElementById("vip-block");
   const qrImg = document.getElementById("qr-display");
+  const promoText = document.getElementById("vip-promo-text");
   const priceStd = document.getElementById("price-std"),
     priceVip = document.getElementById("price-vip"),
     labelStd = document.getElementById("label-std");
@@ -119,6 +119,9 @@ function applyHolidayUI() {
     if (priceStd) priceStd.innerText = "100 сом";
     if (priceVip) priceVip.innerText = "200 сом";
     if (vBlock) vBlock.classList.remove("hidden");
+    if (promoText)
+      promoText.innerText =
+        "В праздничные дни все объявления платные. Стандарт идет в ТОП, VIP — выше всех.";
   } else {
     if (labelStd) labelStd.innerText = "Стандарт";
     if (priceStd) priceStd.innerText = "Бесплатно";
@@ -127,10 +130,11 @@ function applyHolidayUI() {
       if (selectedTariff === "vip") vBlock.classList.remove("hidden");
       else vBlock.classList.add("hidden");
     }
+    if (promoText) promoText.innerText = "VIP-объявление будет в ТОПе 3 дня.";
   }
 }
 
-// 4. ОТОБРАЖЕНИЕ (ЛЕНТА, ПРОФИЛЬ, ИЗБРАННОЕ)
+// 4. ЛОГИКА ЛЕНТЫ (FEED)
 function renderFeed() {
   const grid = document.getElementById("home-grid");
   if (!grid) return;
@@ -201,42 +205,13 @@ function createAdCard(ad, isProfile = false) {
   return card;
 }
 
-function renderProfile() {
-  const grid = document.getElementById("my-ads-grid");
-  if (!grid) return;
-  grid.innerHTML = "";
-  const myId = tg.initDataUnsafe?.user?.id || 0;
-  const filtered = ads.filter(
-    (ad) =>
-      ad.userId === myId &&
-      (profTab === "active" ? ad.status === "active" : ad.status === "sold")
-  );
-  if (filtered.length === 0)
-    grid.innerHTML =
-      "<p style='text-align:center; color:gray; grid-column: 1/3; margin-top:20px;'>Тут пока ничего нет</p>";
-  filtered.forEach((ad) => grid.appendChild(createAdCard(ad, true)));
-}
-
-function renderFavs() {
-  const container = document.getElementById("favs-content-area");
-  if (!container) return;
-  const filtered = ads.filter((ad) => favs.includes(ad.id));
-  if (filtered.length === 0) {
-    container.innerHTML = `<div class="empty-favs-center"><div style="width:80px; height:80px; background:#2c2c2e; border-radius:20px; display:flex; align-items:center; justify-content:center; margin-bottom:20px; color:var(--yellow-main); font-size:32px;"><i class="fa-solid fa-heart"></i></div><h3>В избранном пока пусто</h3><button class="btn-premium-unity" style="width:auto; padding:12px 40px;" onclick="showPage('home')">Поиск</button></div>`;
-  } else {
-    container.innerHTML = '<div class="listings-grid" id="fav-grid"></div>';
-    filtered.forEach((ad) =>
-      document.getElementById("fav-grid").appendChild(createAdCard(ad))
-    );
-  }
-}
-
-// 5. УПРАВЛЕНИЕ ТОВАРОМ (МОДАЛКА)
+// 5. МОДАЛКА И КОНТАКТЫ
 function openProduct(ad) {
   const modal = document.getElementById("product-modal");
   const isSold = ad.status === "sold",
     isFav = favs.includes(ad.id);
   const timeLabel = formatRelativeDate(ad.approvedAt || ad.createdAt);
+  const isVerified = ad.verified === true;
 
   let contactLink = ad.tgNick
     ? `https://t.me/${ad.tgNick.replace("@", "")}`
@@ -279,7 +254,7 @@ function openProduct(ad) {
       </div>
       <div style="margin-bottom:20px; font-size:16px;"><b>${
         catMap[ad.cat] || "Товар"
-      }</b> — ${ad.title} ${ad.verified ? "🔵" : ""}</div>
+      }</b> — ${ad.title} ${isVerified ? "🔵" : ""}</div>
       ${
         isSold
           ? `<div style="background:#333; padding:15px; border-radius:12px; color:#ff3b30; text-align:center; font-weight:bold;">Продано</div>`
@@ -321,7 +296,7 @@ function openProduct(ad) {
   tg.BackButton.onClick(closeProduct);
 }
 
-// 6. ЗАГРУЗКА ФОТО В STORAGE
+// 6. ПОДАЧА ОБЪЯВЛЕНИЯ (STORAGE)
 async function uploadFile(file) {
   if (!file) return null;
   const storageRef = storage.ref("ads/" + Date.now() + "_" + file.name);
@@ -331,14 +306,14 @@ async function uploadFile(file) {
 
 async function publishAndSend() {
   const btn = document.getElementById("pub-btn");
-  if (!document.getElementById("in-title").value)
-    return alert("Заполни название!");
+  const title = document.getElementById("in-title").value;
+  if (!title) return alert("Заполни название!");
 
   if (editingId) {
     btn.disabled = true;
     try {
       await db.ref("ads/" + editingId).update({
-        title: document.getElementById("in-title").value,
+        title: title,
         price: document.getElementById("in-price").value,
         address: document.getElementById("in-address").value,
         phone: document.getElementById("in-wa").value,
@@ -366,7 +341,7 @@ async function publishAndSend() {
       : null;
     const imgs = await Promise.all(selectedFiles.map((f) => uploadFile(f)));
     const newAd = {
-      title: document.getElementById("in-title").value,
+      title,
       price: document.getElementById("in-price").value,
       cat: document.getElementById("in-cat").value,
       city: document.getElementById("in-city").value,
@@ -396,7 +371,7 @@ async function publishAndSend() {
   }
 }
 
-// 7. НАВИГАЦИЯ
+// 7. НАВИГАЦИЯ И ПРОФИЛЬ
 function showPage(p) {
   document.querySelectorAll(".page").forEach((s) => s.classList.add("hidden"));
   const target = document.getElementById(`page-${p}`);
@@ -405,34 +380,94 @@ function showPage(p) {
   document
     .querySelectorAll(".nav-item")
     .forEach((i) => i.classList.remove("active"));
-  if (p === "home") document.getElementById("n-home")?.classList.add("active");
+  if (p === "home") {
+    const n = document.getElementById("n-home");
+    if (n) n.classList.add("active");
+  }
   if (p === "favs") {
-    document.getElementById("n-favs")?.classList.add("active");
+    const n = document.getElementById("n-favs");
+    if (n) n.classList.add("active");
     renderFavs();
   }
   if (p === "add" && !editingId) resetAddForm();
   if (p === "profile") renderProfile();
 }
 
+function renderProfile() {
+  const grid = document.getElementById("my-ads-grid");
+  if (!grid) return;
+  grid.innerHTML = "";
+  const myId = tg.initDataUnsafe?.user?.id || 0;
+  const filtered = ads.filter(
+    (ad) =>
+      ad.userId === myId &&
+      (profTab === "active" ? ad.status === "active" : ad.status === "sold")
+  );
+  if (filtered.length === 0)
+    grid.innerHTML =
+      "<p style='text-align:center; color:gray; grid-column:1/3; margin-top:20px;'>Тут пока пусто</p>";
+  filtered.forEach((ad) => grid.appendChild(createAdCard(ad, true)));
+}
+
+function switchProfileTab(t) {
+  profTab = t;
+  const t1 = document.getElementById("tab-active");
+  const t2 = document.getElementById("tab-archive");
+  if (t1) t1.classList.toggle("active", t === "active");
+  if (t2) t2.classList.toggle("active", t === "archive");
+  renderProfile();
+}
+
+// 8. ФИЛЬТРЫ И КАТЕГОРИИ
 function filterByCat(c, el) {
   curCat = c;
   document
     .querySelectorAll(".cat-card")
     .forEach((i) => i.classList.remove("active"));
   if (el) el.classList.add("active");
-  document.getElementById("dynamic-feed-title").innerText =
-    catTitles[c] || "Свежие предложения";
+  const titleEl = document.getElementById("dynamic-feed-title");
+  if (titleEl) titleEl.innerText = catTitles[c] || "Свежие предложения";
   renderFeed();
 }
 
 function selectCity(c) {
   curCity = c;
-  document.getElementById("current-city-label").innerText = c;
+  const label = document.getElementById("current-city-label");
+  if (label) label.innerText = c;
   toggleCitySelector();
   renderFeed();
 }
 
-// 8. ВСПОМОГАТЕЛЬНЫЕ
+function toggleCitySelector() {
+  const el = document.getElementById("city-selector");
+  if (el) el.classList.toggle("hidden");
+}
+
+// 9. ИЗБРАННОЕ
+function toggleFav(id, event) {
+  if (event) event.stopPropagation();
+  favs = favs.includes(id) ? favs.filter((f) => f !== id) : [...favs, id];
+  localStorage.setItem("favs_v15", JSON.stringify(favs));
+  renderFeed();
+  if (!document.getElementById("page-favs").classList.contains("hidden"))
+    renderFavs();
+}
+
+function renderFavs() {
+  const container = document.getElementById("favs-content-area");
+  if (!container) return;
+  const filtered = ads.filter((ad) => favs.includes(ad.id));
+  if (filtered.length === 0) {
+    container.innerHTML = `<div class="empty-favs-center"><div style="width:80px; height:80px; background:#2c2c2e; border-radius:20px; display:flex; align-items:center; justify-content:center; margin-bottom:20px; color:var(--yellow-main); font-size:32px;"><i class="fa-solid fa-heart"></i></div><h3>В избранном пока пусто</h3><button class="btn-premium-unity" onclick="showPage('home')">Найти подарки</button></div>`;
+  } else {
+    container.innerHTML = '<div class="listings-grid" id="fav-grid"></div>';
+    filtered.forEach((ad) =>
+      document.getElementById("fav-grid").appendChild(createAdCard(ad))
+    );
+  }
+}
+
+// 10. ВСПОМОГАТЕЛЬНЫЕ
 function formatRelativeDate(ts) {
   if (!ts) return "Сегодня";
   const date = new Date(ts * 1000),
@@ -447,16 +482,9 @@ function formatRelativeDate(ts) {
   return date.toLocaleDateString("ru-RU");
 }
 
-function toggleFav(id, event) {
-  if (event) event.stopPropagation();
-  favs = favs.includes(id) ? favs.filter((f) => f !== id) : [...favs, id];
-  localStorage.setItem("favs_v15", JSON.stringify(favs));
-  renderFeed();
-  renderFavs();
-}
-
 function reportAd(adId, sellerId) {
-  if (!confirm("Это мошенник?")) return;
+  if (!confirm("Вы уверены, что хотите пожаловаться на это объявление?"))
+    return;
   db.ref("reports").push({
     adId,
     sellerId,
@@ -499,8 +527,10 @@ function resetAddForm() {
   selectedFiles = [];
   receiptAttached = false;
   document.querySelectorAll(".main-input").forEach((i) => (i.value = ""));
-  document.getElementById("gallery-preview").innerHTML = "";
-  document.getElementById("receipt-label").innerText = "Добавить чек";
+  const prev = document.getElementById("gallery-preview");
+  if (prev) prev.innerHTML = "";
+  const label = document.getElementById("receipt-label");
+  if (label) label.innerText = "Добавить чек";
   [
     "file-group",
     "cat-group",
@@ -509,24 +539,17 @@ function resetAddForm() {
     "tg-group",
     "phone-group",
     "desc-group",
-  ].forEach((id) => document.getElementById(id)?.classList.remove("hidden"));
+  ].forEach((id) => {
+    let el = document.getElementById(id);
+    if (el) el.classList.remove("hidden");
+  });
   applyHolidayUI();
-}
-
-function switchProfileTab(t) {
-  profTab = t;
-  document
-    .getElementById("tab-active")
-    ?.classList.toggle("active", t === "active");
-  document
-    .getElementById("tab-archive")
-    ?.classList.toggle("active", t === "archive");
-  renderProfile();
 }
 
 function handleFileSelect(i) {
   selectedFiles = Array.from(i.files).slice(0, 5);
   const p = document.getElementById("gallery-preview");
+  if (!p) return;
   p.innerHTML = "";
   selectedFiles.forEach((f) => {
     const r = new FileReader();
@@ -543,57 +566,42 @@ function handleFileSelect(i) {
 
 function selectTariff(t) {
   selectedTariff = t;
-  document.getElementById("tariff-std").className =
-    "tariff-card-box" + (t === "standard" ? " active-std" : "");
-  document.getElementById("tariff-vip").className =
-    "tariff-card-box" + (t === "vip" ? " active-vip" : "");
+  const s = document.getElementById("tariff-std");
+  if (s)
+    s.className = "tariff-card-box" + (t === "standard" ? " active-std" : "");
+  const v = document.getElementById("tariff-vip");
+  if (v) v.className = "tariff-card-box" + (t === "vip" ? " active-vip" : "");
   applyHolidayUI();
 }
 
 function handleReceiptSelect(i) {
   if (i.files[0]) {
     receiptAttached = true;
-    document.getElementById("receipt-label").innerText = "Чек добавлен ✅";
+    const l = document.getElementById("receipt-label");
+    if (l) l.innerText = "Чек добавлен ✅";
   }
 }
 function openManageModal(id) {
   currentManageId = id;
-  document.getElementById("manage-modal").classList.remove("hidden");
-}
-function startAdEdit() {
-  const ad = ads.find((a) => a.id === currentManageId);
-  if (!ad) return;
-  editingId = currentManageId;
-  showPage("add");
-  document.getElementById("add-title-text").innerText = "Редактирование";
-  [
-    "tariff-block",
-    "vip-block",
-    "file-group",
-    "cat-group",
-    "city-group",
-    "date-group",
-  ].forEach((id) => document.getElementById(id)?.classList.add("hidden"));
-  document.getElementById("in-title").value = ad.title || "";
-  document.getElementById("in-price").value = ad.price || "";
-  document.getElementById("in-wa").value = ad.phone || "";
-  closeManageModal();
-}
-function toggleCitySelector() {
-  document.getElementById("city-selector").classList.toggle("hidden");
+  const el = document.getElementById("manage-modal");
+  if (el) el.classList.remove("hidden");
 }
 function closeProduct() {
-  document.getElementById("product-modal").classList.add("hidden");
+  const el = document.getElementById("product-modal");
+  if (el) el.classList.add("hidden");
   tg.BackButton.hide();
 }
 function closeManageModal() {
-  document.getElementById("manage-modal").classList.add("hidden");
+  const el = document.getElementById("manage-modal");
+  if (el) el.classList.add("hidden");
 }
 function closeConfirmModal() {
-  document.getElementById("confirm-modal").classList.add("hidden");
+  const el = document.getElementById("confirm-modal");
+  if (el) el.classList.add("hidden");
 }
 function closeSearch() {
-  document.getElementById("search-results-page").classList.add("hidden");
+  const el = document.getElementById("search-results-page");
+  if (el) el.classList.add("hidden");
 }
 function clearFavs() {
   favs = [];
