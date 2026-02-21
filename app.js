@@ -851,6 +851,7 @@ function formatRelativeDate(timestamp) {
     year: "numeric",
   });
 }
+
 function reportAd(adId, sellerId) {
   // 1. Проверяем, не жаловался ли он уже в этот раз (сохраним в памяти телефона)
   let myReports = JSON.parse(localStorage.getItem("my_reports") || "[]");
@@ -882,34 +883,4 @@ function reportAd(adId, sellerId) {
   localStorage.setItem("my_reports", JSON.stringify(myReports));
 
   alert("Жалоба отправлена. Спасибо за помощь!");
-}
-
-function reportAd(adId, sellerId) {
-  let myReports = JSON.parse(localStorage.getItem("my_reports") || "[]");
-  if (myReports.includes(adId)) {
-    alert("Вы уже отправили жалобу. Модератор скоро проверит это объявление.");
-    return;
-  }
-
-  if (
-    !confirm(
-      "Вы уверены, что это мошенник? Жалоба будет немедленно передана администратору."
-    )
-  )
-    return;
-
-  const user = tg.initDataUnsafe?.user || { id: 0, username: "Guest" };
-
-  db.ref("reports").push({
-    adId: adId,
-    sellerId: sellerId,
-    reporterId: user.id,
-    reporterName: user.username || user.first_name,
-    timestamp: Math.floor(Date.now() / 1000),
-  });
-
-  myReports.push(adId);
-  localStorage.setItem("my_reports", JSON.stringify(myReports));
-
-  alert("Жалоба отправлена модератору. Спасибо!");
 }
