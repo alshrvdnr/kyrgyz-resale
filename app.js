@@ -1,3 +1,6 @@
+alert("САЙТ ОБНОВИЛСЯ! ВЕРСИЯ 2.1");
+console.log("DEBUG: КОД ЗАПУЩЕН");
+
 const tg = window.Telegram.WebApp;
 tg.expand();
 
