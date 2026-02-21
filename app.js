@@ -409,14 +409,29 @@ function toggleFav(id, event) {
 function renderFavs() {
   const container = document.getElementById("favs-content-area");
   if (!container) return;
+
   const filtered = ads.filter((ad) => favs.includes(ad.id));
-  if (filtered.length === 0)
-    container.innerHTML = `<div class="empty-favs-center"><h3>Пусто</h3><button class="btn-premium-unity" onclick="showPage('home')">Найти</button></div>`;
-  else {
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="empty-favs-center">
+        <div style="width:80px; height:80px; background:#2c2c2e; border-radius:20px; display:flex; align-items:center; justify-content:center; margin-bottom:20px; color:var(--yellow-main); font-size:32px;">
+          <i class="fa-solid fa-heart"></i>
+        </div>
+        <h3 style="margin: 0 0 10px 0;">У вас пока нет избранных</h3>
+        <!-- Сделал кнопку меньше через инлайновые стили -->
+        <button class="btn-premium-unity" 
+                style="width:auto; padding:12px 35px; font-size:14px; text-transform:none;" 
+                onclick="showPage('home')">
+          Найти подарки
+        </button>
+      </div>`;
+  } else {
     container.innerHTML = '<div class="listings-grid" id="fav-grid"></div>';
-    filtered.forEach((ad) =>
-      document.getElementById("fav-grid").appendChild(createAdCard(ad))
-    );
+    filtered.forEach((ad) => {
+      const grid = document.getElementById("fav-grid");
+      if (grid) grid.appendChild(createAdCard(ad));
+    });
   }
 }
 
