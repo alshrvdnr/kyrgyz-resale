@@ -1,13 +1,13 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-// 1. КОНФИГУРАЦИЯ FIREBASE
+// --- 1. CONFIG ---
 const firebaseConfig = {
   apiKey: "AIzaSyCxaC3C9dx6IEhXWH9eATdKZO8SCRYe33I",
   authDomain: "gifts-kg.firebaseapp.com",
   databaseURL: "https://gifts-kg-default-rtdb.firebaseio.com",
   projectId: "gifts-kg",
-  storageBucket: "gifts-kg.firebasestorage.app",
+  storageBucket: "gifts-kg.firebasestorage.app", // ТВОЙ STORAGE
   messagingSenderId: "419866659643",
   appId: "1:419866659643:web:2332c8856698705780451e",
   measurementId: "G-DH7RXQZ6Y3",
@@ -33,9 +33,8 @@ const catTitles = {
   certs: "Свежие сертификаты",
 };
 
-// 2. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
-let ads = [],
-  favs = JSON.parse(localStorage.getItem("favs_v15")) || [];
+let ads = [];
+let favs = JSON.parse(localStorage.getItem("favs_v15")) || [];
 let curCat = "Все",
   curCity = "Бишкек",
   selectedTariff = "standard",
@@ -47,7 +46,7 @@ let currentManageId = null,
   receiptAttached = false,
   currentQrUrl = "";
 
-// 3. ИНИЦИАЛИЗАЦИЯ ПРИ ЗАПУСКЕ
+// --- 2. ЗАПУСК ---
 document.addEventListener("DOMContentLoaded", () => {
   initUser();
   listenSettings();
@@ -61,29 +60,26 @@ function initUser() {
   const user = tg.initDataUnsafe?.user || { first_name: "Гость", id: 0 };
   const initial = user.first_name ? user.first_name[0].toUpperCase() : "?";
 
-  // Обновляем аватарки и имя
-  const avTop = document.getElementById("u-avatar-top");
-  const avBig = document.getElementById("u-avatar-big");
-  const uName = document.getElementById("u-name");
-
-  if (avTop) avTop.innerText = initial;
-  if (avBig) avBig.innerText = initial;
-  if (uName) uName.innerText = user.first_name || "Гость";
+  // Профиль и аватарки
+  if (document.getElementById("u-avatar-top"))
+    document.getElementById("u-avatar-top").innerText = initial;
+  if (document.getElementById("u-avatar-big"))
+    document.getElementById("u-avatar-big").innerText = initial;
+  if (document.getElementById("u-name"))
+    document.getElementById("u-name").innerText = user.first_name || "Гость";
 
   // Проверка бана
   if (user.id !== 0) {
-    db.ref("blacklist/" + user.id)
-      .once("value")
-      .then((snap) => {
-        if (snap.val()) {
-          window.stop();
-          document.body.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#000; color:#ff3b30; text-align:center; padding:30px;"><h1>🚫 Доступ заблокирован</h1><p>Ваш аккаунт в черном списке.</p></div>`;
-        }
-      });
+    db.ref("blacklist/" + user.id).on("value", (snap) => {
+      if (snap.val()) {
+        window.stop();
+        document.body.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#000; color:#ff3b30; text-align:center; padding:30px;"><h1>🚫 Доступ заблокирован</h1><p>Ваш аккаунт в черном списке за мошенничество.</p></div>`;
+      }
+    });
   }
 }
 
-// 4. РАБОТА С НАСТРОЙКАМИ И БАЗОЙ
+// --- 3. НАСТРОЙКИ (HOLIDAY MODE) ---
 function listenSettings() {
   db.ref("settings").on("value", (snap) => {
     const s = snap.val() || {};
@@ -119,9 +115,25 @@ function applyHolidayUI() {
       if (selectedTariff === "vip") vBlock.classList.remove("hidden");
       else vBlock.classList.add("hidden");
     }
+    if (promoText) promoText.innerText = "VIP-объявление будет в ТОПе 3 дня.";
   }
 }
 
+// --- 4. ЗАГРУЗКА ФОТО В FIREBASE STORAGE (BLAZE) ---
+async function uploadFile(file) {
+  if (!file) return null;
+  try {
+    const fileName = Date.now() + "_" + file.name;
+    const storageRef = storage.ref("ads/" + fileName);
+    const snapshot = await storageRef.put(file);
+    return await snapshot.ref.getDownloadURL();
+  } catch (e) {
+    console.error("Ошибка загрузки в Storage:", e);
+    return null;
+  }
+}
+
+// --- 5. ОБЪЯВЛЕНИЯ (FEED) ---
 function listenAds() {
   db.ref("ads").on("value", (snap) => {
     const data = snap.val();
@@ -133,7 +145,6 @@ function listenAds() {
   });
 }
 
-// 5. ЛОГИКА КАРТОЧЕК И ЛЕНТЫ
 function renderFeed() {
   const grid = document.getElementById("home-grid");
   if (!grid) return;
@@ -148,6 +159,7 @@ function renderFeed() {
       ad.status !== "rejected"
   );
 
+  // Сортировка: VIP -> Новые -> Продано
   filtered.sort((a, b) => {
     const aIsSold = a.status === "sold",
       bIsSold = b.status === "sold";
@@ -204,12 +216,13 @@ function createAdCard(ad, isProfile = false) {
   return card;
 }
 
-// 6. МОДАЛЬНОЕ ОКНО ТОВАРА
+// --- 6. МОДАЛКА ТОВАРА (ДИЗАЙН) ---
 function openProduct(ad) {
   const modal = document.getElementById("product-modal");
   const isSold = ad.status === "sold",
     isFav = favs.includes(ad.id);
   const timeLabel = formatRelativeDate(ad.approvedAt || ad.createdAt);
+  const isVerified = ad.verified === true;
 
   let contactLink = ad.tgNick
     ? `https://t.me/${ad.tgNick.replace("@", "")}`
@@ -252,7 +265,7 @@ function openProduct(ad) {
       </div>
       <div style="margin-bottom:20px; font-size:16px;"><b>${
         catMap[ad.cat] || "Товар"
-      }</b> — ${ad.title} ${ad.verified ? "🔵" : ""}</div>
+      }</b> — ${ad.title} ${isVerified ? "🔵" : ""}</div>
       ${
         isSold
           ? `<div style="background:#333; padding:15px; border-radius:12px; color:#ff3b30; text-align:center; font-weight:bold;">Продано</div>`
@@ -262,15 +275,15 @@ function openProduct(ad) {
             ad.desc || "Нет описания"
           }</div>
           <div style="background:#1c1c1e; padding:18px; border-radius:15px; border:1px solid #333; display:flex; flex-direction:column; gap:15px;">
-             <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-location-dot" style="color:#ff3b30; font-size:18px;"></i><div>${
+             <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-location-dot" style="color:#ff3b30; font-size:18px; width:20px; text-align:center;"></i><div>${
                ad.city
              }, ${ad.address || "—"}</div></div>
-             <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-phone" style="color:var(--yellow-main); font-size:16px;"></i><div>${
+             <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-phone" style="color:var(--yellow-main); font-size:16px; width:20px; text-align:center;"></i><div>${
                ad.phone || "—"
              }</div></div>
              ${
                ad.tgNick
-                 ? `<div style="display:flex; align-items:center; gap:12px;"><i class="fa-brands fa-telegram" style="color:#0088cc; font-size:20px;"></i><div>${ad.tgNick}</div></div>`
+                 ? `<div style="display:flex; align-items:center; gap:12px;"><i class="fa-brands fa-telegram" style="color:#0088cc; font-size:20px; width:20px; text-align:center;"></i><div>${ad.tgNick}</div></div>`
                  : ""
              }
           </div>
@@ -294,25 +307,17 @@ function openProduct(ad) {
   tg.BackButton.onClick(closeProduct);
 }
 
-// 7. ФУНКЦИИ ПОДАЧИ (ЗАГРУЗКА В STORAGE)
-async function uploadFile(file) {
-  if (!file) return null;
-  const fileName = Date.now() + "_" + file.name;
-  const storageRef = storage.ref("ads/" + fileName);
-  await storageRef.put(file);
-  return await storageRef.getDownloadURL();
-}
-
+// --- 7. ПУБЛИКАЦИЯ ---
 async function publishAndSend() {
   const btn = document.getElementById("pub-btn");
-  if (!document.getElementById("in-title").value)
-    return alert("Заполни название!");
+  const title = document.getElementById("in-title").value;
+  if (!title) return alert("Заполни название!");
 
   if (editingId) {
     btn.disabled = true;
     try {
       await db.ref("ads/" + editingId).update({
-        title: document.getElementById("in-title").value,
+        title: title,
         price: document.getElementById("in-price").value,
         address: document.getElementById("in-address").value,
         phone: document.getElementById("in-wa").value,
@@ -342,7 +347,7 @@ async function publishAndSend() {
     const imgs = await Promise.all(selectedFiles.map((f) => uploadFile(f)));
 
     const newAd = {
-      title: document.getElementById("in-title").value,
+      title: title,
       price: document.getElementById("in-price").value,
       cat: document.getElementById("in-cat").value,
       city: document.getElementById("in-city").value,
@@ -372,7 +377,7 @@ async function publishAndSend() {
   }
 }
 
-// 8. НАВИГАЦИЯ И ФИЛЬТРЫ
+// --- 8. НАВИГАЦИЯ И ФИЛЬТРЫ ---
 function showPage(p) {
   document.querySelectorAll(".page").forEach((s) => s.classList.add("hidden"));
   const target = document.getElementById(`page-${p}`);
@@ -386,7 +391,9 @@ function showPage(p) {
     document.getElementById("n-favs").classList.add("active");
     renderFavs();
   }
-  if (p === "add" && !editingId) resetAddForm();
+  if (p === "add") {
+    if (!editingId) resetAddForm();
+  }
   if (p === "profile") renderProfile();
 }
 
@@ -395,7 +402,7 @@ function filterByCat(c, el) {
   document
     .querySelectorAll(".cat-card")
     .forEach((i) => i.classList.remove("active"));
-  el.classList.add("active");
+  if (el) el.classList.add("active");
   document.getElementById("dynamic-feed-title").innerText =
     catTitles[c] || "Свежие предложения";
   renderFeed();
@@ -408,23 +415,26 @@ function selectCity(c) {
   renderFeed();
 }
 
-// 9. ИЗБРАННОЕ И ПРОФИЛЬ
+function toggleCitySelector() {
+  const el = document.getElementById("city-selector");
+  if (el) el.classList.toggle("hidden");
+}
+
+// --- 9. ИЗБРАННОЕ И ПРОФИЛЬ ---
 function toggleFav(id, event) {
   if (event) event.stopPropagation();
   favs = favs.includes(id) ? favs.filter((f) => f !== id) : [...favs, id];
   localStorage.setItem("favs_v15", JSON.stringify(favs));
   renderFeed();
-  if (
-    document.getElementById("page-favs").classList.contains("hidden") === false
-  )
-    renderFavs();
+  renderFavs();
 }
 
 function renderFavs() {
   const container = document.getElementById("favs-content-area");
+  if (!container) return;
   const filtered = ads.filter((ad) => favs.includes(ad.id));
   if (filtered.length === 0) {
-    container.innerHTML = `<div class="empty-favs-center"><h3>В избранном пока пусто</h3><button class="btn-premium-unity" onclick="showPage('home')">Найти подарки</button></div>`;
+    container.innerHTML = `<div class="empty-favs-center"><div style="width:80px; height:80px; background:#2c2c2e; border-radius:20px; display:flex; align-items:center; justify-content:center; margin-bottom:20px; color:var(--yellow-main); font-size:32px;"><i class="fa-solid fa-heart"></i></div><h3>В избранном пока пусто</h3><button class="btn-premium-unity" style="width:auto; padding:12px 40px;" onclick="showPage('home')">Найти подарки</button></div>`;
   } else {
     container.innerHTML = '<div class="listings-grid" id="fav-grid"></div>';
     filtered.forEach((ad) =>
@@ -460,7 +470,7 @@ function switchProfileTab(t) {
   renderProfile();
 }
 
-// 10. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+// --- 10. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
 function formatRelativeDate(ts) {
   if (!ts) return "Сегодня";
   const date = new Date(ts * 1000),
@@ -476,7 +486,8 @@ function formatRelativeDate(ts) {
 }
 
 function reportAd(adId, sellerId) {
-  if (!confirm("Это мошенник?")) return;
+  if (!confirm("Вы уверены, что хотите пожаловаться на это объявление?"))
+    return;
   db.ref("reports").push({
     adId,
     sellerId,
@@ -495,9 +506,11 @@ function startSearch(val) {
       ad.status !== "deleted"
   );
   const area = document.getElementById("search-results-area");
-  area.innerHTML = "";
-  res.forEach((ad) => area.appendChild(createAdCard(ad)));
-  document.getElementById("search-results-page").classList.remove("hidden");
+  if (area) {
+    area.innerHTML = "";
+    res.forEach((ad) => area.appendChild(createAdCard(ad)));
+    document.getElementById("search-results-page").classList.remove("hidden");
+  }
 }
 
 function confirmAction(type) {
@@ -517,8 +530,10 @@ function resetAddForm() {
   selectedFiles = [];
   receiptAttached = false;
   document.querySelectorAll(".main-input").forEach((i) => (i.value = ""));
-  document.getElementById("gallery-preview").innerHTML = "";
-  document.getElementById("receipt-label").innerText = "Добавить чек";
+  if (document.getElementById("gallery-preview"))
+    document.getElementById("gallery-preview").innerHTML = "";
+  if (document.getElementById("receipt-label"))
+    document.getElementById("receipt-label").innerText = "Добавить чек";
   [
     "file-group",
     "cat-group",
@@ -527,13 +542,17 @@ function resetAddForm() {
     "tg-group",
     "phone-group",
     "desc-group",
-  ].forEach((id) => document.getElementById(id).classList.remove("hidden"));
+  ].forEach((id) => {
+    let el = document.getElementById(id);
+    if (el) el.classList.remove("hidden");
+  });
   applyHolidayUI();
 }
 
 function handleFileSelect(i) {
   selectedFiles = Array.from(i.files).slice(0, 5);
   const p = document.getElementById("gallery-preview");
+  if (!p) return;
   p.innerHTML = "";
   selectedFiles.forEach((f) => {
     const r = new FileReader();
@@ -580,14 +599,14 @@ function startAdEdit() {
     "cat-group",
     "city-group",
     "date-group",
-  ].forEach((id) => document.getElementById(id).classList.add("hidden"));
+  ].forEach((id) => {
+    let el = document.getElementById(id);
+    if (el) el.classList.add("hidden");
+  });
   document.getElementById("in-title").value = ad.title || "";
   document.getElementById("in-price").value = ad.price || "";
   document.getElementById("in-wa").value = ad.phone || "";
   closeManageModal();
-}
-function toggleCitySelector() {
-  document.getElementById("city-selector").classList.toggle("hidden");
 }
 function closeProduct() {
   document.getElementById("product-modal").classList.add("hidden");
