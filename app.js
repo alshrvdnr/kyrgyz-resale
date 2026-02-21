@@ -1,43 +1,23 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-// FIREBASE CONFIG
+// 1. FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyCxaC3C9dx6IEhXWH9eATdKZO8SCRYe33I",
   authDomain: "gifts-kg.firebaseapp.com",
   databaseURL: "https://gifts-kg-default-rtdb.firebaseio.com",
   projectId: "gifts-kg",
-  storageBucket: "gifts-kg.firebasestorage.app",
+  storageBucket: "gifts-kg.firebasestorage.app", // Мы настроили это!
   messagingSenderId: "419866659643",
   appId: "1:419866659643:web:2332c8856698705780451e",
   measurementId: "G-DH7RXQZ6Y3",
 };
-function checkBanStatus(userId) {
-  if (!userId) return;
-  // Используем .once чтобы быстро проверить при входе
-  db.ref("blacklist/" + userId)
-    .once("value")
-    .then((snap) => {
-      if (snap.val()) {
-        // Полностью очищаем страницу и останавливаем выполнение скриптов
-        window.stop();
-        document.documentElement.innerHTML = ""; // Стираем всё
-        document.body.innerHTML = `
-        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#000; color:#ff3b30; font-family:sans-serif; text-align:center; padding:30px;">
-          <h1 style="font-size:80px;">🚫</h1>
-          <h2 style="text-transform:uppercase; letter-spacing:2px;">Доступ заблокирован</h2>
-          <p style="color:#888; max-width:300px;">Ваш аккаунт внесен в черный список. По всем вопросам пишите в поддержку.</p>
-        </div>
-      `;
-        throw new Error("User is banned"); // Останавливаем JS
-      }
-    });
-}
 
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+const storage = firebase.storage(); // Для загрузки фото напрямую
 
-const IMGBB_KEY = "94943ea3f656b4bc95e25c86d2880b94";
+const IMGBB_KEY = "94943ea3f656b4bc95e25c86d2880b94"; // Оставим как запасной
 const catMap = {
   flowers: "Цветы",
   jewelry: "Ювелирка",
@@ -53,8 +33,8 @@ const catTitles = {
   certs: "Свежие сертификаты",
 };
 
-let ads = [];
-let favs = JSON.parse(localStorage.getItem("favs_v15")) || [];
+let ads = [],
+  favs = JSON.parse(localStorage.getItem("favs_v15")) || [];
 let curCat = "Все",
   curCity = "Бишкек",
   selectedTariff = "standard",
@@ -82,16 +62,24 @@ function initUser() {
   document.getElementById("u-avatar-big").innerText = initial;
   document.getElementById("u-name").innerText = user.first_name || "Гость";
 
-  // Проверка бана должна быть здесь!
   if (user.id !== 0) checkBanStatus(user.id);
+}
+
+function checkBanStatus(userId) {
+  db.ref("blacklist/" + userId)
+    .once("value")
+    .then((snap) => {
+      if (snap.val()) {
+        window.stop();
+        document.documentElement.innerHTML = "";
+        document.body.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#000; color:#ff3b30; text-align:center; padding:30px;"><h1>🚫 Доступ заблокирован</h1><p>Ваш аккаунт в черном списке.</p></div>`;
+      }
+    });
 }
 
 function listenSettings() {
   db.ref("settings").on("value", (snap) => {
-    const dataFromFirebase = snap.val(); // Получаем данные
-    console.log("ДАННЫЕ ИЗ БАЗЫ:", dataFromFirebase); // ВЫВОДИМ В КОНСОЛЬ
-
-    const s = dataFromFirebase || {};
+    const s = snap.val() || {};
     holidayMode = s.holiday_mode || false;
     currentQrUrl = s.qr_url || "";
     applyHolidayUI();
@@ -102,71 +90,61 @@ function applyHolidayUI() {
   const vBlock = document.getElementById("vip-block");
   const qrImg = document.getElementById("qr-display");
   const promoText = document.getElementById("vip-promo-text");
-
-  // Элементы цен и названий
-  const priceStd = document.getElementById("price-std");
-  const priceVip = document.getElementById("price-vip");
-  const labelStd = document.getElementById("label-std");
+  const priceStd = document.getElementById("price-std"),
+    priceVip = document.getElementById("price-vip"),
+    labelStd = document.getElementById("label-std");
 
   if (qrImg && currentQrUrl) qrImg.src = currentQrUrl;
 
   if (holidayMode) {
-    // ПРАЗДНИЧНЫЙ РЕЖИМ
-    labelStd.innerText = "Стандарт + ТОП";
-    priceStd.innerText = "100 сом";
-    priceVip.innerText = "200 сом";
-
-    // В праздники блок оплаты (чек) виден ВСЕГДА для обоих тарифов
+    if (labelStd) labelStd.innerText = "Стандарт + ТОП";
+    if (priceStd) priceStd.innerText = "100 сом";
+    if (priceVip) priceVip.innerText = "200 сом";
     vBlock.classList.remove("hidden");
     promoText.innerText =
       "В праздничные дни все объявления платные. Стандарт идет в ТОП, VIP — выше всех.";
   } else {
-    // ОБЫЧНЫЙ РЕЖИМ
-    labelStd.innerText = "Стандарт";
-    priceStd.innerText = "Бесплатно";
-    priceVip.innerText = "100 сом";
-
-    // Блок оплаты виден только если выбран VIP
-    if (selectedTariff === "vip") {
-      vBlock.classList.remove("hidden");
-      promoText.innerText = "VIP-объявление будет в ТОПе 3 дня.";
-    } else {
-      vBlock.classList.add("hidden");
-    }
+    if (labelStd) labelStd.innerText = "Стандарт";
+    if (priceStd) priceStd.innerText = "Бесплатно";
+    if (priceVip) priceVip.innerText = "100 сом";
+    if (selectedTariff === "vip") vBlock.classList.remove("hidden");
+    else vBlock.classList.add("hidden");
+    promoText.innerText = "VIP-объявление будет в ТОПе 3 дня.";
   }
 }
 
-// Обновим также проверку при публикации
+// 2. ФУНКЦИЯ ЗАГРУЗКИ В STORAGE (Профессиональный вариант)
+async function uploadFile(file) {
+  if (!file) return null;
+  const fileName = Date.now() + "_" + file.name;
+  const storageRef = storage.ref("ads/" + fileName);
+  await storageRef.put(file);
+  return await storageRef.getDownloadURL();
+}
+
 async function publishAndSend() {
   const title = document.getElementById("in-title").value;
   const price = document.getElementById("in-price").value;
-  const btn = document.getElementById("pub-btn"); // Убедись, что ID кнопки совпадает
-
+  const btn = document.getElementById("pub-btn");
   if (!title || !price) return alert("Заполни поля!");
 
-  // --- 1. ЛОГИКА РЕДАКТИРОВАНИЯ СУЩЕСТВУЮЩЕГО ОБЪЯВЛЕНИЯ ---
   if (editingId) {
     btn.disabled = true;
     btn.innerText = "СОХРАНЕНИЕ...";
-
     try {
       await db.ref("ads/" + editingId).update({
-        title: title,
-        price: price,
+        title,
+        price,
         address: document.getElementById("in-address").value,
         phone: document.getElementById("in-wa").value,
         desc: document.getElementById("in-desc").value,
-        // ВАЖНО: говорим боту, что нужно обновить пост в Telegram
         needs_sync_tg: true,
       });
-
-      alert(
-        "Изменения сохранены! Данные в Telegram обновятся в течение минуты."
-      );
+      alert("Изменения сохранены!");
       resetAddForm();
       showPage("home");
     } catch (e) {
-      alert("Ошибка при обновлении: " + e.message);
+      alert("Ошибка: " + e.message);
     } finally {
       btn.disabled = false;
       btn.innerText = "Опубликовать";
@@ -174,37 +152,21 @@ async function publishAndSend() {
     return;
   }
 
-  // --- 2. ЛОГИКА СОЗДАНИЯ НОВОГО ОБЪЯВЛЕНИЯ ---
-
-  // ПРОВЕРКА ОПЛАТЫ: (Праздник ВКЛ) ИЛИ (Выбран VIP)
   const isPaid = holidayMode || selectedTariff === "vip";
-  if (isPaid && !receiptAttached) {
-    return alert(
-      "В праздничные дни или для VIP нужно прикрепить чек об оплате!"
-    );
-  }
+  if (isPaid && !receiptAttached) return alert("Прикрепите чек!");
 
   btn.disabled = true;
-  btn.innerText = "ЗАГРУЗКА ФОТО...";
+  btn.innerText = "ЗАГРУЗКА...";
 
   try {
-    // А. Загрузка чека (если нужно)
-    let receiptUrl = null;
-    if (isPaid) {
-      const receiptFile = document.getElementById("receipt-input").files[0];
-      receiptUrl = await uploadToImgBB(receiptFile);
-      if (!receiptUrl) throw new Error("Не удалось загрузить чек");
-    }
+    let receiptUrl = isPaid
+      ? await uploadFile(document.getElementById("receipt-input").files[0])
+      : null;
+    const imgs = await Promise.all(selectedFiles.map((f) => uploadFile(f)));
 
-    // Б. Загрузка основных фотографий товара
-    const imgs = await Promise.all(
-      selectedFiles.map((file) => uploadToImgBB(file))
-    );
-
-    // В. Формирование объекта для Firebase
     const newAd = {
-      title: title,
-      price: price,
+      title,
+      price,
       cat: document.getElementById("in-cat").value,
       city: document.getElementById("in-city").value,
       address: document.getElementById("in-address").value,
@@ -214,22 +176,20 @@ async function publishAndSend() {
       receiveDate: document.getElementById("in-receive-date").value,
       img: imgs.filter((i) => i !== null),
       receipt_url: receiptUrl,
-      status: "pending", // Бот ищет статус ожидания
-      bot_notified: false, // ОБЯЗАТЕЛЬНО: чтобы бот прислал уведомление админу
+      status: "pending",
+      bot_notified: false,
       tariff: selectedTariff,
-      holiday_active: holidayMode,
+      is_holiday: holidayMode,
       userId: tg.initDataUnsafe?.user?.id || 0,
       createdAt: Math.floor(Date.now() / 1000),
     };
 
-    // Г. Отправка в базу
     await db.ref("ads").push(newAd);
-
-    alert("Успешно! Ваше объявление отправлено на модерацию.");
+    alert("Успешно отправлено на модерацию!");
     resetAddForm();
     showPage("home");
   } catch (e) {
-    alert("Ошибка загрузки: " + e.message);
+    alert("Ошибка: " + e.message);
   } finally {
     btn.disabled = false;
     btn.innerText = "Опубликовать";
@@ -247,19 +207,16 @@ function listenAds() {
   });
 }
 
-// КАРУСЕЛЬ И ЛОГИКА КОНТАКТОВ
 function openProduct(ad) {
   const modal = document.getElementById("product-modal");
-  const isSold = ad.status === "sold";
-  const isFav = favs.includes(ad.id);
-  const timestamp = ad.approvedAt || ad.createdAt;
-  const dateStr = formatRelativeDate(timestamp);
+  const isSold = ad.status === "sold",
+    isFav = favs.includes(ad.id);
+  const timeLabel = formatRelativeDate(ad.approvedAt || ad.createdAt);
   const isVerified = ad.verified === true;
 
   let contactLink = ad.tgNick
     ? `https://t.me/${ad.tgNick.replace("@", "")}`
-    : `https://wa.me/${ad.phone ? ad.phone.replace(/[^0-9]/g, "") : ""}`;
-
+    : `https://wa.me/${ad.phone?.replace(/[^0-9]/g, "")}`;
   let dots = ad.img
     ? ad.img
         .map(
@@ -279,170 +236,195 @@ function openProduct(ad) {
       }')" style="position:absolute; top:20px; right:20px; z-index:100; font-size:24px; color:${
     isFav ? "var(--yellow-main)" : "#fff"
   }"></i>
-      <div class="product-gallery-slider" id="slider-${ad.id}">
-        ${ad.img ? ad.img.map((src) => `<img src="${src}">`).join("") : ""}
-      </div>
+      <div class="product-gallery-slider" id="slider-${ad.id}">${
+    ad.img ? ad.img.map((src) => `<img src="${src}">`).join("") : ""
+  }</div>
       <div class="carousel-dots">${dots}</div>
     </div>
-
     <div style="padding:20px;">
-      <!-- ВЕРХНИЙ БЛОК -->
       <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
-        <div style="font-size:28px; font-weight:800; color:var(--yellow-main); line-height:1;">
-          ${ad.price} KGS
-        </div>
+        <div style="font-size:28px; font-weight:800; color:var(--yellow-main);">${
+          ad.price
+        } KGS</div>
         <div style="display:flex; flex-direction:column; align-items:flex-end; gap:5px;">
-          <div style="color:var(--gray); font-size:11px;">${dateStr}</div>
-          <div style="font-size:11px; color:#4cd964; font-weight:bold; background:rgba(76,217,100,0.1); padding:4px 8px; border-radius:6px; border:1px solid rgba(76,217,100,0.2);">
-            Поступление: ${ad.receiveDate || "—"}
-          </div>
+          <div style="color:var(--gray); font-size:11px;">${timeLabel}</div>
+          <div style="font-size:11px; color:#4cd964; font-weight:bold; background:rgba(76,217,100,0.1); padding:4px 8px; border-radius:6px;">Поступление: ${
+            ad.receiveDate || "—"
+          }</div>
         </div>
       </div>
-
-      <div style="margin-bottom:20px; font-size:16px; line-height:1.4; display:flex; align-items:center; gap:8px;">
-        <b style="color:#fff;">${catMap[ad.cat] || "Товар"}</b> — ${ad.title}
-        ${
-          isVerified
-            ? `<i class="fa-solid fa-circle-check" style="color:#0088cc; font-size:18px;"></i>`
-            : ""
-        }
-      </div>
-      
+      <div style="margin-bottom:20px; font-size:16px;"><b>${
+        catMap[ad.cat] || "Товар"
+      }</b> — ${ad.title} ${isVerified ? "🔵" : ""}</div>
       ${
         isSold
           ? `<div style="background:#333; padding:15px; border-radius:12px; color:#ff3b30; text-align:center; font-weight:bold;">Продано</div>`
           : `
           <a href="${contactLink}" class="btn-premium-unity" style="text-decoration:none; margin-bottom:20px;">Написать продавцу</a>
-
-          <div style="background:#2c2c2e; padding:15px; border-radius:12px; margin:20px 0; white-space: pre-wrap; line-height:1.5; color:#efeff4; font-size:15px;">${
+          <div style="background:#2c2c2e; padding:15px; border-radius:12px; margin:20px 0; white-space: pre-wrap; font-size:15px;">${
             ad.desc || "Нет описания"
           }</div>
-
-          <div style="background:#1c1c1e; padding:18px; border-radius:15px; border:1px solid #333; display:flex; flex-direction:column; gap:15px; margin-bottom:25px;">
-             <div style="display:flex; align-items:center; gap:12px;">
-                <i class="fa-solid fa-location-dot" style="color:#ff3b30; font-size:18px; width:20px; text-align:center;"></i>
-                <div style="font-size:14px; color:#ccc;">${ad.city}, ${
-              ad.address || "—"
-            }</div>
-             </div>
-             <div style="display:flex; align-items:center; gap:12px;">
-                <i class="fa-solid fa-phone" style="color:var(--yellow-main); font-size:16px; width:20px; text-align:center;"></i>
-                <div style="font-size:15px; font-weight:bold; color:#fff;">${
-                  ad.phone || "—"
-                }</div>
-             </div>
+          <div style="background:#1c1c1e; padding:18px; border-radius:15px; border:1px solid #333; display:flex; flex-direction:column; gap:15px;">
+             <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-location-dot" style="color:#ff3b30; font-size:18px;"></i><div>${
+               ad.city
+             }, ${ad.address || "—"}</div></div>
+             <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-phone" style="color:var(--yellow-main); font-size:16px;"></i><div>${
+               ad.phone || "—"
+             }</div></div>
              ${
                ad.tgNick
-                 ? `
-             <div style="display:flex; align-items:center; gap:12px;">
-                <i class="fa-brands fa-telegram" style="color:#0088cc; font-size:20px; width:20px; text-align:center;"></i>
-                <div style="font-size:15px; font-weight:bold; color:#fff;">${ad.tgNick}</div>
-             </div>
-             `
+                 ? `<div style="display:flex; align-items:center; gap:12px;"><i class="fa-brands fa-telegram" style="color:#0088cc; font-size:20px;"></i><div>${ad.tgNick}</div></div>`
                  : ""
              }
           </div>
-
-          <!-- ЖЕЛТАЯ КНОПКА ЖАЛОБЫ -->
-          <div onclick="reportAd('${ad.id}', '${ad.userId}')" 
-               style="background:rgba(255,204,0,0.1); color:var(--yellow-main); border:1px solid var(--yellow-main); padding:12px; border-radius:12px; text-align:center; font-size:14px; font-weight:bold; cursor:pointer;">
-             <i class="fa-solid fa-triangle-exclamation" style="margin-right:8px;"></i> Пожаловаться на мошенника
-          </div>
-        `
+          <div onclick="reportAd('${ad.id}', '${
+              ad.userId
+            }')" style="background:rgba(255,204,0,0.1); color:var(--yellow-main); border:1px solid var(--yellow-main); padding:12px; border-radius:12px; text-align:center; font-size:14px; font-weight:bold; cursor:pointer; margin-top:25px;">Пожаловаться на мошенника</div>
+      `
       }
     </div>`;
 
   const slider = document.getElementById(`slider-${ad.id}`);
-  if (slider) {
+  if (slider)
     slider.onscroll = () => {
       let idx = Math.round(slider.scrollLeft / slider.offsetWidth);
-      const allDots = document.querySelectorAll(`[id^="dot-${ad.id}"]`);
-      allDots.forEach((d, i) => d.classList.toggle("active", i === idx));
+      document
+        .querySelectorAll(`[id^="dot-${ad.id}"]`)
+        .forEach((d, i) => d.classList.toggle("active", i === idx));
     };
-  }
   modal.classList.remove("hidden");
   tg.BackButton.show();
   tg.BackButton.onClick(closeProduct);
 }
 
-// ПАРАЛЛЕЛЬНАЯ ЗАГРУЗКА
-async function publishAndSend() {
-  const title = document.getElementById("in-title").value;
-  const price = document.getElementById("in-price").value;
-  const btn = document.getElementById("pub-btn"); // Убедись, что у кнопки есть этот ID
+function renderFeed() {
+  const grid = document.getElementById("home-grid");
+  if (!grid) return;
+  grid.innerHTML = "";
 
-  if (!title || !price) return alert("Заполни поля!");
+  let filtered = ads.filter(
+    (ad) =>
+      (curCat === "Все" || ad.cat === curCat) &&
+      ad.city === curCity &&
+      ad.status !== "deleted" &&
+      ad.status !== "pending" &&
+      ad.status !== "rejected"
+  );
 
-  if (editingId) {
-    await db.ref("ads/" + editingId).update({
-      title,
-      price,
-      address: document.getElementById("in-address").value,
-      phone: document.getElementById("in-wa").value,
-      desc: document.getElementById("in-desc").value,
-    });
-    resetAddForm();
-    showPage("home");
-    return;
-  }
-
-  // ПРОВЕРКА: Нужен ли чек?
-  const isPaid = holidayMode || selectedTariff === "vip";
-
-  if (isPaid && !receiptAttached) {
-    return alert(
-      "Ошибка: Вы выбрали платный тариф, но не прикрепили чек об оплате!"
+  filtered.sort((a, b) => {
+    const aIsSold = a.status === "sold",
+      bIsSold = b.status === "sold";
+    if (aIsSold !== bIsSold) return aIsSold ? 1 : -1;
+    if (!aIsSold && !bIsSold && a.tariff !== b.tariff)
+      return a.tariff === "vip" ? -1 : 1;
+    return (
+      (b.approvedAt || b.createdAt || 0) - (a.approvedAt || a.createdAt || 0)
     );
-  }
+  });
 
-  btn.disabled = true;
-  btn.innerText = "ПОДОЖДИТЕ, ЗАГРУЗКА...";
-
-  try {
-    // 1. Сначала грузим чек
-    let receiptUrl = null;
-    if (isPaid) {
-      const receiptFile = document.getElementById("receipt-input").files[0];
-      receiptUrl = await uploadToImgBB(receiptFile);
-      if (!receiptUrl) throw new Error("Не удалось загрузить чек");
-    }
-
-    // 2. Грузим основные фото
-    const imgs = await Promise.all(
-      selectedFiles.map((file) => uploadToImgBB(file))
-    );
-
-    // 3. Формируем объект
-    const newAd = {
-      title,
-      price,
-      cat: document.getElementById("in-cat").value,
-      city: document.getElementById("in-city").value,
-      address: document.getElementById("in-address").value,
-      phone: document.getElementById("in-wa").value,
-      tgNick: document.getElementById("in-tg").value,
-      desc: document.getElementById("in-desc").value,
-      receiveDate: document.getElementById("in-receive-date").value,
-      img: imgs.filter((i) => i !== null),
-      receipt_url: receiptUrl, // Ссылка на чек
-      status: "pending",
-      tariff: selectedTariff,
-      is_holiday: holidayMode,
-      userId: tg.initDataUnsafe?.user?.id || 0,
-      createdAt: Math.floor(Date.now() / 1000),
-    };
-
-    await db.ref("ads").push(newAd);
-    alert("Успешно! Объявление и чек отправлены на проверку.");
-    resetAddForm();
-    showPage("home");
-  } catch (e) {
-    alert("Ошибка при отправке: " + e.message);
-  } finally {
-    btn.disabled = false;
-    btn.innerText = "Опубликовать";
-  }
+  filtered.forEach((ad) => grid.appendChild(createAdCard(ad)));
 }
+
+function createAdCard(ad, isProfile = false) {
+  const isFav = favs.includes(ad.id),
+    isSold = ad.status === "sold",
+    isVip = ad.tariff === "vip" && !isSold;
+  const timeLabel = formatRelativeDate(ad.approvedAt || ad.createdAt);
+  const card = document.createElement("div");
+  card.className = `card ${isVip ? "card-vip" : ""} ${
+    ad.status === "deleted" ? "card-deleted" : ""
+  }`;
+  card.onclick = () => openProduct(ad);
+  card.innerHTML = `${isSold ? '<div class="sold-badge">ПРОДАНО</div>' : ""}${
+    isVip ? '<div class="vip-badge">VIP</div>' : ""
+  }${
+    !isProfile
+      ? `<div class="fav-heart-btn ${
+          isFav ? "active" : ""
+        }" onclick="toggleFav('${
+          ad.id
+        }', event)"><i class="fa-solid fa-heart"></i></div>`
+      : ""
+  }<img src="${
+    ad.img ? ad.img[0] : ""
+  }" loading="lazy"><div style="padding:10px;"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;"><div style="color:var(--yellow-main); font-weight:bold; font-size:15px;">${
+    ad.price
+  } KGS</div><div style="color:var(--gray); font-size:10px;">${timeLabel}</div></div><div style="font-size:12px; color:#ccc; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${
+    ad.title
+  }</div>${
+    isProfile && ad.status === "active"
+      ? `<button onclick="event.stopPropagation(); openManageModal('${ad.id}')" style="width:100%; background:var(--yellow-main); color:#000; border:none; padding:8px; border-radius:8px; font-size:11px; font-weight:bold; margin-top:8px;">Управление</button>`
+      : ""
+  }</div>`;
+  return card;
+}
+
+function formatRelativeDate(ts) {
+  if (!ts) return "Только что";
+  const date = new Date(ts * 1000),
+    now = new Date();
+  const diffDays = Math.floor(
+    (new Date(now.getFullYear(), now.getMonth(), now.getDate()) -
+      new Date(date.getFullYear(), date.getMonth(), date.getDate())) /
+      86400000
+  );
+  if (diffDays === 0) return "Сегодня";
+  if (diffDays === 1) return "Вчера";
+  return date.toLocaleDateString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
+function reportAd(adId, sellerId) {
+  let myReports = JSON.parse(localStorage.getItem("my_reports") || "[]");
+  if (myReports.includes(adId)) return alert("Вы уже отправили жалобу.");
+  if (!confirm("Вы уверены, что это мошенник?")) return;
+  db.ref("reports").push({
+    adId,
+    sellerId,
+    reporterId: tg.initDataUnsafe?.user?.id || 0,
+    reporterName: tg.initDataUnsafe?.user?.first_name || "Guest",
+    timestamp: Math.floor(Date.now() / 1000),
+    bot_notified: false,
+  });
+  myReports.push(adId);
+  localStorage.setItem("my_reports", JSON.stringify(myReports));
+  alert("Жалоба отправлена модератору.");
+}
+
+function showPage(p) {
+  document.querySelectorAll(".page").forEach((s) => s.classList.add("hidden"));
+  document.getElementById(`page-${p}`).classList.remove("hidden");
+  document
+    .querySelectorAll(".nav-item")
+    .forEach((item) => item.classList.remove("active"));
+  if (p === "home") document.getElementById("n-home").classList.add("active");
+  else if (p === "favs")
+    document.getElementById("n-favs").classList.add("active");
+  if (p === "favs") renderFavs();
+  if (p === "add" && !editingId) resetAddForm();
+  if (p === "profile") renderProfile();
+}
+
+function confirmAction(type) {
+  const actionText = type === "sold" ? "в архив (продано)" : "на удаление";
+  if (!confirm(`Объявление будет отправлено ${actionText}. Продолжить?`))
+    return;
+  db.ref("management_requests").push({
+    adId: currentManageId,
+    action: type,
+    userId: tg.initDataUnsafe?.user?.id || 0,
+    timestamp: Math.floor(Date.now() / 1000),
+    processed: false,
+  });
+  alert("Запрос отправлен!");
+  closeConfirmModal();
+  closeManageModal();
+}
+
+// ОСТАЛЬНЫЕ СТАНДАРТНЫЕ ФУНКЦИИ (startSearch, cancelAdd, resetAddForm, handleFileSelect, filterByCat, selectCity, toggleCitySelector, toggleFav, selectTariff, handleReceiptSelect, openManageModal, startAdEdit, closeProduct, closeManageModal, closeConfirmModal, closeSearch, clearFavs, renderProfile, renderFavs, switchProfileTab)
 
 function startSearch(val) {
   if (!val) return;
@@ -461,6 +443,7 @@ function cancelAdd() {
   resetAddForm();
   showPage("home");
 }
+
 function resetAddForm() {
   editingId = null;
   selectedFiles = [];
@@ -469,7 +452,6 @@ function resetAddForm() {
   document.getElementById("gallery-preview").innerHTML = "";
   document.getElementById("receipt-label").innerText = "Добавить чек";
   [
-    // СЮДА НЕЛЬЗЯ ПИСАТЬ "tariff-block"
     "file-group",
     "cat-group",
     "city-group",
@@ -478,120 +460,9 @@ function resetAddForm() {
     "phone-group",
     "desc-group",
   ].forEach((id) => document.getElementById(id).classList.remove("hidden"));
-
-  // ДОБАВЛЯЕМ ЭТУ СТРОЧКУ ЗДЕСЬ:
   applyHolidayUI();
 }
 
-// ОСТАЛЬНЫЕ ФУНКЦИИ (БЕЗ СОКРАЩЕНИЙ)
-function renderFeed() {
-  const grid = document.getElementById("home-grid");
-  if (!grid) return;
-  grid.innerHTML = "";
-
-  // 1. Фильтруем (только те, что не на проверке и не удалены)
-  let filtered = ads.filter(
-    (ad) =>
-      (curCat === "Все" || ad.cat === curCat) &&
-      ad.city === curCity &&
-      ad.status !== "deleted" &&
-      ad.status !== "pending" &&
-      ad.status !== "rejected"
-  );
-
-  // 2. Сортируем (VIP выше всех, Проданные в самый низ, остальное по дате)
-  filtered.sort((a, b) => {
-    const aIsSold = a.status === "sold";
-    const bIsSold = b.status === "sold";
-    if (aIsSold !== bIsSold) return aIsSold ? 1 : -1;
-
-    if (!aIsSold && !bIsSold) {
-      if (a.tariff !== b.tariff) return a.tariff === "vip" ? -1 : 1;
-    }
-
-    const aTime = a.approvedAt || a.createdAt || 0;
-    const bTime = b.approvedAt || b.createdAt || 0;
-    return bTime - aTime;
-  });
-
-  // 3. Отображаем
-  filtered.forEach((ad) => grid.appendChild(createAdCard(ad)));
-}
-
-// ПРАВИЛЬНАЯ СОРТИРОВКА
-filtered.sort((a, b) => {
-  // 1. Статус Продано (Активные всегда выше проданных)
-  const aIsSold = a.status === "sold";
-  const bIsSold = b.status === "sold";
-  if (aIsSold !== bIsSold) {
-    return aIsSold ? 1 : -1; // Если a продано — оно идет вниз
-  }
-
-  // 2. Тариф VIP (VIP выше Обычных, если оба активны)
-  // Мы проверяем тариф только если ОБА объявления не проданы
-  if (!aIsSold && !bIsSold) {
-    if (a.tariff !== b.tariff) {
-      return a.tariff === "vip" ? -1 : 1; // VIP наверх
-    }
-  }
-
-  // 3. Дата публикации (Новые выше старых)
-  // Используем дату одобрения (approvedAt), если её нет — дату создания (createdAt)
-  const aTime = a.approvedAt || a.createdAt || 0;
-  const bTime = b.approvedAt || b.createdAt || 0;
-
-  return bTime - aTime; // Самое большое время (самое свежее) — наверх
-});
-
-filtered.forEach((ad) => grid.appendChild(createAdCard(ad)));
-
-function createAdCard(ad, isProfile = false) {
-  const isFav = favs.includes(ad.id);
-  const isSold = ad.status === "sold";
-  const isDeleted = ad.status === "deleted";
-  const isVip = ad.tariff === "vip" && !isSold;
-
-  // Определяем дату для карточки
-  const timeLabel = formatRelativeDate(ad.approvedAt || ad.createdAt);
-
-  const card = document.createElement("div");
-  card.className = `card ${isVip ? "card-vip" : ""} ${
-    isDeleted ? "card-deleted" : ""
-  }`;
-  card.onclick = () => openProduct(ad);
-
-  card.innerHTML = `
-    ${isSold || isDeleted ? '<div class="sold-badge">ПРОДАНО</div>' : ""}
-    ${isVip ? '<div class="vip-badge">VIP</div>' : ""}
-    ${
-      !isProfile
-        ? `<div class="fav-heart-btn ${
-            isFav ? "active" : ""
-          }" onclick="toggleFav('${
-            ad.id
-          }', event)"><i class="fa-solid fa-heart"></i></div>`
-        : ""
-    }
-    <img src="${ad.img ? ad.img[0] : ""}" loading="lazy">
-    <div style="padding:10px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-        <div style="color:var(--yellow-main); font-weight:bold; font-size:15px;">${
-          ad.price
-        } KGS</div>
-        <div style="color:var(--gray); font-size:10px;">${timeLabel}</div>
-      </div>
-      <div style="font-size:12px; color:#ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${
-        ad.title
-      }</div>
-      ${
-        isProfile && ad.status === "active"
-          ? `<button onclick="event.stopPropagation(); openManageModal('${ad.id}')" style="width:100%; background:var(--yellow-main); color:#000; border:none; padding:8px; border-radius:8px; font-size:11px; font-weight:bold; margin-top:8px;">Управление</button>`
-          : ""
-      }
-    </div>
-  `;
-  return card;
-}
 function handleFileSelect(i) {
   selectedFiles = Array.from(i.files).slice(0, 5);
   const p = document.getElementById("gallery-preview");
@@ -610,6 +481,7 @@ function handleFileSelect(i) {
     r.readAsDataURL(f);
   });
 }
+
 function filterByCat(c, el) {
   curCat = c;
   document
@@ -620,21 +492,25 @@ function filterByCat(c, el) {
     catTitles[c] || "Свежие предложения";
   renderFeed();
 }
+
 function selectCity(c) {
   curCity = c;
   document.getElementById("current-city-label").innerText = c;
   toggleCitySelector();
   renderFeed();
 }
+
 function toggleCitySelector() {
   document.getElementById("city-selector").classList.toggle("hidden");
 }
+
 function toggleFav(id, event) {
   if (event) event.stopPropagation();
   favs = favs.includes(id) ? favs.filter((f) => f !== id) : [...favs, id];
   localStorage.setItem("favs_v15", JSON.stringify(favs));
   renderFeed();
 }
+
 function selectTariff(t) {
   selectedTariff = t;
   document.getElementById("tariff-std").className =
@@ -643,51 +519,14 @@ function selectTariff(t) {
     "tariff-card-box" + (t === "vip" ? " active-vip" : "");
   applyHolidayUI();
 }
+
 function handleReceiptSelect(i) {
   if (i.files[0]) {
     receiptAttached = true;
     document.getElementById("receipt-label").innerText = "Чек добавлен ✅";
   }
 }
-async function uploadToImgBB(file) {
-  if (!file) return null;
-  const fd = new FormData();
-  fd.append("image", file);
-  const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
-    method: "POST",
-    body: fd,
-  });
-  const data = await res.json();
-  return data.success ? data.data.url : null;
-}
-function showPage(p) {
-  // 1. Скрываем все страницы
-  document.querySelectorAll(".page").forEach((s) => s.classList.add("hidden"));
 
-  // 2. Показываем нужную страницу
-  const targetPage = document.getElementById(`page-${p}`);
-  if (targetPage) targetPage.classList.remove("hidden");
-
-  // 3. ОБНОВЛЯЕМ ЦВЕТ КНОПОК НАВИГАЦИИ
-  // Сначала убираем желтый цвет (класс active) у всех кнопок
-  document.querySelectorAll(".nav-item").forEach((item) => {
-    item.classList.remove("active");
-  });
-
-  // Теперь добавляем желтый цвет нужной кнопке
-  if (p === "home") {
-    document.getElementById("n-home").classList.add("active");
-  } else if (p === "favs") {
-    document.getElementById("n-favs").classList.add("active");
-  }
-  // При переходе на страницу 'add' или 'profile' кнопки 'Главное' и 'Избранное'
-  // останутся серыми, так как они не активны.
-
-  // 4. Дополнительная логика разделов
-  if (p === "favs") renderFavs();
-  if (p === "add" && !editingId) resetAddForm();
-  if (p === "profile") renderProfile();
-}
 function openManageModal(id) {
   currentManageId = id;
   const ad = ads.find((a) => a.id === id);
@@ -699,67 +538,29 @@ function openManageModal(id) {
     }</b>`;
   document.getElementById("manage-modal").classList.remove("hidden");
 }
-function confirmAction(type) {
-  document.getElementById("manage-modal").classList.add("hidden");
-  const modal = document.getElementById("confirm-modal");
 
-  // Текст для пользователя
-  const actionText = type === "sold" ? "в архив (продано)" : "на удаление";
-  document.getElementById(
-    "confirm-text"
-  ).innerText = `Объявление будет отправлено ${actionText}.`;
-
-  document.getElementById("confirm-btn-final").onclick = () => {
-    const user = tg.initDataUnsafe?.user || { id: 0 };
-
-    // Вместо прямого изменения, создаем "Запрос на управление"
-    db.ref("management_requests").push({
-      adId: currentManageId,
-      action: type, // "sold" или "delete"
-      userId: user.id,
-      timestamp: Math.floor(Date.now() / 1000),
-      processed: false, // Бот увидит, что запрос еще не обработан
-    });
-
-    alert(
-      "Запрос отправлен! Объявление будет обновлено в течение нескольких секунд."
-    );
-    closeConfirmModal();
-  };
-
-  modal.classList.remove("hidden");
-}
 function startAdEdit() {
   const ad = ads.find((a) => a.id === currentManageId);
   if (!ad) return;
-
   editingId = currentManageId;
-  showPage("add"); // Открываем страницу формы
-
-  // Меняем заголовок, чтобы юзер понимал, что он редактирует
+  showPage("add");
   document.getElementById("add-title-text").innerText = "Редактирование";
-
-  // СКРЫВАЕМ блоки, которые не нужны при редактировании
-  document.getElementById("tariff-block").classList.add("hidden");
-  document.getElementById("vip-block").classList.add("hidden"); // Убираем чек и QR
-  document.getElementById("file-group").classList.add("hidden"); // Фото менять нельзя
-  document.getElementById("cat-group").classList.add("hidden");
-  document.getElementById("city-group").classList.add("hidden");
-  document.getElementById("date-group").classList.add("hidden");
-
-  // ПОКАЗЫВАЕМ поле телефона и описания
-  document.getElementById("phone-group").classList.remove("hidden");
-  document.getElementById("desc-group").classList.remove("hidden");
-
-  // ЗАПОЛНЯЕМ поля текущими данными из базы
+  [
+    "tariff-block",
+    "vip-block",
+    "file-group",
+    "cat-group",
+    "city-group",
+    "date-group",
+  ].forEach((id) => document.getElementById(id).classList.add("hidden"));
   document.getElementById("in-title").value = ad.title || "";
   document.getElementById("in-price").value = ad.price || "";
   document.getElementById("in-address").value = ad.address || "";
-  document.getElementById("in-wa").value = ad.phone || ""; // Теперь телефон подтягивается
+  document.getElementById("in-wa").value = ad.phone || "";
   document.getElementById("in-desc").value = ad.desc || "";
-
   closeManageModal();
 }
+
 function closeProduct() {
   document.getElementById("product-modal").classList.add("hidden");
   tg.BackButton.hide();
@@ -779,6 +580,7 @@ function clearFavs() {
   renderFavs();
   renderFeed();
 }
+
 function renderProfile() {
   const grid = document.getElementById("my-ads-grid");
   if (!grid) return;
@@ -791,6 +593,7 @@ function renderProfile() {
   );
   filtered.forEach((ad) => grid.appendChild(createAdCard(ad, true)));
 }
+
 function renderFavs() {
   const container = document.getElementById("favs-content-area");
   const filtered = ads.filter((ad) => favs.includes(ad.id));
@@ -803,6 +606,7 @@ function renderFavs() {
     );
   }
 }
+
 function switchProfileTab(t) {
   profTab = t;
   document
@@ -812,65 +616,4 @@ function switchProfileTab(t) {
     .getElementById("tab-archive")
     .classList.toggle("active", t === "archive");
   renderProfile();
-}
-
-function formatRelativeDate(timestamp) {
-  if (!timestamp) return "Только что";
-
-  // Работаем с датами без учета времени для точного сравнения "Сегодня/Вчера"
-  const date = new Date(timestamp * 1000);
-  const now = new Date();
-
-  const dateDate = new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate()
-  ).getTime();
-  const nowDate = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate()
-  ).getTime();
-
-  const diffDays = (nowDate - dateDate) / (1000 * 60 * 60 * 24);
-
-  if (diffDays === 0) return "Сегодня";
-  if (diffDays === 1) return "Вчера";
-
-  // Если больше 2 дней — возвращаем дату в формате 20.02.2026
-  return date.toLocaleDateString("ru-RU", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-}
-
-function reportAd(adId, sellerId) {
-  let myReports = JSON.parse(localStorage.getItem("my_reports") || "[]");
-  if (myReports.includes(adId)) {
-    alert("Вы уже пожаловались на это объявление.");
-    return;
-  }
-
-  if (
-    !confirm(
-      "Вы уверены, что это мошенник? Жалоба будет передана администратору."
-    )
-  )
-    return;
-
-  const user = tg.initDataUnsafe?.user || { id: 0, username: "Guest" };
-
-  db.ref("reports").push({
-    adId: adId,
-    sellerId: sellerId,
-    reporterId: user.id,
-    reporterName: user.username || user.first_name,
-    timestamp: Math.floor(Date.now() / 1000),
-    bot_notified: false, // Чтобы бот увидел
-  });
-
-  myReports.push(adId);
-  localStorage.setItem("my_reports", JSON.stringify(myReports));
-  alert("Жалоба отправлена модератору. Спасибо!");
 }
