@@ -329,9 +329,18 @@ function openProduct(ad) {
 // 7. ПОДАЧА (STORAGE)
 async function uploadFile(file) {
   if (!file) return null;
-  const storageRef = storage.ref("ads/" + Date.now() + "_" + file.name);
-  await storageRef.put(file);
-  return await storageRef.getDownloadURL();
+  try {
+    const fileName = Date.now() + "_" + file.name;
+    // Используем firebase.storage() напрямую
+    const storageRef = firebase.storage().ref("ads/" + fileName);
+    const snapshot = await storageRef.put(file);
+    const url = await snapshot.ref.getDownloadURL();
+    return url;
+  } catch (e) {
+    console.error("Ошибка загрузки:", e);
+    alert("Ошибка загрузки фото: " + e.message);
+    return null;
+  }
 }
 
 async function publishAndSend() {
