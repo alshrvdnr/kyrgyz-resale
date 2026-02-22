@@ -732,16 +732,23 @@ function clearFavs() {
   renderFeed();
 }
 
-let lastScrollTop = 0;
+let lastScroll = 0;
 const header = document.getElementById("dynamic-header");
 
-window.onscroll = function () {
-  let st = window.pageYOffset || document.documentElement.scrollTop;
+window.addEventListener(
+  "scroll",
+  () => {
+    const currentScroll =
+      window.pageYOffset || document.documentElement.scrollTop;
 
-  if (st > lastScrollTop && st > 100) {
-    header.style.transform = "translateY(-100%)"; // Прячем
-  } else {
-    header.style.transform = "translateY(0)"; // Показываем
-  }
-  lastScrollTop = st <= 0 ? 0 : st;
-};
+    if (currentScroll > lastScroll && currentScroll > 80) {
+      // Листаем вниз - прячем
+      header.classList.add("header-hidden");
+    } else if (currentScroll < lastScroll) {
+      // Листаем вверх - показываем
+      header.classList.remove("header-hidden");
+    }
+    lastScroll = currentScroll <= 0 ? 0 : currentScroll;
+  },
+  { passive: true }
+);
