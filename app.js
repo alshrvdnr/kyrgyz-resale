@@ -733,20 +733,18 @@ function clearFavs() {
 }
 
 let lastScrollTop = 0;
-const header = document.getElementById("dynamic-header");
+const dynamicHeader = document.getElementById("dynamic-header");
 
-// Слушаем событие прокрутки на всем окне
 window.onscroll = function () {
-  let currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+  let st = window.pageYOffset || document.documentElement.scrollTop;
 
-  if (currentScroll > lastScrollTop && currentScroll > 50) {
-    // СКРОЛЛ ВНИЗ — Прячем хедер
-    if (header) header.classList.add("header-hidden");
-  } else {
-    // СКРОЛЛ ВВЕРХ — Показываем хедер
-    if (header) header.classList.remove("header-hidden");
+  if (st > lastScrollTop && st > 100) {
+    // СКРОЛЛИМ ВНИЗ — Прячем хедер (уходит вверх)
+    if (dynamicHeader) dynamicHeader.classList.add("header-hidden");
+  } else if (st < lastScrollTop) {
+    // СКРОЛЛИМ ВВЕРХ — Показываем хедер
+    if (dynamicHeader) dynamicHeader.classList.remove("header-hidden");
   }
 
-  // Запоминаем позицию для следующего шага
-  lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+  lastScrollTop = st <= 0 ? 0 : st;
 };

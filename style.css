@@ -11,9 +11,9 @@
 }
 
 #page-home {
-  /* Этот отступ отодвигает объявления вниз, 
-     чтобы их не закрывал хедер в самом начале */
-  padding-top: 140px;
+  /* Расстояние должно быть равно высоте хедера */
+  padding-top: 150px;
+  width: 100%;
 }
 
 body {
@@ -30,15 +30,16 @@ body {
 
 /* ХЕДЕР И ПОИСК */
 .main-header {
-  position: fixed; /* Меняем sticky на fixed */
+  position: fixed;
   top: 0;
   left: 0;
-  right: 0;
   width: 100%;
   background: #121212;
-  z-index: 4000;
+  z-index: 5000;
   padding: 10px 15px;
-  transition: transform 0.3s ease-in-out; /* Плавность */
+  /* Убираем лишние отступы, которые могли раздуть ширину */
+  margin: 0;
+  transition: transform 0.3s ease;
 }
 
 .top-location-bar {
@@ -201,19 +202,18 @@ body {
 
 /* НИЖНЯЯ ПАНЕЛЬ И КРУГЛЫЙ ПЛЮС */
 .bottom-nav {
-  position: fixed;
-  bottom: 0 !important; /* Насильно прижимаем к полу */
+  position: fixed !important;
+  bottom: 0 !important;
   left: 0;
-  right: 0;
   width: 100%;
-  height: 65px;
-  background: #121212; /* Сплошной черный, чтобы не просвечивало под панелью */
+  height: 70px;
+  background: #121212;
+  border-top: 1px solid #333;
   display: flex;
   justify-content: space-around;
   align-items: center;
-  border-top: 1px solid #333;
-  z-index: 3000; /* Самый высокий слой */
-  padding-bottom: env(safe-area-inset-bottom); /* Только для полоски iPhone */
+  z-index: 6000;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .nav-item {
@@ -237,36 +237,35 @@ body {
 .nav-item.active {
   color: var(--yellow-main);
 }
-
 .nav-center-container {
-  width: 40%;
-  display: flex;
-  justify-content: center;
   position: relative;
+  width: 60px;
+  height: 100%;
 }
 .nav-center-content {
   position: absolute;
-  top: -45px;
+  top: -25px; /* Поднимаем кнопку чуть выше панели */
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 80px;
 }
 
 .yellow-plus-main {
-  width: 65px !important;
-  height: 65px !important;
-  min-width: 65px !important;
-  min-height: 65px !important;
-  border-radius: 50% !important;
-  background: var(--yellow-main);
-  border: 5px solid var(--bg);
-  color: #000;
-  font-size: 30px;
-  display: flex;
+  width: 56px !important;
+  height: 56px !important;
+  background: var(--yellow-main) !important;
+  border-radius: 50% !important; /* Делаем круглой */
+  border: 4px solid #121212 !important; /* Ободок */
+  color: #000 !important;
+  display: flex !important;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 15px rgba(255, 204, 0, 0.4);
-  flex-shrink: 0;
+  font-size: 24px;
+  box-shadow: 0 4px 10px rgba(255, 204, 0, 0.3);
+  padding: 0 !important;
 }
 
 /* ПРОФИЛЬ ТАБЫ */
@@ -569,7 +568,7 @@ body {
 
 /* Класс для скрытия */
 .header-hidden {
-  transform: translateY(-110%); /* Уводит панель полностью за экран */
+  transform: translateY(-100%);
 }
 
 /* Нижняя навигация (bottom-nav) должна учитывать полоску внизу экрана */
@@ -589,4 +588,23 @@ body {
   /* Отступ только для полоски iPhone, если он есть */
   padding-bottom: env(safe-area-inset-bottom);
   box-sizing: content-box;
+}
+
+html,
+body {
+  overflow-x: hidden;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.nav-center-content span {
+  display: block !important;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--gray);
+  font-weight: bold;
+  text-align: center;
 }
