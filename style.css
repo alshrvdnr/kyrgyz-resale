@@ -573,7 +573,8 @@ body {
 
 /* Класс для скрытия */
 .header-hidden {
-  transform: translateY(-100%);
+  transform: translateY(-100%) !important;
+  opacity: 0;
 }
 
 /* Нижняя навигация (bottom-nav) должна учитывать полоску внизу экрана */
