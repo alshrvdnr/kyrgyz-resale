@@ -732,18 +732,25 @@ function clearFavs() {
   renderFeed();
 }
 
-let lastScrollY = window.scrollY;
+let lastScrollTop = 0;
+const dynamicHeader = document.getElementById("dynamic-header");
 
-window.addEventListener("scroll", () => {
-  const header = document.getElementById("dynamic-header");
+window.addEventListener(
+  "scroll",
+  function () {
+    // Определяем, насколько прокрутили страницу
+    let st = window.pageYOffset || document.documentElement.scrollTop;
 
-  if (window.scrollY > lastScrollY && window.scrollY > 100) {
-    // Листаем ВНИЗ — прячем верхнюю панель
-    header.classList.add("header-hidden");
-  } else {
-    // Листаем ВВЕРХ — показываем верхнюю панель
-    header.classList.remove("header-hidden");
-  }
+    if (st > lastScrollTop && st > 80) {
+      // СКРОЛЛ ВНИЗ — Прячем хедер
+      if (dynamicHeader) dynamicHeader.classList.add("header-hidden");
+    } else {
+      // СКРОЛЛ ВВЕРХ — Показываем хедер
+      if (dynamicHeader) dynamicHeader.classList.remove("header-hidden");
+    }
 
-  lastScrollY = window.scrollY;
-});
+    // Обновляем позицию (защита от отрицательного скролла на iPhone)
+    lastScrollTop = st <= 0 ? 0 : st;
+  },
+  false
+);
