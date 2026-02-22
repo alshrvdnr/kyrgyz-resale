@@ -35,6 +35,7 @@
       <section id="page-home" class="page">
         <!-- Проверь, чтобы было именно так -->
         <header class="main-header" id="dynamic-header">
+          <!-- 1. Город (Бишкек) -->
           <div class="top-location-bar" onclick="toggleCitySelector()">
             <i
               class="fa-solid fa-location-dot"
@@ -43,9 +44,11 @@
             <span id="current-city-label">Бишкек</span>
             <i
               class="fa-solid fa-chevron-right"
-              style="font-size: 10px; margin-left: 4px"
+              style="font-size: 8px; margin-left: 4px"
             ></i>
           </div>
+
+          <!-- 2. Поиск + Профиль (Теперь в одну линию и выше) -->
           <div class="search-profile-row">
             <div class="search-wrapper">
               <i class="fa fa-search" style="color: var(--gray)"></i>
@@ -63,27 +66,30 @@
               ?
             </div>
           </div>
-          <div class="categories-container">
-            <div class="cat-card active" onclick="filterByCat('Все', this)">
-              <i class="fa-solid fa-border-all"></i><span>Все</span>
-            </div>
-            <div class="cat-card" onclick="filterByCat('flowers', this)">
-              <i class="fa-solid fa-leaf"></i><span>Цветы</span>
-            </div>
-            <div class="cat-card" onclick="filterByCat('gifts', this)">
-              <i class="fa-solid fa-gift"></i><span>Подарки</span>
-            </div>
-            <div class="cat-card" onclick="filterByCat('jewelry', this)">
-              <i class="fa-solid fa-ring"></i><span>Ювелирка</span>
-            </div>
-            <div class="cat-card" onclick="filterByCat('certs', this)">
-              <i class="fa-solid fa-ticket"></i><span>Сертификаты</span>
+
+          <!-- 3. Категории (С градиентом) -->
+          <div class="categories-wrapper">
+            <div class="categories-container">
+              <div class="cat-card active" onclick="filterByCat('Все', this)">
+                <i class="fa-solid fa-border-all"></i><span>Все</span>
+              </div>
+              <div class="cat-card" onclick="filterByCat('flowers', this)">
+                <i class="fa-solid fa-leaf"></i><span>Цветы</span>
+              </div>
+              <div class="cat-card" onclick="filterByCat('gifts', this)">
+                <i class="fa-solid fa-gift"></i><span>Подарки</span>
+              </div>
+              <div class="cat-card" onclick="filterByCat('jewelry', this)">
+                <i class="fa-solid fa-ring"></i><span>Ювелирка</span>
+              </div>
+              <div class="cat-card" onclick="filterByCat('certs', this)">
+                <i class="fa-solid fa-ticket"></i><span>Сертификаты</span>
+              </div>
             </div>
           </div>
-          <h2
-            id="dynamic-feed-title"
-            style="margin: 15px 0 5px; font-size: 18px"
-          >
+
+          <!-- 4. Заголовок ленты -->
+          <h2 id="dynamic-feed-title" style="margin: 12px 0 0; font-size: 18px">
             Свежие предложения
           </h2>
         </header>

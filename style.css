@@ -11,9 +11,10 @@
 }
 
 #page-home {
-  /* Расстояние должно быть равно высоте хедера */
-  padding-top: 150px;
-  width: 100%;
+  /* Это число должно быть ровно по высоте твоего хедера. 
+     Если дырка осталась - уменьшай до 110px. 
+     Если контент залез под поиск - увеличивай до 130px. */
+  padding-top: 120px;
 }
 
 body {
@@ -36,9 +37,11 @@ body {
   width: 100%;
   background: #121212;
   z-index: 5000;
-  padding: 8px 15px 5px; /* Уменьшили отступы */
+  /* Уменьшаем верхний отступ до минимума */
+  padding: 5px 15px 10px;
   margin: 0;
   box-sizing: border-box;
+  transition: transform 0.3s ease;
 }
 
 .top-location-bar {
@@ -48,25 +51,26 @@ body {
   background: #2c2c2e;
   padding: 4px 12px;
   border-radius: 20px;
-  margin-bottom: 8px;
-  cursor: pointer;
+  margin-bottom: 8px; /* Небольшой отступ до строки поиска */
   font-size: 13px;
-  font-weight: 600;
+  cursor: pointer;
 }
 .search-profile-row {
   display: flex;
-  align-items: center;
-  justify-content: space-between; /* Распределяем по краям */
-  gap: 10px;
+  align-items: center; /* Центрируем поиск и аватарку вертикально */
+  gap: 12px;
   width: 100%;
+  margin-top: 0; /* Убираем лишний отступ сверху */
 }
 .search-wrapper {
-  flex: 1; /* Поиск забирает всё свободное место */
+  flex: 1; /* Поиск занимает всё место */
   background: #2c2c2e;
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-radius: 12px;
   display: flex;
   align-items: center;
+  height: 42px; /* Фиксированная высота для ровности */
+  box-sizing: border-box;
 }
 .search-wrapper input {
   background: none;
@@ -79,18 +83,18 @@ body {
 }
 
 .u-avatar-top-circle {
-  width: 38px; /* Чуть меньше, чтобы не выталкивать поиск */
-  height: 38px;
-  min-width: 38px;
+  width: 42px; /* Высота должна совпадать с высотой поиска */
+  height: 42px;
+  min-width: 42px;
   background: var(--yellow-main);
   border-radius: 50%;
-  color: #000;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #000;
   font-weight: bold;
+  cursor: pointer;
 }
-
 /* КАТЕГОРИИ (КОРОБОЧКИ) */
 .categories-container {
   display: flex;
