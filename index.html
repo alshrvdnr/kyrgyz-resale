@@ -33,7 +33,7 @@
     <div id="app">
       <!-- ГЛАВНАЯ СТРАНИЦА -->
       <section id="page-home" class="page">
-        <header class="main-header">
+        <header class="main-header" id="dynamic-header">
           <div class="top-location-bar" onclick="toggleCitySelector()">
             <i
               class="fa-solid fa-location-dot"
@@ -79,6 +79,12 @@
               <i class="fa-solid fa-ticket"></i><span>Сертификаты</span>
             </div>
           </div>
+          <h2
+            id="dynamic-feed-title"
+            style="margin: 15px 0 5px; font-size: 18px"
+          >
+            Свежие предложения
+          </h2>
         </header>
         <h2
           id="dynamic-feed-title"

@@ -119,8 +119,8 @@ body {
 .listings-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  padding: 10px 15px 130px;
+  gap: 15px; /* Больше воздуха между товарами */
+  padding: 10px 15px 120px; /* Отступ снизу, чтобы панель не закрывала товар */
 }
 .card {
   background: var(--card-gray);
@@ -132,7 +132,7 @@ body {
 }
 .card img {
   width: 100%;
-  height: 150px;
+  height: 200px; /* Увеличили высоту фото */
   object-fit: cover;
 }
 
@@ -191,17 +191,20 @@ body {
 /* НИЖНЯЯ ПАНЕЛЬ И КРУГЛЫЙ ПЛЮС */
 .bottom-nav {
   position: fixed;
-  bottom: 0;
+  bottom: 0; /* Прижимаем к самому низу */
   width: 100%;
-  height: 95px;
-  background: rgba(20, 20, 20, 0.98);
+  height: 70px; /* Уменьшаем высоту, чтобы было аккуратно */
+  background: rgba(18, 18, 18, 0.95); /* Полупрозрачный черный */
+  backdrop-filter: blur(10px); /* Эффект размытого стекла */
   display: flex;
   justify-content: space-around;
   align-items: center;
   border-top: 1px solid #333;
   z-index: 2000;
-  padding-bottom: 20px;
+  /* Это секретный отступ для iPhone, чтобы кнопка не накладывалась на полоску */
+  padding-bottom: env(safe-area-inset-bottom);
 }
+
 .nav-item {
   background: none;
   border: none;
@@ -543,7 +546,18 @@ body {
 
 /* Если у тебя есть фиксированный хедер (main-header), ему тоже нужен отступ */
 .main-header {
-  padding-top: calc(10px + env(safe-area-inset-top));
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 1000;
+  padding: 5px 15px;
+  /* Плавное движение за 0.4 секунды */
+  transition: transform 0.4s ease-in-out;
+}
+
+/* Этот класс будет добавляться через JS, когда ты листаешь вниз */
+.header-hidden {
+  transform: translateY(-100%); /* Хедер улетает вверх полностью */
 }
 
 /* Нижняя навигация (bottom-nav) должна учитывать полоску внизу экрана */

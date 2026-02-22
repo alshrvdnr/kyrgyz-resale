@@ -731,3 +731,19 @@ function clearFavs() {
   renderFavs();
   renderFeed();
 }
+
+let lastScrollY = window.scrollY;
+
+window.addEventListener("scroll", () => {
+  const header = document.getElementById("dynamic-header");
+
+  if (window.scrollY > lastScrollY && window.scrollY > 100) {
+    // Листаем ВНИЗ — прячем верхнюю панель
+    header.classList.add("header-hidden");
+  } else {
+    // Листаем ВВЕРХ — показываем верхнюю панель
+    header.classList.remove("header-hidden");
+  }
+
+  lastScrollY = window.scrollY;
+});
