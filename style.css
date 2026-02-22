@@ -11,9 +11,10 @@
 }
 
 #page-home {
-  /* Мы уменьшили это число, чтобы контент поднялся выше */
-  padding-top: 145px !important;
+  /* Уменьшаем до 125px, чтобы поднять контент к поиску */
+  padding-top: 125px !important;
   margin: 0 !important;
+  width: 100%;
 }
 
 body {
@@ -30,44 +31,46 @@ body {
 
 /* ХЕДЕР И ПОИСК */
 .main-header {
-  position: fixed;
+  position: fixed !important;
   top: 0;
   left: 0;
   width: 100%;
   background: #121212;
   z-index: 5000;
-  padding: 10px 15px 5px; /* Минимальный отступ */
+  padding: 8px 15px 10px !important;
   box-sizing: border-box;
   transition: transform 0.3s ease;
   margin: 0 !important;
+  border-bottom: 1px solid #1c1c1e;
 }
-
 .top-location-bar {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   background: #2c2c2e;
-  padding: 4px 12px;
+  padding: 3px 10px; /* Сделали чуть тоньше (было 4 12) */
   border-radius: 20px;
-  margin-bottom: 8px; /* Небольшой отступ до строки поиска */
-  font-size: 13px;
+  margin-bottom: 5px !important; /* Уменьшили отступ до поиска (было 8) */
+  font-size: 12px; /* Чуть уменьшили текст (было 13) */
   cursor: pointer;
 }
+
 .search-profile-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
   width: 100%;
-  margin-top: 5px; /* Чтобы поиск был ближе к кнопке города */
+  margin-top: 5px !important;
 }
+
 .search-wrapper {
   flex: 1;
   background: #2c2c2e;
-  border-radius: 12px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
-  height: 40px; /* Фиксированная высота */
+  height: 38px; /* Сделали чуть ниже, чтобы поднять выше */
   padding: 0 12px;
 }
 .search-wrapper input {
@@ -213,6 +216,7 @@ body {
   align-items: center;
   z-index: 6000;
   padding-bottom: env(safe-area-inset-bottom);
+  box-sizing: content-box;
 }
 
 .nav-item {
@@ -592,9 +596,13 @@ html,
 body {
   margin: 0 !important;
   padding: 0 !important;
-  overflow-x: hidden;
+  overflow-x: hidden !important; /* Запрещает шататься влево-вправо */
   width: 100%;
   background-color: #121212;
+  font-family: -apple-system, system-ui, sans-serif;
+  /* Учитываем вырезы на новых айфонах */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .nav-center-content span {
