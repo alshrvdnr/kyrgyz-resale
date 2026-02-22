@@ -132,6 +132,15 @@ function listenAds() {
       : [];
     renderFeed();
     renderProfile();
+
+    // --- ДОБАВЬ ЭТОТ КУСОК ТУТ ---
+    const splash = document.getElementById("splash-screen");
+    if (splash) {
+      setTimeout(() => {
+        splash.classList.add("hidden-splash");
+      }, 1000); // 1000 мс = 1 секунда показа логотипа
+    }
+    // ----------------------------
   });
 }
 

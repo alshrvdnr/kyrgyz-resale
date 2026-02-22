@@ -471,3 +471,61 @@ body {
   background: var(--bg);
   z-index: 10;
 }
+
+/* Экран загрузки */
+#splash-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000000; /* Глубокий черный */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999; /* Поверх всего */
+  transition: opacity 0.5s ease, visibility 0.5s;
+}
+
+.splash-content {
+  text-align: center;
+}
+
+.splash-logo {
+  font-size: 80px;
+  color: var(--yellow-main); /* Твой желтый цвет */
+  margin-bottom: 20px;
+  /* Анимация пульсации */
+  animation: pulse-glow 2s infinite ease-in-out;
+}
+
+.splash-text {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+/* Эффект пульсации и свечения */
+@keyframes pulse-glow {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 5px rgba(255, 204, 0, 0.4));
+  }
+  50% {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 20px rgba(255, 204, 0, 0.8));
+  }
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 5px rgba(255, 204, 0, 0.4));
+  }
+}
+
+/* Класс для скрытия */
+#splash-screen.hidden-splash {
+  opacity: 0;
+  visibility: hidden;
+}
