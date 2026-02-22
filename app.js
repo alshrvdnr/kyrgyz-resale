@@ -733,24 +733,20 @@ function clearFavs() {
 }
 
 let lastScrollTop = 0;
-const dynamicHeader = document.getElementById("dynamic-header");
+const header = document.getElementById("dynamic-header");
 
-window.addEventListener(
-  "scroll",
-  function () {
-    // Определяем, насколько прокрутили страницу
-    let st = window.pageYOffset || document.documentElement.scrollTop;
+// Слушаем событие прокрутки на всем окне
+window.onscroll = function () {
+  let currentScroll = window.pageYOffset || document.documentElement.scrollTop;
 
-    if (st > lastScrollTop && st > 80) {
-      // СКРОЛЛ ВНИЗ — Прячем хедер
-      if (dynamicHeader) dynamicHeader.classList.add("header-hidden");
-    } else {
-      // СКРОЛЛ ВВЕРХ — Показываем хедер
-      if (dynamicHeader) dynamicHeader.classList.remove("header-hidden");
-    }
+  if (currentScroll > lastScrollTop && currentScroll > 50) {
+    // СКРОЛЛ ВНИЗ — Прячем хедер
+    if (header) header.classList.add("header-hidden");
+  } else {
+    // СКРОЛЛ ВВЕРХ — Показываем хедер
+    if (header) header.classList.remove("header-hidden");
+  }
 
-    // Обновляем позицию (защита от отрицательного скролла на iPhone)
-    lastScrollTop = st <= 0 ? 0 : st;
-  },
-  false
-);
+  // Запоминаем позицию для следующего шага
+  lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+};
