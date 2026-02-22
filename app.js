@@ -1,5 +1,12 @@
 const tg = window.Telegram.WebApp;
+// 1. Насильно раскрываем окно на максимум (убирает возможность свернуть вниз)
 tg.expand();
+
+// 2. Красим верхнюю панель Telegram (где время и зарядки) в цвет твоего фона
+tg.setHeaderColor("#121212");
+
+// 3. Красим цвет подложки Telegram в цвет фона (видно, когда тянешь страницу вверх или вниз)
+tg.setBackgroundColor("#121212");
 
 // 1. CONFIG
 const firebaseConfig = {
