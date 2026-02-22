@@ -165,6 +165,7 @@ function renderFeed() {
   const grid = document.getElementById("home-grid");
   if (!grid) return;
   grid.innerHTML = "";
+
   let filtered = ads.filter(
     (ad) =>
       (curCat === "Все" || ad.cat === curCat) &&
@@ -174,16 +175,21 @@ function renderFeed() {
       ad.status !== "rejected"
   );
 
+  // ПРАВИЛЬНАЯ СОРТИРОВКА: VIP -> Свежие -> Продано
   filtered.sort((a, b) => {
     const aIsSold = a.status === "sold",
       bIsSold = b.status === "sold";
-    if (aIsSold !== bIsSold) return aIsSold ? 1 : -1;
-    if (!aIsSold && !bIsSold && a.tariff !== b.tariff)
-      return a.tariff === "vip" ? -1 : 1;
-    return (
-      (b.approvedAt || b.createdAt || 0) - (a.approvedAt || a.createdAt || 0)
-    );
+    if (aIsSold !== bIsSold) return aIsSold ? 1 : -1; // Проданные всегда вниз
+
+    if (!aIsSold && !bIsSold && a.tariff !== b.tariff) {
+      return a.tariff === "vip" ? -1 : 1; // VIP всегда вверх
+    }
+
+    const aTime = a.approvedAt || a.createdAt || 0;
+    const bTime = b.approvedAt || b.createdAt || 0;
+    return bTime - aTime; // Самые свежие (большое число) — выше всех
   });
+
   filtered.forEach((ad) => grid.appendChild(createAdCard(ad)));
 }
 
@@ -528,29 +534,59 @@ function formatRelativeDate(ts) {
 }
 
 function reportAd(adId, sellerId) {
-  // Защита от случайного нажатия
+  // 1. ПРОВЕРКА: Не жаловался ли юзер на ЭТО конкретное объявление раньше?
+  let reportedAds = JSON.parse(localStorage.getItem("reported_ads") || "[]");
+  if (reportedAds.includes(adId)) {
+    return alert(
+      "Вы уже отправили жалобу на это объявление. Модератор скоро его проверит."
+    );
+  }
+
+  // 2. ПРОВЕРКА: Не шлет ли он жалобы слишком часто (анти-спам 5 минут)?
+  const lastReport = localStorage.getItem("last_report_timestamp");
+  const now = Date.now();
+  if (lastReport && now - lastReport < 300000) {
+    // 300000 мс = 5 минут
+    const minutesLeft = Math.ceil((300000 - (now - lastReport)) / 60000);
+    return alert(`Слишком много жалоб! Подождите еще ${minutesLeft} мин.`);
+  }
+
+  // 3. ПОДТВЕРЖДЕНИЕ
   if (
-    !confirm(
-      "Вы уверены, что это мошенник? Жалоба будет немедленно передана модератору."
-    )
+    !confirm("Вы уверены, что это мошенник? Жалоба будет передана модератору.")
   )
     return;
 
-  // Берем ник продавца из карточки, чтобы админу было легче
+  // Получаем данные текущего пользователя из Telegram
+  const user = tg.initDataUnsafe?.user || {
+    id: 0,
+    first_name: "Guest",
+    username: "",
+  };
+
+  // Ищем ник продавца в текущем списке объявлений
   const ad = ads.find((a) => a.id === adId);
   const sellerNick = ad ? ad.tgNick || ad.phone || "Не указан" : "Неизвестно";
 
+  // 4. ОТПРАВКА В БАЗУ FIREBASE
   db.ref("reports").push({
     adId: adId,
     sellerId: sellerId,
-    sellerNick: sellerNick, // Добавляем ник, чтобы ты его сразу видел в боте
-    reporterName: tg.initDataUnsafe?.user?.first_name || "Guest",
+    sellerNick: sellerNick,
+    reporterId: user.id, // Твой цифровой ID для ссылки в боте
+    reporterName: user.username ? "@" + user.username : user.first_name, // Твое имя или ник
     timestamp: Math.floor(Date.now() / 1000),
-    bot_notified: false, // ОБЯЗАТЕЛЬНО: чтобы бот прислал уведомление
+    bot_notified: false, // ОБЯЗАТЕЛЬНО: чтобы бот увидел новую запись
   });
 
-  alert("Жалоба отправлена! Мы проверим этого пользователя.");
+  // 5. ЗАПОМИНАЕМ ДЕЙСТВИЕ (в памяти телефона, чтобы нельзя было спамить)
+  reportedAds.push(adId);
+  localStorage.setItem("reported_ads", JSON.stringify(reportedAds)); // Блокируем повтор на этот пост
+  localStorage.setItem("last_report_timestamp", now); // Блокируем спам по времени (5 мин)
+
+  alert("Жалоба отправлена модератору! Спасибо за помощь.");
 }
+
 function confirmAction(type) {
   if (!confirm("Подтвердить действие?")) return;
   db.ref("management_requests").push({
