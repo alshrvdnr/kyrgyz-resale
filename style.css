@@ -11,8 +11,9 @@
 }
 
 #page-home {
-  /* Уменьшаем до 125px, чтобы поднять контент к поиску */
-  padding-top: 125px !important;
+  /* Если дырка сверху вернулась — уменьши до 150px. 
+     Если категории закрывают контент — увеличивай. */
+  padding-top: 165px !important;
   margin: 0 !important;
   width: 100%;
 }
@@ -31,15 +32,16 @@ body {
 
 /* ХЕДЕР И ПОИСК */
 .main-header {
-  position: fixed !important;
-  top: 0;
+  position: fixed !important; /* Четкая фиксация для работы скролла */
+  top: 0 !important;
   left: 0;
   width: 100%;
   background: #121212;
   z-index: 5000;
-  padding: 8px 15px 10px !important;
+  /* Увеличили нижний отступ (15px), чтобы не прилипало к категориям */
+  padding: 10px 15px 15px !important;
   box-sizing: border-box;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease-in-out; /* Плавность для JS */
   margin: 0 !important;
   border-bottom: 1px solid #1c1c1e;
 }
@@ -62,6 +64,7 @@ body {
   gap: 10px;
   width: 100%;
   margin-top: 5px !important;
+  margin-bottom: 12px !important; /* Этот отступ отодвинет категории вниз */
 }
 
 .search-wrapper {

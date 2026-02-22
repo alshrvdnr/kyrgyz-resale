@@ -732,23 +732,19 @@ function clearFavs() {
   renderFeed();
 }
 
-let lastScroll = 0;
-const header = document.getElementById("dynamic-header");
+let lastScrollTop = 0;
+const headerElement = document.getElementById("dynamic-header");
 
-window.addEventListener(
-  "scroll",
-  () => {
-    const currentScroll =
-      window.pageYOffset || document.documentElement.scrollTop;
+window.onscroll = function () {
+  let st = window.pageYOffset || document.documentElement.scrollTop;
 
-    if (currentScroll > lastScroll && currentScroll > 80) {
-      // Листаем вниз - прячем
-      header.classList.add("header-hidden");
-    } else if (currentScroll < lastScroll) {
-      // Листаем вверх - показываем
-      header.classList.remove("header-hidden");
-    }
-    lastScroll = currentScroll <= 0 ? 0 : currentScroll;
-  },
-  { passive: true }
-);
+  // Если крутим вниз — добавляем класс (хедер улетает вверх)
+  if (st > lastScrollTop && st > 100) {
+    if (headerElement) headerElement.classList.add("header-hidden");
+  }
+  // Если крутим вверх — убираем класс (хедер возвращается)
+  else if (st < lastScrollTop) {
+    if (headerElement) headerElement.classList.remove("header-hidden");
+  }
+  lastScrollTop = st <= 0 ? 0 : st;
+};
