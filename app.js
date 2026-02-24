@@ -67,32 +67,32 @@ document.addEventListener("DOMContentLoaded", () => {
 function initUser() {
   const user = tg.initDataUnsafe?.user || { id: 0 };
 
-  // 1. ЖЕСТКАЯ ПРОВЕРКА БАНА
+  // 1. ПРОВЕРКА БАНА
   if (user.id !== 0) {
     db.ref("blacklist/" + user.id).on("value", (snap) => {
       if (snap.val() === true) {
-        window.stop(); // Остановить выполнение всех скриптов
-        document.documentElement.innerHTML = ""; // Стереть весь HTML
+        window.stop();
+        document.documentElement.innerHTML = "";
         document.body.innerHTML = `
           <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#000; color:#ff3b30; text-align:center; padding:30px; font-family:sans-serif;">
             <h1 style="font-size:80px; margin-bottom:10px;">🚫</h1>
-            <h2 style="text-transform:uppercase; letter-spacing:2px;">Доступ заблокирован</h2>
-            <p style="color:#888; max-width:300px; line-height:1.5;">Ваш аккаунт внесен в черный список за мошенничество или спам.</p>
+            <h2>Доступ заблокирован</h2>
           </div>`;
-        return; // Прекращаем работу функции
       }
     });
   }
 
-  // 2. Если не забанен, грузим остальное
+  // 2. Установка данных пользователя (ВНУТРИ ФУНКЦИИ)
   const initial = user.first_name ? user.first_name[0].toUpperCase() : "?";
-  if (document.getElementById("u-avatar-top"))
-    document.getElementById("u-avatar-top").innerText = initial;
-  if (document.getElementById("u-avatar-big"))
-    document.getElementById("u-avatar-big").innerText = initial;
-  if (document.getElementById("u-name"))
-    document.getElementById("u-name").innerText = user.first_name || "Гость";
+  const avatarTop = document.getElementById("u-avatar-top");
+  const avatarBig = document.getElementById("u-avatar-big");
+  const uName = document.getElementById("u-name");
+
+  if (avatarTop) avatarTop.innerText = initial;
+  if (avatarBig) avatarBig.innerText = initial;
+  if (uName) uName.innerText = user.first_name || "Гость";
 }
+// УДАЛИТЕ весь код, который шел здесь и дублировал установку имени/аватара!
 
 // 2. Дальше уже грузим остальное (имя, аватар и т.д.)
 const initial = user.first_name ? user.first_name[0].toUpperCase() : "?";
@@ -143,33 +143,28 @@ window.switchProfileTab = function (t) {
 };
 
 window.showPage = function (p) {
-  // 1. Скрываем все страницы
+  // Скрываем все страницы
   document.querySelectorAll(".page").forEach((s) => s.classList.add("hidden"));
 
-  // 2. Показываем нужную страницу
+  // Показываем нужную
   const targetPage = document.getElementById(`page-${p}`);
   if (targetPage) targetPage.classList.remove("hidden");
 
-  // 3. ФИКС КРЕСТИКА: Прячем шапку поиска везде, кроме главной
+  // Управление отображением шапки (она нужна только на главной)
   const header = document.getElementById("dynamic-header");
   if (header) {
-    if (p === "home") {
-      header.style.display = "block"; // Показываем на главной
-    } else {
-      header.style.display = "none"; // УБИРАЕМ С ЭКРАНА на других страницах
-    }
+    header.style.display = p === "home" ? "block" : "none";
   }
 
-  // 4. Подсветка кнопок меню
+  // Прокрутка в начало страницы при переходе
+  window.scrollTo(0, 0);
+
+  // Подсветка иконок в меню
   document
     .querySelectorAll(".nav-item")
     .forEach((i) => i.classList.remove("active"));
-  if (p === "home") document.getElementById("n-home")?.classList.add("active");
-  if (p === "favs") {
-    document.getElementById("n-favs")?.classList.add("active");
-    if (typeof renderFavs === "function") renderFavs();
-  }
-  if (p === "profile" && typeof renderProfile === "function") renderProfile();
+  const navBtn = document.getElementById(`n-${p}`);
+  if (navBtn) navBtn.classList.add("active");
 };
 
 // Функция для кнопки "X" (теперь она точно заработает)
