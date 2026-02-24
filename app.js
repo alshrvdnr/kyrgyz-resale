@@ -258,6 +258,7 @@ function renderFeed() {
   if (!grid) return;
   grid.innerHTML = "";
 
+  // 1. Фильтруем список
   let filtered = ads.filter(
     (ad) =>
       (curCat === "Все" || ad.cat === curCat) &&
@@ -267,19 +268,26 @@ function renderFeed() {
       ad.status !== "rejected"
   );
 
-  // ПРАВИЛЬНАЯ СОРТИРОВКА: VIP -> Свежие -> Продано
+  // 2. ЖЕСТКАЯ СОРТИРОВКА
   filtered.sort((a, b) => {
-    const aIsSold = a.status === "sold",
-      bIsSold = b.status === "sold";
-    if (aIsSold !== bIsSold) return aIsSold ? 1 : -1; // Проданные всегда вниз
+    // А. Сначала разделяем "Продано" и "Активно" (Проданные всегда в самый низ)
+    const aSold = a.status === "sold" ? 1 : 0;
+    const bSold = b.status === "sold" ? 1 : 0;
+    if (aSold !== bSold) return aSold - bSold;
 
-    if (!aIsSold && !bIsSold && a.tariff !== b.tariff) {
-      return a.tariff === "vip" ? -1 : 1; // VIP всегда вверх
+    // Б. Если оба активны, проверяем VIP (VIP выше обычных)
+    if (a.status !== "sold") {
+      const aVip = a.tariff === "vip" ? 1 : 0;
+      const bVip = b.tariff === "vip" ? 1 : 0;
+      if (aVip !== bVip) return bVip - aVip;
     }
 
-    const aTime = a.approvedAt || a.createdAt || 0;
-    const bTime = b.approvedAt || b.createdAt || 0;
-    return bTime - aTime; // Самые свежие (большое число) — выше всех
+    // В. Сортировка по времени (Самые новые — ВЫШЕ)
+    // Используем approvedAt (время одобрения админом), если его нет — createdAt
+    const aTime = Number(a.approvedAt || a.createdAt || 0);
+    const bTime = Number(b.approvedAt || b.createdAt || 0);
+
+    return bTime - aTime;
   });
 
   filtered.forEach((ad) => grid.appendChild(createAdCard(ad)));
@@ -642,16 +650,32 @@ function switchProfileTab(t) {
 
 function formatRelativeDate(ts) {
   if (!ts) return "Сегодня";
-  const date = new Date(ts * 1000),
-    now = new Date();
-  const diff = Math.floor(
-    (new Date(now.getFullYear(), now.getMonth(), now.getDate()) -
-      new Date(date.getFullYear(), date.getMonth(), date.getDate())) /
-      86400000
-  );
-  if (diff === 0) return "Сегодня";
-  if (diff === 1) return "Вчера";
-  return date.toLocaleDateString("ru-RU");
+
+  const date = new Date(ts * 1000);
+  const now = new Date();
+
+  // Устанавливаем время в 00:00:00 для точного сравнения дней
+  const today = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
+  ).getTime();
+  const yesterday = today - 86400000;
+  const adDate = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate()
+  ).getTime();
+
+  if (adDate === today) return "Сегодня";
+  if (adDate === yesterday) return "Вчера";
+
+  // Если старее, выводим дату: 24.02.2024
+  return date.toLocaleDateString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 }
 
 function reportAd(adId, sellerId) {
