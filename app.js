@@ -142,36 +142,64 @@ window.switchProfileTab = function (t) {
   renderProfile();
 };
 
+// Оживляем переключение страниц
 window.showPage = function (p) {
-  // Скрываем все страницы
+  console.log("Переход на страницу:", p);
+
+  // 1. Прячем все страницы
   document.querySelectorAll(".page").forEach((s) => s.classList.add("hidden"));
 
-  // Показываем нужную
+  // 2. Находим нужную страницу и показываем её
   const targetPage = document.getElementById(`page-${p}`);
-  if (targetPage) targetPage.classList.remove("hidden");
-
-  // Управление отображением шапки (она нужна только на главной)
-  const header = document.getElementById("dynamic-header");
-  if (header) {
-    header.style.display = p === "home" ? "block" : "none";
+  if (targetPage) {
+    targetPage.classList.remove("hidden");
   }
 
-  // Прокрутка в начало страницы при переходе
-  window.scrollTo(0, 0);
+  // 3. ФИКС: Убираем шапку поиска везде, кроме главной, чтобы она не мешала кликам
+  const header = document.getElementById("dynamic-header");
+  if (header) {
+    if (p === "home") {
+      header.style.display = "block";
+    } else {
+      header.style.display = "none";
+    }
+  }
 
-  // Подсветка иконок в меню
-  document
-    .querySelectorAll(".nav-item")
-    .forEach((i) => i.classList.remove("active"));
-  const navBtn = document.getElementById(`n-${p}`);
-  if (navBtn) navBtn.classList.add("active");
+  // 4. Красим активную кнопку в желтый в нижнем меню
+  document.querySelectorAll(".nav-item").forEach((item) => {
+    item.classList.remove("active");
+  });
+
+  if (p === "home") document.getElementById("n-home")?.classList.add("active");
+  if (p === "favs") {
+    document.getElementById("n-favs")?.classList.add("active");
+    // Если есть функция отрисовки избранного - запускаем
+    if (typeof renderFavs === "function") renderFavs();
+  }
+
+  // 5. Если зашли в Профиль - запускаем его отрисовку
+  if (p === "profile") {
+    if (typeof renderProfile === "function") renderProfile();
+  }
+
+  // 6. Если зашли в Подать - сбрасываем форму
+  if (p === "add") {
+    if (!editingId && typeof resetAddForm === "function") resetAddForm();
+  }
 };
 
-// Функция для кнопки "X" (теперь она точно заработает)
+// Оживляем кнопку "X" и кнопку Профиля вверху
 window.cancelAdd = function () {
-  if (typeof resetAddForm === "function") resetAddForm();
   showPage("home");
 };
+
+// Привязываем клик к иконке профиля (буква "D") в шапке
+const profileIcon = document.getElementById("u-avatar-top");
+if (profileIcon) {
+  profileIcon.onclick = function () {
+    showPage("profile");
+  };
+}
 
 // 4. СИНХРОНИЗАЦИЯ
 function listenSettings() {
