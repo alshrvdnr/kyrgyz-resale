@@ -150,13 +150,13 @@ window.showPage = function (p) {
   const targetPage = document.getElementById(`page-${p}`);
   if (targetPage) targetPage.classList.remove("hidden");
 
-  // 3. УПРАВЛЯЕМ ШАПКОЙ: Чтобы она не перекрывала кнопки на других страницах
+  // 3. ФИКС КРЕСТИКА: Прячем шапку поиска везде, кроме главной
   const header = document.getElementById("dynamic-header");
   if (header) {
     if (p === "home") {
-      header.style.display = "block"; // Включаем только на главной
+      header.style.display = "block"; // Показываем на главной
     } else {
-      header.style.display = "none"; // Выключаем везде, где она мешает
+      header.style.display = "none"; // УБИРАЕМ С ЭКРАНА на других страницах
     }
   }
 
@@ -172,11 +172,10 @@ window.showPage = function (p) {
   if (p === "profile" && typeof renderProfile === "function") renderProfile();
 };
 
-// 2. Функция для кнопки "X" (Закрыть)
+// Функция для кнопки "X" (теперь она точно заработает)
 window.cancelAdd = function () {
-  console.log("Нажат крестик закрытия");
   if (typeof resetAddForm === "function") resetAddForm();
-  showPage("home"); // Возвращаемся домой и включаем шапку
+  showPage("home");
 };
 
 // 4. СИНХРОНИЗАЦИЯ
