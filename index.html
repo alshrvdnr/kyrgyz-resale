@@ -326,6 +326,65 @@
               "
             ></div>
           </div>
+          <div
+            id="anti-fraud-section"
+            style="
+              background: #1c1c1e;
+              border: 2px solid var(--yellow-main);
+              padding: 20px;
+              border-radius: 15px;
+              margin-top: 25px;
+            "
+          >
+            <h3
+              style="margin-top: 0; color: var(--yellow-main); font-size: 18px"
+            >
+              🛡️ Проверка на мошенничество
+            </h3>
+            <p style="font-size: 13px; color: #ccc; line-height: 1.4">
+              Напишите на листке бумаги текущее время и код:
+              <b
+                id="display-verify-code"
+                style="
+                  font-size: 22px;
+                  color: #fff;
+                  background: #333;
+                  padding: 2px 8px;
+                  border-radius: 5px;
+                "
+                >0000</b
+              >. <br /><br />
+              Сфотографируйте этот листок <b>рядом с товаром</b> и загрузите
+              ниже:
+            </p>
+
+            <button
+              type="button"
+              class="main-input"
+              onclick="document.getElementById('verify-photo-input').click()"
+              style="
+                background: var(--yellow-main);
+                color: #000;
+                font-weight: bold;
+                border: none;
+              "
+            >
+              📸 ДОБАВИТЬ ФОТО ДЛЯ ПРОВЕРКИ
+            </button>
+            <input
+              type="file"
+              id="verify-photo-input"
+              hidden
+              onchange="handleVerifyPhotoSelect(this)"
+              accept="image/*"
+            />
+
+            <div id="verify-preview" style="margin-top: 10px; display: none">
+              <span style="color: #4cd964; font-size: 12px"
+                >✅ Фото для проверки добавлено</span
+              >
+            </div>
+          </div>
           <div class="f-group" id="cat-group">
             <label>Категория</label
             ><select id="in-cat" class="main-input">
@@ -351,18 +410,17 @@
               type="text"
               id="in-title"
               class="main-input"
-              placeholder="Букет роз"
               maxlength="40"
+              placeholder="Например: Букет роз"
             />
           </div>
           <div class="f-group">
-            <label>Цена (KGS) — только цифры</label>
+            <label>Цена (KGS) — ТОЛЬКО ЦИФРЫ</label>
             <input
               type="number"
               id="in-price"
               class="main-input"
-              placeholder="1500"
-              oninput="if(this.value.length > 7) this.value = this.value.slice(0, 7);"
+              placeholder="Например: 1500"
             />
           </div>
           <div class="f-group" id="date-group">

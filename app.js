@@ -39,6 +39,8 @@ const catTitles = {
   certs: "Свежие сертификаты",
 };
 
+let verifyPhotoFile = null; // Файл проверочного фото
+
 let ads = [],
   favs = JSON.parse(localStorage.getItem("favs_v15")) || [];
 let curCat = "Все",
@@ -63,6 +65,13 @@ document.addEventListener("DOMContentLoaded", () => {
       if (e.key === "Enter") startSearch(e.target.value);
     });
 });
+
+function handleVerifyPhotoSelect(input) {
+  if (input.files && input.files[0]) {
+    verifyPhotoFile = input.files[0];
+    document.getElementById("verify-preview").style.display = "block";
+  }
+}
 
 function initUser() {
   const user = tg.initDataUnsafe?.user || { id: 0, first_name: "Гость" };
@@ -543,16 +552,25 @@ async function publishAndSend() {
   // --- ЛОГИКА СОЗДАНИЯ НОВОГО ОБЪЯВЛЕНИЯ ---
   const isPaid = holidayMode || selectedTariff === "vip";
 
+  // Проверка чека для платных тарифов
   if (isPaid && !receiptAttached) {
     return alert("Прикрепите чек об оплате!");
   }
 
+  // КРИТИЧЕСКАЯ ПРОСВЕРКА: Фото с листком (сигна)
+  if (!verifyPhotoFile) {
+    return alert(
+      "ОШИБКА: Загрузите фото товара с листком бумаги (код и время) в блоке проверки!"
+    );
+  }
+
+  // Проверка обычных фотографий товара
   if (selectedFiles.length === 0) {
-    return alert("Добавьте хотя бы одно фото товара вместе с кодом проверки!");
+    return alert("Добавьте основные фотографии вашего товара!");
   }
 
   btn.disabled = true;
-  btn.innerText = "ЗАГРУЗКА ФОТО...";
+  btn.innerText = "ЗАГРУЗКА ДАННЫХ...";
 
   try {
     // А. Загрузка чека (если есть)
@@ -563,17 +581,23 @@ async function publishAndSend() {
       if (!receiptUrl) throw new Error("Не удалось загрузить чек.");
     }
 
-    // Б. Загрузка фотографий товара
+    // Б. Загрузка проверочного фото (Сигна)
+    // Мы загружаем его отдельно, чтобы бот знал, какое фото НЕ публиковать в каналы
+    const verifyPhotoUrl = await uploadFile(verifyPhotoFile);
+    if (!verifyPhotoUrl)
+      throw new Error("Не удалось загрузить проверочное фото.");
+
+    // В. Загрузка основных фотографий товара
     const imgs = await Promise.all(
       selectedFiles.map((file) => uploadFile(file))
     );
     const validImgs = imgs.filter((url) => url !== null);
 
     if (validImgs.length === 0) {
-      throw new Error("Ошибка загрузки изображений товара.");
+      throw new Error("Ошибка загрузки основных изображений товара.");
     }
 
-    // В. Формирование объекта для базы (Включая анти-мошенник код)
+    // Г. Формирование объекта для базы
     const newAd = {
       title: cleanTitle,
       price: numericPrice,
@@ -584,30 +608,30 @@ async function publishAndSend() {
       tgNick: document.getElementById("in-tg").value,
       desc: document.getElementById("in-desc").value,
       receiveDate: document.getElementById("in-receive-date").value,
-      img: validImgs,
+
+      img: validImgs, // Основные фото для ТГ-каналов
+      verify_photo: verifyPhotoUrl, // Фото с листком (ТОЛЬКО для админа)
+      verify_code: currentVerifyCode, // Код, который был на экране
+
       receipt_url: receiptUrl,
-
-      // ВОТ ЭТА СТРОЧКА: Отправляем код проверки в базу
-      verify_code: currentVerifyCode,
-
       status: "pending",
-      bot_notified: false, // Бот увидит запись и пришлет тебе уведомление
+      bot_notified: false,
       tariff: selectedTariff,
       is_holiday: holidayMode,
       userId: tg.initDataUnsafe?.user?.id || 0,
       createdAt: Math.floor(Date.now() / 1000),
     };
 
-    // Г. Отправка в Firebase
+    // Д. Отправка в Firebase
     await db.ref("ads").push(newAd);
     localStorage.setItem("last_post_time", Date.now());
 
-    alert("Успешно! Объявление и код проверки отправлены модератору.");
+    alert("Успешно! Объявление и проверочное фото отправлены на модерацию.");
     resetAddForm();
     showPage("home");
   } catch (e) {
     console.error(e);
-    alert("Ошибка: " + e.message);
+    alert("Ошибка публикации: " + e.message);
   } finally {
     btn.disabled = false;
     btn.innerText = "Опубликовать";
@@ -812,14 +836,17 @@ function resetAddForm() {
   applyHolidayUI();
 }
 
+// ФУНКЦИЯ ДЛЯ ОБЫЧНЫХ ФОТО ТОВАРА (макс 5 штук)
 window.handleFileSelect = function (input) {
-  // Сохраняем файлы в глобальный массив selectedFiles
+  // Сохраняем файлы в глобальный массив selectedFiles (не более 5)
   selectedFiles = Array.from(input.files).slice(0, 5);
 
   const preview = document.getElementById("gallery-preview");
   if (!preview) return;
 
+  // Очищаем старые превью
   preview.innerHTML = "";
+
   selectedFiles.forEach((file) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -831,7 +858,30 @@ window.handleFileSelect = function (input) {
     };
     reader.readAsDataURL(file);
   });
+
+  console.log("Выбрано основных фото:", selectedFiles.length);
 };
+
+// ФУНКЦИЯ ДЛЯ ОДНОГО ПРОВЕРОЧНОГО ФОТО (с листком бумаги)
+window.handleVerifyPhotoSelect = function (input) {
+  if (input.files && input.files[0]) {
+    // Сохраняем файл в отдельную переменную
+    verifyPhotoFile = input.files[0];
+
+    const previewText = document.getElementById("verify-preview");
+    if (previewText) {
+      previewText.style.display = "block";
+      previewText.innerHTML = `
+        <div style="display:flex; align-items:center; gap:8px; background:rgba(76,217,100,0.1); padding:8px; border-radius:10px; border:1px solid #4cd964; margin-top:10px;">
+          <i class="fa-solid fa-circle-check" style="color:#4cd964;"></i>
+          <span style="color: #4cd964; font-size: 13px; font-weight:bold;">Фото с кодом успешно добавлено</span>
+        </div>
+      `;
+    }
+    console.log("Проверочное фото готово к загрузке");
+  }
+};
+
 function selectTariff(t) {
   selectedTariff = t;
   document.getElementById("tariff-std").className =
