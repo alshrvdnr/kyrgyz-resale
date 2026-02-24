@@ -292,14 +292,20 @@ function renderFeed() {
 }
 
 function createAdCard(ad, isProfile = false) {
+  // 1. ОЧИСТКА ЦЕНЫ: Оставляем только цифры, чтобы текст не вылезал за края
+  const displayPrice = String(ad.price).replace(/[^0-9]/g, "") || "0";
+
   const isFav = favs.includes(ad.id),
     isSold = ad.status === "sold",
     isVip = ad.tariff === "vip" && !isSold;
+
   const card = document.createElement("div");
   card.className = `card ${isVip ? "card-vip" : ""} ${
     ad.status === "deleted" ? "card-deleted" : ""
   }`;
+
   card.onclick = () => openProduct(ad);
+
   card.innerHTML = `
     ${isSold ? '<div class="sold-badge">ПРОДАНО</div>' : ""}
     ${isVip ? '<div class="vip-badge">VIP</div>' : ""}
@@ -315,9 +321,8 @@ function createAdCard(ad, isProfile = false) {
     <img src="${ad.img ? ad.img[0] : ""}" loading="lazy">
     <div style="padding:10px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-        <div style="color:var(--yellow-main); font-weight:bold; font-size:15px;">${
-          ad.price
-        } KGS</div>
+        <!-- ИСПОЛЬЗУЕМ ОЧИЩЕННУЮ ЦЕНУ -->
+        <div style="color:var(--yellow-main); font-weight:bold; font-size:15px;">${displayPrice} KGS</div>
         <div style="color:var(--gray); font-size:10px;">${formatRelativeDate(
           ad.approvedAt || ad.createdAt
         )}</div>
@@ -331,6 +336,7 @@ function createAdCard(ad, isProfile = false) {
           : ""
       }
     </div>`;
+
   return card;
 }
 
