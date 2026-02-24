@@ -195,23 +195,36 @@ function listenSettings() {
 }
 
 function listenAds() {
-  db.ref("ads").on("value", (snap) => {
-    const data = snap.val();
-    ads = data
-      ? Object.keys(data).map((key) => ({ id: key, ...data[key] }))
-      : [];
-    renderFeed();
-    renderProfile();
+  const splash = document.getElementById("splash-screen");
 
-    // --- ДОБАВЬ ЭТОТ КУСОК ТУТ ---
-    const splash = document.getElementById("splash-screen");
-    if (splash) {
-      setTimeout(() => {
+  db.ref("ads").on(
+    "value",
+    (snap) => {
+      const data = snap.val();
+      ads = data
+        ? Object.keys(data).map((key) => ({ id: key, ...data[key] }))
+        : [];
+
+      renderFeed();
+      renderProfile();
+
+      // Скрываем заставку
+      if (splash) {
         splash.classList.add("hidden-splash");
-      }, 1000); // 1000 мс = 1 секунда показа логотипа
+      }
+    },
+    (error) => {
+      console.error("Ошибка Firebase:", error);
+      if (splash) splash.classList.add("hidden-splash");
     }
-    // ----------------------------
-  });
+  );
+
+  // Если через 5 секунд ничего не произошло - убираем заставку принудительно
+  setTimeout(() => {
+    if (splash && !splash.classList.contains("hidden-splash")) {
+      splash.classList.add("hidden-splash");
+    }
+  }, 5000);
 }
 
 function applyHolidayUI() {
@@ -541,64 +554,6 @@ async function publishAndSend() {
     btn.disabled = false;
     btn.innerText = "Опубликовать";
   }
-}
-
-// --- ЛОГИКА СОЗДАНИЯ НОВОГО ОБЪЯВЛЕНИЯ ---
-const isPaid = holidayMode || selectedTariff === "vip";
-
-// Проверка прикрепленного чека для платных тарифов
-if (isPaid && !receiptAttached) {
-  return alert("В праздничные дни или для VIP нужно прикрепить чек об оплате!");
-}
-
-btn.disabled = true;
-btn.innerText = "ЗАГРУЗКА...";
-
-try {
-  // А. Загрузка чека на Firebase Storage
-  let receiptUrl = null;
-  if (isPaid) {
-    const receiptFile = document.getElementById("receipt-input").files[0];
-    receiptUrl = await uploadFile(receiptFile); // Использует твою функцию uploadFile
-    if (!receiptUrl) throw new Error("Не удалось загрузить чек об оплате.");
-  }
-
-  // Б. Загрузка фотографий товара на Firebase Storage
-  const imgs = await Promise.all(selectedFiles.map((file) => uploadFile(file)));
-
-  // В. Формирование объекта объявления
-  const newAd = {
-    title: title,
-    price: price,
-    cat: document.getElementById("in-cat").value,
-    city: document.getElementById("in-city").value,
-    address: document.getElementById("in-address").value,
-    phone: document.getElementById("in-wa").value,
-    tgNick: document.getElementById("in-tg").value,
-    desc: document.getElementById("in-desc").value,
-    receiveDate: document.getElementById("in-receive-date").value,
-    img: imgs.filter((i) => i !== null), // Очищаем от пустых ссылок
-    receipt_url: receiptUrl,
-    status: "pending", // Отправляем на модерацию
-    bot_notified: false, // Важно: чтобы бот увидел новую запись в sync_job
-    tariff: selectedTariff,
-    is_holiday: holidayMode,
-    userId: tg.initDataUnsafe?.user?.id || 0,
-    createdAt: Math.floor(Date.now() / 1000),
-  };
-
-  // Г. Отправка в базу данных Firebase
-  await db.ref("ads").push(newAd);
-  localStorage.setItem("last_post_time", Date.now());
-
-  alert("Успешно! Объявление и чек отправлены на проверку модератору.");
-  resetAddForm();
-  showPage("home");
-} catch (e) {
-  alert("Ошибка при публикации: " + e.message);
-} finally {
-  btn.disabled = false;
-  btn.innerText = "Опубликовать";
 }
 
 // 8. ФИЛЬТРЫ И УТИЛИТЫ
