@@ -105,18 +105,33 @@ if (document.getElementById("u-name"))
 
 // 3. НАВИГАЦИЯ (showPage)
 function showPage(p) {
+  // 1. Скрываем все страницы
   document.querySelectorAll(".page").forEach((s) => s.classList.add("hidden"));
-  const target = document.getElementById(`page-${p}`);
-  if (target) target.classList.remove("hidden");
 
+  // 2. Показываем нужную страницу
+  const targetPage = document.getElementById(`page-${p}`);
+  if (targetPage) targetPage.classList.remove("hidden");
+
+  // 3. ЛОГИКА ШАПКИ: Показываем её только на ГЛАВНОЙ
+  const mainHeader = document.getElementById("dynamic-header");
+  if (mainHeader) {
+    if (p === "home") {
+      mainHeader.style.display = "block"; // Показываем на главной
+    } else {
+      mainHeader.style.display = "none"; // Прячем на всех остальных (Подать, Профиль и т.д.)
+    }
+  }
+
+  // 4. Обновляем активную кнопку в меню
   document
     .querySelectorAll(".nav-item")
-    .forEach((i) => i.classList.remove("active"));
+    .forEach((item) => item.classList.remove("active"));
   if (p === "home") document.getElementById("n-home")?.classList.add("active");
   if (p === "favs") {
     document.getElementById("n-favs")?.classList.add("active");
     renderFavs();
   }
+
   if (p === "profile") renderProfile();
   if (p === "add" && !editingId) resetAddForm();
 }
