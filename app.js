@@ -810,3 +810,90 @@ window.onscroll = function () {
   }
   prevScrollpos = currentScrollPos;
 };
+
+// --- ЛОГИКА КАТЕГОРИЙ И ПОИСКА ---
+
+// 1. Фильтр по категориям (Цветы, Подарки и т.д.)
+window.filterByCat = function (c, el) {
+  console.log("Выбрана категория:", c);
+  curCat = c;
+
+  // Переключаем активный класс на кнопках
+  document
+    .querySelectorAll(".cat-card")
+    .forEach((i) => i.classList.remove("active"));
+  if (el) {
+    el.classList.add("active");
+  } else {
+    // Если элемент не передан, ищем его по тексту (для надежности)
+    const cards = document.querySelectorAll(".cat-card");
+    cards.forEach((card) => {
+      if (card.innerText.includes(catMap[c] || c)) card.classList.add("active");
+    });
+  }
+
+  // Меняем заголовок над лентой
+  const titleEl = document.getElementById("dynamic-feed-title");
+  if (titleEl) {
+    titleEl.innerText = catTitles[c] || "Свежие предложения";
+  }
+
+  // Обновляем ленту
+  if (typeof renderFeed === "function") renderFeed();
+};
+
+// 2. Выбор города
+window.selectCity = function (c) {
+  console.log("Выбран город:", c);
+  curCity = c;
+
+  const label = document.getElementById("current-city-label");
+  if (label) label.innerText = c;
+
+  // Закрываем окно выбора
+  toggleCitySelector();
+
+  // Обновляем ленту под новый город
+  if (typeof renderFeed === "function") renderFeed();
+};
+
+// 3. Показать/скрыть выбор города
+window.toggleCitySelector = function () {
+  const selector = document.getElementById("city-selector");
+  if (selector) {
+    selector.classList.toggle("hidden");
+  }
+};
+
+// 4. Поиск (срабатывает при нажатии Enter)
+function startSearch(val) {
+  if (!val || val.trim() === "") return;
+
+  console.log("Поиск по запросу:", val);
+
+  // Фильтруем объявления по названию
+  const results = ads.filter(
+    (ad) =>
+      ad.title.toLowerCase().includes(val.toLowerCase()) &&
+      ad.status !== "deleted"
+  );
+
+  const container = document.getElementById("search-results-area");
+  const searchPage = document.getElementById("search-results-page");
+
+  if (container && searchPage) {
+    container.innerHTML = "";
+    if (results.length === 0) {
+      container.innerHTML = `<p style="text-align:center; color:gray; margin-top:50px;">Ничего не найдено</p>`;
+    } else {
+      results.forEach((ad) => container.appendChild(createAdCard(ad)));
+    }
+    searchPage.classList.remove("hidden");
+  }
+}
+
+// 5. Закрыть окно поиска
+window.closeSearch = function () {
+  const searchPage = document.getElementById("search-results-page");
+  if (searchPage) searchPage.classList.add("hidden");
+};
