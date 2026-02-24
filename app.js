@@ -476,7 +476,7 @@ async function publishAndSend() {
   if (isPaid && !receiptAttached) {
     return alert("Прикрепите чек об оплате!");
   }
-  
+
   // Проверка наличия фото
   if (selectedFiles.length === 0) {
     return alert("Добавьте хотя бы одно фото товара!");
@@ -496,8 +496,10 @@ async function publishAndSend() {
 
     // 2. Загрузка фотографий товара
     // Ждем, пока ВСЕ фото загрузятся, прежде чем идти дальше
-    const imgs = await Promise.all(selectedFiles.map(file => uploadFile(file)));
-    const validImgs = imgs.filter(url => url !== null);
+    const imgs = await Promise.all(
+      selectedFiles.map((file) => uploadFile(file))
+    );
+    const validImgs = imgs.filter((url) => url !== null);
 
     if (validImgs.length === 0) {
       throw new Error("Ошибка загрузки изображений товара.");
@@ -516,8 +518,8 @@ async function publishAndSend() {
       receiveDate: document.getElementById("in-receive-date").value,
       img: validImgs,
       receipt_url: receiptUrl,
-      status: "pending",     // Сначала на модерацию
-      bot_notified: false,   // Бот увидит запись и отправит в группу
+      status: "pending", // Сначала на модерацию
+      bot_notified: false, // Бот увидит запись и отправит в группу
       tariff: selectedTariff,
       is_holiday: holidayMode,
       userId: tg.initDataUnsafe?.user?.id || 0,
@@ -526,10 +528,10 @@ async function publishAndSend() {
 
     // 4. Отправка в базу (только теперь, когда всё готово!)
     await db.ref("ads").push(newAd);
-    
+
     localStorage.setItem("last_post_time", Date.now());
     alert("Успешно! Объявление отправлено модератору.");
-    
+
     resetAddForm();
     showPage("home");
   } catch (e) {
@@ -541,67 +543,62 @@ async function publishAndSend() {
   }
 }
 
-  // --- ЛОГИКА СОЗДАНИЯ НОВОГО ОБЪЯВЛЕНИЯ ---
-  const isPaid = holidayMode || selectedTariff === "vip";
+// --- ЛОГИКА СОЗДАНИЯ НОВОГО ОБЪЯВЛЕНИЯ ---
+const isPaid = holidayMode || selectedTariff === "vip";
 
-  // Проверка прикрепленного чека для платных тарифов
-  if (isPaid && !receiptAttached) {
-    return alert(
-      "В праздничные дни или для VIP нужно прикрепить чек об оплате!"
-    );
+// Проверка прикрепленного чека для платных тарифов
+if (isPaid && !receiptAttached) {
+  return alert("В праздничные дни или для VIP нужно прикрепить чек об оплате!");
+}
+
+btn.disabled = true;
+btn.innerText = "ЗАГРУЗКА...";
+
+try {
+  // А. Загрузка чека на Firebase Storage
+  let receiptUrl = null;
+  if (isPaid) {
+    const receiptFile = document.getElementById("receipt-input").files[0];
+    receiptUrl = await uploadFile(receiptFile); // Использует твою функцию uploadFile
+    if (!receiptUrl) throw new Error("Не удалось загрузить чек об оплате.");
   }
 
-  btn.disabled = true;
-  btn.innerText = "ЗАГРУЗКА...";
+  // Б. Загрузка фотографий товара на Firebase Storage
+  const imgs = await Promise.all(selectedFiles.map((file) => uploadFile(file)));
 
-  try {
-    // А. Загрузка чека на Firebase Storage
-    let receiptUrl = null;
-    if (isPaid) {
-      const receiptFile = document.getElementById("receipt-input").files[0];
-      receiptUrl = await uploadFile(receiptFile); // Использует твою функцию uploadFile
-      if (!receiptUrl) throw new Error("Не удалось загрузить чек об оплате.");
-    }
+  // В. Формирование объекта объявления
+  const newAd = {
+    title: title,
+    price: price,
+    cat: document.getElementById("in-cat").value,
+    city: document.getElementById("in-city").value,
+    address: document.getElementById("in-address").value,
+    phone: document.getElementById("in-wa").value,
+    tgNick: document.getElementById("in-tg").value,
+    desc: document.getElementById("in-desc").value,
+    receiveDate: document.getElementById("in-receive-date").value,
+    img: imgs.filter((i) => i !== null), // Очищаем от пустых ссылок
+    receipt_url: receiptUrl,
+    status: "pending", // Отправляем на модерацию
+    bot_notified: false, // Важно: чтобы бот увидел новую запись в sync_job
+    tariff: selectedTariff,
+    is_holiday: holidayMode,
+    userId: tg.initDataUnsafe?.user?.id || 0,
+    createdAt: Math.floor(Date.now() / 1000),
+  };
 
-    // Б. Загрузка фотографий товара на Firebase Storage
-    const imgs = await Promise.all(
-      selectedFiles.map((file) => uploadFile(file))
-    );
+  // Г. Отправка в базу данных Firebase
+  await db.ref("ads").push(newAd);
+  localStorage.setItem("last_post_time", Date.now());
 
-    // В. Формирование объекта объявления
-    const newAd = {
-      title: title,
-      price: price,
-      cat: document.getElementById("in-cat").value,
-      city: document.getElementById("in-city").value,
-      address: document.getElementById("in-address").value,
-      phone: document.getElementById("in-wa").value,
-      tgNick: document.getElementById("in-tg").value,
-      desc: document.getElementById("in-desc").value,
-      receiveDate: document.getElementById("in-receive-date").value,
-      img: imgs.filter((i) => i !== null), // Очищаем от пустых ссылок
-      receipt_url: receiptUrl,
-      status: "pending", // Отправляем на модерацию
-      bot_notified: false, // Важно: чтобы бот увидел новую запись в sync_job
-      tariff: selectedTariff,
-      is_holiday: holidayMode,
-      userId: tg.initDataUnsafe?.user?.id || 0,
-      createdAt: Math.floor(Date.now() / 1000),
-    };
-
-    // Г. Отправка в базу данных Firebase
-    await db.ref("ads").push(newAd);
-    localStorage.setItem("last_post_time", Date.now());
-
-    alert("Успешно! Объявление и чек отправлены на проверку модератору.");
-    resetAddForm();
-    showPage("home");
-  } catch (e) {
-    alert("Ошибка при публикации: " + e.message);
-  } finally {
-    btn.disabled = false;
-    btn.innerText = "Опубликовать";
-  }
+  alert("Успешно! Объявление и чек отправлены на проверку модератору.");
+  resetAddForm();
+  showPage("home");
+} catch (e) {
+  alert("Ошибка при публикации: " + e.message);
+} finally {
+  btn.disabled = false;
+  btn.innerText = "Опубликовать";
 }
 
 // 8. ФИЛЬТРЫ И УТИЛИТЫ
