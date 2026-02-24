@@ -11,8 +11,7 @@
 }
 
 #page-home {
-  /* Мы ставим 210px, чтобы контент точно вылез из-под категорий и заголовка */
-  padding-top: 210px !important;
+  padding-top: 155px !important; /* Отодвигаем ленту вниз под шапку */
   margin: 0 !important;
   width: 100%;
 }
@@ -31,19 +30,20 @@ body {
 
 /* ХЕДЕР И ПОИСК */
 .main-header {
-  position: fixed !important;
+  position: fixed !important; /* Строго фиксируем */
   top: 0;
   left: 0;
   width: 100%;
   background: #121212;
-  z-index: 5000;
+  z-index: 5000; /* Слой ниже, чем у модалки */
   padding: 10px 15px 12px;
   box-sizing: border-box;
-  /* Плавность движения через свойство top */
+  /* Плавность для скрытия */
   transition: top 0.3s ease-in-out !important;
   margin: 0 !important;
   border-bottom: 1px solid #1c1c1e;
 }
+
 .top-location-bar {
   display: inline-flex;
   align-items: center;
@@ -558,24 +558,11 @@ body {
   background-color: var(--bg);
 }
 
-/* Если у тебя есть фиксированный хедер (main-header), ему тоже нужен отступ */
-.main-header {
-  position: sticky;
-  top: 0;
-  background: var(--bg);
-  z-index: 1000;
-  padding: 5px 15px;
-  /* Плавность появления и исчезновения */
-  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-  will-change: transform;
-}
-
 /* Класс для скрытия */
 .header-hidden {
-  transform: translateY(-100%) !important;
-  opacity: 0;
-  pointer-events: none; /* Чтобы не нажать на невидимую кнопку */
+  top: -250px !important; /* Улетает далеко вверх */
 }
+
 /* Нижняя навигация (bottom-nav) должна учитывать полоску внизу экрана */
 .bottom-nav {
   position: fixed !important;
@@ -615,4 +602,22 @@ body {
   color: var(--gray);
   font-weight: bold;
   text-align: center;
+}
+
+#product-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #121212;
+  z-index: 10000 !important; /* Самый высокий слой, чтобы перекрыть всё */
+  overflow-y: auto; /* Позволяет крутить только внутри этого окна */
+  overflow-x: hidden;
+  display: block;
+}
+
+/* Чтобы контент внутри не прилипал к краям */
+#pv-content {
+  padding-bottom: 100px; /* Запас снизу, чтобы дойти до кнопки Пожаловаться */
 }
