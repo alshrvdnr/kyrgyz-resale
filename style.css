@@ -364,16 +364,66 @@ body {
 .modal-overlay,
 #product-modal,
 #search-results-page {
-  z-index: 10000 !important;
+  z-index: 10000 !important; /* Выше шапки и выше нижнего меню */
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #121212; /* Сплошной черный фон, чтобы ничего не просвечивало */
+}
+
+.modal-overlay {
+  background: rgba(
+    0,
+    0,
+    0,
+    0.8
+  ) !important; /* Полупрозрачный фон только здесь */
+  backdrop-filter: blur(10px); /* Размытие заднего фона */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .modal-box {
-  background: #1c1c1e;
-  width: 85%;
-  max-width: 320px;
-  padding: 20px;
-  border-radius: 20px;
+  background: #1c1c1e !important; /* Насыщенный фон, чтобы ничего не просвечивало */
+  width: 90%; /* Чуть шире для удобства */
+  max-width: 340px;
+  padding: 25px; /* Больше внутренних отступов */
+  border-radius: 24px; /* Более мягкие скругления (как в iOS) */
   text-align: center;
+  border: 1px solid #333; /* Тонкая рамка, отделяющая окно от фона */
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.7); /* Глубокая тень для эффекта объема */
+  position: relative;
+  z-index: 10001; /* Всегда выше фона модалки */
+  margin: auto; /* Центрирование */
+}
+
+/* Добавьте это, чтобы заголовок в модалке выглядел красиво */
+.modal-box h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 20px;
+  color: #fff;
+}
+
+#product-modal,
+#search-results-page {
+  overflow-y: auto; /* Разрешаем прокрутку внутри них */
+}
+
+.modal-overlay .modal-box {
+  background: #1c1c1e !important;
+  width: 90%;
+  max-width: 340px;
+  border-radius: 24px;
+  padding: 25px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  border: 1px solid #333;
+  /* Важно: чтобы карточка не улетала вверх */
+  position: relative;
+  z-index: 10001;
 }
 
 .modal-info-text {

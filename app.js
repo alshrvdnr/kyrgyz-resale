@@ -738,10 +738,16 @@ function handleReceiptSelect(i) {
     document.getElementById("receipt-label").innerText = "Чек добавлен ✅";
   }
 }
-function openManageModal(id) {
+window.openManageModal = function (id) {
   currentManageId = id;
-  document.getElementById("manage-modal").classList.remove("hidden");
-}
+  const modal = document.getElementById("manage-modal");
+  if (modal) {
+    modal.classList.remove("hidden");
+    // Блокируем скролл страницы под модалкой
+    document.body.style.overflow = "hidden";
+  }
+};
+
 function startAdEdit() {
   const ad = ads.find((a) => a.id === currentManageId);
   if (!ad) return;
@@ -779,9 +785,13 @@ function closeProduct() {
   document.getElementById("product-modal").classList.add("hidden");
   tg.BackButton.hide();
 }
-function closeManageModal() {
-  document.getElementById("manage-modal").classList.add("hidden");
-}
+window.closeManageModal = function () {
+  const modal = document.getElementById("manage-modal");
+  if (modal) {
+    modal.classList.add("hidden");
+    document.body.style.overflow = "auto";
+  }
+};
 function closeConfirmModal() {
   document.getElementById("confirm-modal").classList.add("hidden");
 }
@@ -873,7 +883,14 @@ window.selectCity = function (c) {
 window.toggleCitySelector = function () {
   const selector = document.getElementById("city-selector");
   if (selector) {
-    selector.classList.toggle("hidden");
+    const isHidden = selector.classList.contains("hidden");
+    if (isHidden) {
+      selector.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+    } else {
+      selector.classList.add("hidden");
+      document.body.style.overflow = "auto";
+    }
   }
 };
 
