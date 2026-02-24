@@ -10,16 +10,30 @@
   --premium-grad: linear-gradient(135deg, #ffcc00 0%, #ffdb4d 100%);
 }
 
-#page-home {
-  padding-top: 170px !important; /* Увеличили, чтобы VIP-значок был виден */
-  padding-bottom: 100px;
-}
-
+/* Вставь это вместо старых отступов страниц */
 #page-add,
 #page-favs,
 #page-profile {
-  padding-top: 10px; /* Здесь шапки нет, поэтому отступ минимальный */
+  padding-top: 10px !important; /* Убираем дырку сверху, так как тут нет поиска */
   padding-bottom: 100px;
+  background: #121212;
+}
+
+/* И убедись, что для главной страницы отступ остается большим! */
+#page-home {
+  padding-top: 180px !important; /* Оставляем место под фиксированную шапку */
+}
+
+/* Добавь отступ заголовку, чтобы он не лип к объявлениям */
+#dynamic-feed-title {
+  margin: 20px 0 15px 0 !important;
+}
+
+/* 5. Кнопка "X" на странице Подать */
+#page-add header i {
+  z-index: 9999;
+  position: relative;
+  padding: 10px; /* Чтобы было легче попасть пальцем */
 }
 
 #product-modal {
@@ -38,14 +52,18 @@ body {
   display: none !important;
 }
 
-/* ХЕДЕР И ПОИСК */
 .main-header {
   position: fixed !important;
   top: 0;
   left: 0;
   width: 100%;
-  z-index: 5000; /* Ниже, чем страница "Подать" или "Модалка" */
   background: #121212;
+  z-index: 5000;
+  padding: 10px 15px 15px !important;
+  box-sizing: border-box;
+  /* Добавляем плавность для свойства top */
+  transition: top 0.3s ease-in-out;
+  border-bottom: 1px solid #1c1c1e;
 }
 
 .top-location-bar {
@@ -588,15 +606,10 @@ body {
 
 html,
 body {
-  margin: 0 !important;
-  padding: 0 !important;
-  overflow-x: hidden !important; /* Запрещает шататься влево-вправо */
-  width: 100%;
-  background-color: #121212;
-  font-family: -apple-system, system-ui, sans-serif;
-  /* Учитываем вырезы на новых айфонах */
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
+  background-color: #121212 !important;
+  margin: 0;
+  padding: 0;
+  height: 100%;
 }
 
 .nav-center-content span {

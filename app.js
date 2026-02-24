@@ -103,7 +103,6 @@ if (document.getElementById("u-avatar-big"))
 if (document.getElementById("u-name"))
   document.getElementById("u-name").innerText = user.first_name || "Гость";
 
-// 3. НАВИГАЦИЯ (showPage)
 function showPage(p) {
   // 1. Скрываем все страницы
   document.querySelectorAll(".page").forEach((s) => s.classList.add("hidden"));
@@ -112,17 +111,17 @@ function showPage(p) {
   const targetPage = document.getElementById(`page-${p}`);
   if (targetPage) targetPage.classList.remove("hidden");
 
-  // 3. ЛОГИКА ШАПКИ: Показываем её только на ГЛАВНОЙ
+  // 3. УПРАВЛЕНИЕ ШАПКОЙ: Чтобы она не блокировала кнопку "X"
   const mainHeader = document.getElementById("dynamic-header");
   if (mainHeader) {
     if (p === "home") {
-      mainHeader.style.display = "block"; // Показываем на главной
+      mainHeader.style.display = "block"; // Только на главной
     } else {
-      mainHeader.style.display = "none"; // Прячем на всех остальных (Подать, Профиль и т.д.)
+      mainHeader.style.display = "none"; // Полностью удаляем на других страницах
     }
   }
 
-  // 4. Обновляем активную кнопку в меню
+  // 4. Подсветка кнопок меню
   document
     .querySelectorAll(".nav-item")
     .forEach((item) => item.classList.remove("active"));
@@ -131,11 +130,8 @@ function showPage(p) {
     document.getElementById("n-favs")?.classList.add("active");
     renderFavs();
   }
-
   if (p === "profile") renderProfile();
-  if (p === "add" && !editingId) resetAddForm();
 }
-
 // 4. СИНХРОНИЗАЦИЯ
 function listenSettings() {
   db.ref("settings").on("value", (snap) => {
@@ -751,19 +747,39 @@ let prevScrollpos = window.pageYOffset;
 
 window.onscroll = function () {
   const header = document.getElementById("dynamic-header");
-  if (!header) return; // Если хедер не найден, выходим
+  // Если шапка скрыта (мы не на главной), ничего не делаем
+  if (!header || header.style.display === "none") return;
 
   let currentScrollPos = window.pageYOffset;
 
   if (prevScrollpos > currentScrollPos) {
-    // Скролл ВВЕРХ - показываем (координата 0)
-    header.style.top = "0";
+    header.style.top = "0"; // Показываем (выезжает сверху)
   } else {
-    // Скролл ВНИЗ - прячем (уводим на -250 пикселей вверх)
-    // Прячем только если прокрутили хотя бы на 50px
-    if (currentScrollPos > 50) {
-      header.style.top = "-250px";
+    if (currentScrollPos > 80) {
+      header.style.top = "-250px"; // Прячем (улетает вверх)
     }
   }
   prevScrollpos = currentScrollPos;
 };
+
+let lastScrollTop = 0;
+window.addEventListener(
+  "scroll",
+  function () {
+    const header = document.getElementById("dynamic-header");
+    // Если мы не на главной, логика скролла не нужна
+    if (!header || header.style.display === "none") return;
+
+    let st = window.pageYOffset || document.documentElement.scrollTop;
+
+    if (st > lastScrollTop && st > 60) {
+      // Скролл ВНИЗ - Прячем
+      header.style.top = "-250px";
+    } else {
+      // Скролл ВВЕРХ - Показываем
+      header.style.top = "0";
+    }
+    lastScrollTop = st <= 0 ? 0 : st;
+  },
+  { passive: true }
+);
