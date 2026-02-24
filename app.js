@@ -208,9 +208,17 @@ function listenAds() {
       renderFeed();
       renderProfile();
 
-      // Скрываем заставку
+      // Скрываем заставку и проверяем ссылку из бота
       if (splash) {
         splash.classList.add("hidden-splash");
+
+        // Обработка глубоких ссылок из Telegram бота
+        const hash = window.location.hash;
+        if (hash === "#add") {
+          showPage("add");
+        } else if (hash === "#profile") {
+          showPage("profile");
+        }
       }
     },
     (error) => {
@@ -218,14 +226,13 @@ function listenAds() {
       if (splash) splash.classList.add("hidden-splash");
     }
   );
-
-  // Если через 5 секунд ничего не произошло - убираем заставку принудительно
-  setTimeout(() => {
-    if (splash && !splash.classList.contains("hidden-splash")) {
-      splash.classList.add("hidden-splash");
-    }
-  }, 5000);
 }
+// Если через 5 секунд ничего не произошло - убираем заставку принудительно
+setTimeout(() => {
+  if (splash && !splash.classList.contains("hidden-splash")) {
+    splash.classList.add("hidden-splash");
+  }
+}, 5000);
 
 function applyHolidayUI() {
   const vBlock = document.getElementById("vip-block");
@@ -258,7 +265,7 @@ function renderFeed() {
   if (!grid) return;
   grid.innerHTML = "";
 
-  // 1. Фильтруем список
+  // 1. Фильтруем объявления по городу, категории и статусу
   let filtered = ads.filter(
     (ad) =>
       (curCat === "Все" || ad.cat === curCat) &&
@@ -268,31 +275,33 @@ function renderFeed() {
       ad.status !== "rejected"
   );
 
-  // 2. ЖЕСТКАЯ СОРТИРОВКА
+  // 2. СОРТИРОВКА: Новые всегда ВЫШЕ старых
   filtered.sort((a, b) => {
-    // 1. Сначала проверяем статус "Продано" (они всегда в самом низу)
+    // А. Проданные всегда в самом низу
     const aSold = a.status === "sold" ? 1 : 0;
     const bSold = b.status === "sold" ? 1 : 0;
     if (aSold !== bSold) return aSold - bSold;
 
-    // 2. Среди активных: VIP товары выше обычных
+    // Б. Если оба активны, VIP ставим выше обычных
     if (a.status !== "sold") {
       const aVip = a.tariff === "vip" ? 1 : 0;
       const bVip = b.tariff === "vip" ? 1 : 0;
       if (aVip !== bVip) return bVip - aVip;
     }
 
-    // 3. Главное: Самые свежие (по времени) всегда выше старых
+    // В. Внутри своих групп сортируем по ВРЕМЕНИ (самые свежие — сверху)
     const aTime = Number(a.approvedAt || a.createdAt || 0);
     const bTime = Number(b.approvedAt || b.createdAt || 0);
+
     return bTime - aTime;
   });
 
+  // 3. Отрисовываем карточки
   filtered.forEach((ad) => grid.appendChild(createAdCard(ad)));
 }
 
 function createAdCard(ad, isProfile = false) {
-  // 1. ОЧИСТКА ЦЕНЫ: Оставляем только цифры, чтобы текст не вылезал за края
+  // 1. ОЧИСТКА ЦЕНЫ: Удаляем все буквы и пробелы, оставляем только цифры
   const displayPrice = String(ad.price).replace(/[^0-9]/g, "") || "0";
 
   const isFav = favs.includes(ad.id),
@@ -321,7 +330,7 @@ function createAdCard(ad, isProfile = false) {
     <img src="${ad.img ? ad.img[0] : ""}" loading="lazy">
     <div style="padding:10px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-        <!-- ИСПОЛЬЗУЕМ ОЧИЩЕННУЮ ЦЕНУ -->
+        <!-- ИСПОЛЬЗУЕМ ТОЛЬКО ЦИФРОВУЮ ЦЕНУ -->
         <div style="color:var(--yellow-main); font-weight:bold; font-size:15px;">${displayPrice} KGS</div>
         <div style="color:var(--gray); font-size:10px;">${formatRelativeDate(
           ad.approvedAt || ad.createdAt
