@@ -142,46 +142,34 @@ window.switchProfileTab = function (t) {
   renderProfile();
 };
 
-// 1. Функция переключения страниц
 window.showPage = function (p) {
-  console.log("Переход на страницу:", p);
-
-  // Скрываем абсолютно все страницы
+  // 1. Скрываем все страницы
   document.querySelectorAll(".page").forEach((s) => s.classList.add("hidden"));
 
-  // Показываем ту, которую нужно
+  // 2. Показываем нужную страницу
   const targetPage = document.getElementById(`page-${p}`);
-  if (targetPage) {
-    targetPage.classList.remove("hidden");
-  }
+  if (targetPage) targetPage.classList.remove("hidden");
 
-  // ФИКС КРЕСТИКА И КНОПОК: Прячем главную шапку везде, кроме Главной страницы
+  // 3. УПРАВЛЯЕМ ШАПКОЙ: Чтобы она не перекрывала кнопки на других страницах
   const header = document.getElementById("dynamic-header");
   if (header) {
     if (p === "home") {
-      header.style.setProperty("display", "block", "important");
+      header.style.display = "block"; // Включаем только на главной
     } else {
-      header.style.setProperty("display", "none", "important");
+      header.style.display = "none"; // Выключаем везде, где она мешает
     }
   }
 
-  // Обновляем активную иконку в нижнем меню
+  // 4. Подсветка кнопок меню
   document
     .querySelectorAll(".nav-item")
     .forEach((i) => i.classList.remove("active"));
-  const navHome = document.getElementById("n-home");
-  const navFavs = document.getElementById("n-favs");
-
-  if (p === "home" && navHome) navHome.classList.add("active");
-  if (p === "favs" && navFavs) {
-    navFavs.classList.add("active");
+  if (p === "home") document.getElementById("n-home")?.classList.add("active");
+  if (p === "favs") {
+    document.getElementById("n-favs")?.classList.add("active");
     if (typeof renderFavs === "function") renderFavs();
   }
-
-  // Запуск функций разделов
   if (p === "profile" && typeof renderProfile === "function") renderProfile();
-  if (p === "add" && !editingId && typeof resetAddForm === "function")
-    resetAddForm();
 };
 
 // 2. Функция для кнопки "X" (Закрыть)
@@ -802,30 +790,23 @@ function clearFavs() {
   renderFeed();
 }
 
-// --- ЛОГИКА СКРЫТИЯ ШАПКИ ПРИ СКРОЛЛЕ ---
-let lastScrollTop = 0;
+let prevScrollpos = window.pageYOffset;
 
-window.addEventListener(
-  "scroll",
-  function () {
-    const header = document.getElementById("dynamic-header");
+window.onscroll = function () {
+  const header = document.getElementById("dynamic-header");
+  // Если шапка выключена (мы в Профиле или Подать) — скролл не трогаем
+  if (!header || header.style.display === "none") return;
 
-    // Если шапка скрыта программно (на страницах Профиль/Подать), ничего не делаем
-    if (!header || header.style.display === "none") return;
+  let currentScrollPos = window.pageYOffset;
 
-    let currentScroll =
-      window.pageYOffset || document.documentElement.scrollTop;
-
-    if (currentScroll > lastScrollTop && currentScroll > 100) {
-      // Листаем ВНИЗ — прячем шапку (уводим вверх)
+  if (prevScrollpos > currentScrollPos) {
+    // Скроллим ВВЕРХ — показываем шапку
+    header.style.top = "0";
+  } else {
+    // Скроллим ВНИЗ — прячем шапку (улетает вверх)
+    if (currentScrollPos > 100) {
       header.style.top = "-250px";
-    } else if (currentScroll < lastScrollTop) {
-      // Листаем ВВЕРХ — показываем шапку
-      header.style.top = "0";
     }
-
-    // Запоминаем позицию (фикс для iOS, чтобы не было глюков при отскоке)
-    lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
-  },
-  { passive: true }
-);
+  }
+  prevScrollpos = currentScrollPos;
+};
