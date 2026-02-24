@@ -138,7 +138,7 @@ window.showPage = function (p) {
     targetPage.classList.remove("hidden");
   }
 
-  // 3. ФИКС: Убираем шапку поиска везде, кроме главной, чтобы она не мешала кликам
+  // 3. ФИКС: Убираем шапку поиска везде, кроме главной
   const header = document.getElementById("dynamic-header");
   if (header) {
     if (p === "home") {
@@ -156,7 +156,6 @@ window.showPage = function (p) {
   if (p === "home") document.getElementById("n-home")?.classList.add("active");
   if (p === "favs") {
     document.getElementById("n-favs")?.classList.add("active");
-    // Если есть функция отрисовки избранного - запускаем
     if (typeof renderFavs === "function") renderFavs();
   }
 
@@ -165,11 +164,35 @@ window.showPage = function (p) {
     if (typeof renderProfile === "function") renderProfile();
   }
 
-  // 6. Если зашли в Подать - сбрасываем форму
+  // 6. Если зашли в Подать - СБРОС ФОРМЫ И ГЕНЕРАЦИЯ КОДА АНТИ-ФРОД
   if (p === "add") {
-    if (!editingId && typeof resetAddForm === "function") resetAddForm();
+    // Если это не редактирование старого, а создание нового
+    if (!editingId) {
+      if (typeof resetAddForm === "function") resetAddForm();
+
+      // ГЕНЕРИРУЕМ НОВЫЙ КОД ДЛЯ ПРОВЕРКИ
+      if (typeof generateVerifyCode === "function") {
+        generateVerifyCode();
+      }
+
+      // Прокручиваем форму наверх, чтобы пользователь увидел блок с кодом
+      const formScroll = document.querySelector(".form-scroll");
+      if (formScroll) formScroll.scrollTop = 0;
+    }
   }
 };
+
+// ДОБАВЬ ЭТУ ФУНКЦИЮ НИЖЕ, если её ещё нет в твоем файле app.js:
+let currentVerifyCode = "";
+function generateVerifyCode() {
+  // Генерируем случайное число от 1000 до 9999
+  currentVerifyCode = Math.floor(1000 + Math.random() * 9000).toString();
+  const el = document.getElementById("display-verify-code");
+  if (el) {
+    el.innerText = currentVerifyCode;
+  }
+  console.log("Новый проверочный код:", currentVerifyCode);
+}
 
 // Оживляем кнопку "X" и кнопку Профиля вверху
 window.cancelAdd = function () {
@@ -208,17 +231,20 @@ function listenAds() {
       renderFeed();
       renderProfile();
 
-      // Скрываем заставку и проверяем ссылку из бота
-      if (splash) {
+      // Когда данные загружены, убираем заставку
+      if (splash && !splash.classList.contains("hidden-splash")) {
         splash.classList.add("hidden-splash");
 
-        // Обработка глубоких ссылок из Telegram бота
+        // --- ЛОГИКА ПЕРЕХОДА ПО ССЫЛКАМ ИЗ БОТА ---
         const hash = window.location.hash;
+        console.log("Пришел хэш из бота:", hash);
+
         if (hash === "#add") {
           showPage("add");
         } else if (hash === "#profile") {
           showPage("profile");
         }
+        // ------------------------------------------
       }
     },
     (error) => {
@@ -470,7 +496,7 @@ async function publishAndSend() {
 
   // 1. ОЧИСТКА И ПРОВЕРКА ДАННЫХ
   const cleanTitle = title.trim();
-  const numericPrice = parseInt(priceInput); // Превращаем в число
+  const numericPrice = parseInt(priceInput); // Превращаем в чистое число
 
   if (cleanTitle.length < 3) {
     return alert("Название слишком короткое (минимум 3 символа)!");
@@ -496,11 +522,11 @@ async function publishAndSend() {
     try {
       await db.ref("ads/" + editingId).update({
         title: cleanTitle,
-        price: numericPrice, // Сохраняем как число
+        price: numericPrice,
         address: document.getElementById("in-address").value,
         phone: document.getElementById("in-wa").value,
         desc: document.getElementById("in-desc").value,
-        needs_sync_tg: true, // ВАЖНО: чтобы бот обновил цену в каналах
+        needs_sync_tg: true, // Сигнал боту обновить данные в Telegram
       });
       alert("Изменения сохранены!");
       resetAddForm();
@@ -522,7 +548,7 @@ async function publishAndSend() {
   }
 
   if (selectedFiles.length === 0) {
-    return alert("Добавьте хотя бы одно фото товара!");
+    return alert("Добавьте хотя бы одно фото товара вместе с кодом проверки!");
   }
 
   btn.disabled = true;
@@ -547,10 +573,10 @@ async function publishAndSend() {
       throw new Error("Ошибка загрузки изображений товара.");
     }
 
-    // В. Формирование объекта для базы
+    // В. Формирование объекта для базы (Включая анти-мошенник код)
     const newAd = {
       title: cleanTitle,
-      price: numericPrice, // Сохраняем как число
+      price: numericPrice,
       cat: document.getElementById("in-cat").value,
       city: document.getElementById("in-city").value,
       address: document.getElementById("in-address").value,
@@ -560,19 +586,23 @@ async function publishAndSend() {
       receiveDate: document.getElementById("in-receive-date").value,
       img: validImgs,
       receipt_url: receiptUrl,
+
+      // ВОТ ЭТА СТРОЧКА: Отправляем код проверки в базу
+      verify_code: currentVerifyCode,
+
       status: "pending",
-      bot_notified: false, // Бот увидит и отправит в ТГ
+      bot_notified: false, // Бот увидит запись и пришлет тебе уведомление
       tariff: selectedTariff,
       is_holiday: holidayMode,
       userId: tg.initDataUnsafe?.user?.id || 0,
       createdAt: Math.floor(Date.now() / 1000),
     };
 
-    // Г. Отправка
+    // Г. Отправка в Firebase
     await db.ref("ads").push(newAd);
     localStorage.setItem("last_post_time", Date.now());
 
-    alert("Успешно! Объявление отправлено модератору.");
+    alert("Успешно! Объявление и код проверки отправлены модератору.");
     resetAddForm();
     showPage("home");
   } catch (e) {
