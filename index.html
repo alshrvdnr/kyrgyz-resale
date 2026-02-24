@@ -346,17 +346,24 @@
             </select>
           </div>
           <div class="f-group">
-            <label>Название товара</label
-            ><input
+            <label>Название товара (макс. 40 симв.)</label>
+            <input
               type="text"
               id="in-title"
               class="main-input"
-              placeholder="Например: Букет роз"
+              placeholder="Букет роз"
+              maxlength="40"
             />
           </div>
           <div class="f-group">
-            <label>Цена (KGS)</label
-            ><input type="number" id="in-price" class="main-input" />
+            <label>Цена (KGS) — только цифры</label>
+            <input
+              type="number"
+              id="in-price"
+              class="main-input"
+              placeholder="1500"
+              oninput="if(this.value.length > 7) this.value = this.value.slice(0, 7);"
+            />
           </div>
           <div class="f-group" id="date-group">
             <label>Дата получения товара</label
@@ -389,9 +396,14 @@
               placeholder="0XXXXXXXXX"
             />
           </div>
-          <div class="f-group" id="desc-group">
-            <label>Описание</label
-            ><textarea id="in-desc" class="main-input" rows="4"></textarea>
+          <div class="f-group">
+            <label>Описание (макс. 400 симв.)</label>
+            <textarea
+              id="in-desc"
+              class="main-input"
+              rows="3"
+              maxlength="400"
+            ></textarea>
           </div>
           <button
             id="pub-btn"

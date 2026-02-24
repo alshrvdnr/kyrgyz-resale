@@ -270,23 +270,21 @@ function renderFeed() {
 
   // 2. ЖЕСТКАЯ СОРТИРОВКА
   filtered.sort((a, b) => {
-    // А. Сначала разделяем "Продано" и "Активно" (Проданные всегда в самый низ)
+    // 1. Сначала проверяем статус "Продано" (они всегда в самом низу)
     const aSold = a.status === "sold" ? 1 : 0;
     const bSold = b.status === "sold" ? 1 : 0;
     if (aSold !== bSold) return aSold - bSold;
 
-    // Б. Если оба активны, проверяем VIP (VIP выше обычных)
+    // 2. Среди активных: VIP товары выше обычных
     if (a.status !== "sold") {
       const aVip = a.tariff === "vip" ? 1 : 0;
       const bVip = b.tariff === "vip" ? 1 : 0;
       if (aVip !== bVip) return bVip - aVip;
     }
 
-    // В. Сортировка по времени (Самые новые — ВЫШЕ)
-    // Используем approvedAt (время одобрения админом), если его нет — createdAt
+    // 3. Главное: Самые свежие (по времени) всегда выше старых
     const aTime = Number(a.approvedAt || a.createdAt || 0);
     const bTime = Number(b.approvedAt || b.createdAt || 0);
-
     return bTime - aTime;
   });
 
@@ -453,15 +451,26 @@ async function uploadFile(file) {
 async function publishAndSend() {
   const btn = document.getElementById("pub-btn");
   const title = document.getElementById("in-title").value;
-  const price = document.getElementById("in-price").value;
+  const priceInput = document.getElementById("in-price").value;
 
-  if (!title || !price) return alert("Укажите название и цену!");
+  // 1. ОЧИСТКА И ПРОВЕРКА ДАННЫХ
+  const cleanTitle = title.trim();
+  const numericPrice = parseInt(priceInput); // Превращаем в число
 
-  // --- АНТИ-СПАМ: Ограничение 1 минута ---
+  if (cleanTitle.length < 3) {
+    return alert("Название слишком короткое (минимум 3 символа)!");
+  }
+  if (isNaN(numericPrice) || numericPrice <= 0) {
+    return alert("Введите корректную цену цифрами (больше 0)!");
+  }
+  if (numericPrice > 1000000) {
+    return alert("Цена не может быть больше 1,000,000 KGS!");
+  }
+
+  // 2. АНТИ-СПАМ: Ограничение 1 минута
   const lastPost = localStorage.getItem("last_post_time");
-  const now = Date.now();
-  if (lastPost && now - lastPost < 60000) {
-    const waitSec = Math.ceil((60000 - (now - lastPost)) / 1000);
+  if (lastPost && Date.now() - lastPost < 60000) {
+    const waitSec = Math.ceil((60000 - (Date.now() - lastPost)) / 1000);
     return alert(`Слишком часто! Подождите ${waitSec} сек.`);
   }
 
@@ -471,12 +480,12 @@ async function publishAndSend() {
     btn.innerText = "СОХРАНЕНИЕ...";
     try {
       await db.ref("ads/" + editingId).update({
-        title: title,
-        price: price,
+        title: cleanTitle,
+        price: numericPrice, // Сохраняем как число
         address: document.getElementById("in-address").value,
         phone: document.getElementById("in-wa").value,
         desc: document.getElementById("in-desc").value,
-        needs_sync_tg: true, // Флаг для бота
+        needs_sync_tg: true, // ВАЖНО: чтобы бот обновил цену в каналах
       });
       alert("Изменения сохранены!");
       resetAddForm();
@@ -493,12 +502,10 @@ async function publishAndSend() {
   // --- ЛОГИКА СОЗДАНИЯ НОВОГО ОБЪЯВЛЕНИЯ ---
   const isPaid = holidayMode || selectedTariff === "vip";
 
-  // Проверка чека для платных
   if (isPaid && !receiptAttached) {
     return alert("Прикрепите чек об оплате!");
   }
 
-  // Проверка наличия фото
   if (selectedFiles.length === 0) {
     return alert("Добавьте хотя бы одно фото товара!");
   }
@@ -507,7 +514,7 @@ async function publishAndSend() {
   btn.innerText = "ЗАГРУЗКА ФОТО...";
 
   try {
-    // 1. Загрузка чека (если есть)
+    // А. Загрузка чека (если есть)
     let receiptUrl = null;
     if (isPaid) {
       const receiptFile = document.getElementById("receipt-input").files[0];
@@ -515,8 +522,7 @@ async function publishAndSend() {
       if (!receiptUrl) throw new Error("Не удалось загрузить чек.");
     }
 
-    // 2. Загрузка фотографий товара
-    // Ждем, пока ВСЕ фото загрузятся, прежде чем идти дальше
+    // Б. Загрузка фотографий товара
     const imgs = await Promise.all(
       selectedFiles.map((file) => uploadFile(file))
     );
@@ -526,10 +532,10 @@ async function publishAndSend() {
       throw new Error("Ошибка загрузки изображений товара.");
     }
 
-    // 3. Формирование объекта (теперь со всеми ссылками на фото)
+    // В. Формирование объекта для базы
     const newAd = {
-      title: title,
-      price: price,
+      title: cleanTitle,
+      price: numericPrice, // Сохраняем как число
       cat: document.getElementById("in-cat").value,
       city: document.getElementById("in-city").value,
       address: document.getElementById("in-address").value,
@@ -539,20 +545,19 @@ async function publishAndSend() {
       receiveDate: document.getElementById("in-receive-date").value,
       img: validImgs,
       receipt_url: receiptUrl,
-      status: "pending", // Сначала на модерацию
-      bot_notified: false, // Бот увидит запись и отправит в группу
+      status: "pending",
+      bot_notified: false, // Бот увидит и отправит в ТГ
       tariff: selectedTariff,
       is_holiday: holidayMode,
       userId: tg.initDataUnsafe?.user?.id || 0,
       createdAt: Math.floor(Date.now() / 1000),
     };
 
-    // 4. Отправка в базу (только теперь, когда всё готово!)
+    // Г. Отправка
     await db.ref("ads").push(newAd);
-
     localStorage.setItem("last_post_time", Date.now());
-    alert("Успешно! Объявление отправлено модератору.");
 
+    alert("Успешно! Объявление отправлено модератору.");
     resetAddForm();
     showPage("home");
   } catch (e) {
@@ -650,27 +655,27 @@ function switchProfileTab(t) {
 
 function formatRelativeDate(ts) {
   if (!ts) return "Сегодня";
-
   const date = new Date(ts * 1000);
   const now = new Date();
 
-  // Устанавливаем время в 00:00:00 для точного сравнения дней
-  const today = new Date(
+  // Получаем полночь сегодняшнего дня
+  const todayStart = new Date(
     now.getFullYear(),
     now.getMonth(),
     now.getDate()
   ).getTime();
-  const yesterday = today - 86400000;
-  const adDate = new Date(
+  // Получаем полночь вчерашнего дня
+  const yesterdayStart = todayStart - 86400000;
+  // Получаем время поста в миллисекундах
+  const adTime = new Date(
     date.getFullYear(),
     date.getMonth(),
     date.getDate()
   ).getTime();
 
-  if (adDate === today) return "Сегодня";
-  if (adDate === yesterday) return "Вчера";
+  if (adTime === todayStart) return "Сегодня";
+  if (adTime === yesterdayStart) return "Вчера";
 
-  // Если старее, выводим дату: 24.02.2024
   return date.toLocaleDateString("ru-RU", {
     day: "2-digit",
     month: "2-digit",
