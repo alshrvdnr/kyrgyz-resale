@@ -11,9 +11,10 @@
 }
 
 #page-home {
-  /* Сейчас у тебя 145px или 165px. 
-     Поставь 190px или даже 210px — тогда список «вылезет» из-под поиска. */
-  padding-top: 195px !important;
+  /* Мы ставим 210px, чтобы контент точно вылез из-под категорий и заголовка */
+  padding-top: 210px !important;
+  margin: 0 !important;
+  width: 100%;
 }
 
 body {
@@ -573,8 +574,8 @@ body {
 .header-hidden {
   transform: translateY(-100%) !important;
   opacity: 0;
+  pointer-events: none; /* Чтобы не нажать на невидимую кнопку */
 }
-
 /* Нижняя навигация (bottom-nav) должна учитывать полоску внизу экрана */
 .bottom-nav {
   position: fixed !important;

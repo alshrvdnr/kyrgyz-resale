@@ -738,19 +738,20 @@ window.addEventListener(
   "scroll",
   function () {
     const header = document.getElementById("dynamic-header");
-    if (!header) return; // Защита, если хедер не найден
+    if (!header) return;
 
     let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
     if (scrollTop > lastScrollTop && scrollTop > 100) {
-      // Листаем ВНИЗ — Прячем (уводим вверх)
+      // Скролл ВНИЗ - прячем
       header.classList.add("header-hidden");
+      console.log("Хедер спрятан");
     } else if (scrollTop < lastScrollTop) {
-      // Листаем ВВЕРХ — Показываем
+      // Скролл ВВЕРХ - показываем
       header.classList.remove("header-hidden");
+      console.log("Хедер показан");
     }
 
-    // Обновляем позицию
     lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
   },
   { passive: true }
