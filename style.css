@@ -11,14 +11,16 @@
 }
 
 #page-home {
-  padding-top: 210px !important; /* Высота вашей шапки */
+  padding-top: 200px !important;
 }
 
-/* Вставь это вместо старых отступов страниц */
 #page-add,
 #page-favs,
 #page-profile {
   padding-top: 0 !important;
+  z-index: 10;
+  position: relative;
+  background: #121212;
 }
 
 #page-add {
@@ -175,13 +177,11 @@ body {
   font-weight: bold;
 }
 
-/* СЕТКА И КАРТОЧКИ (ФОТО 150PX) */
-/* Убеждаемся, что сетка имеет правильные отступы */
 .listings-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  padding: 10px 15px 100px; /* 100px снизу для навигации */
+  padding: 10px 15px 120px !important; /* Отступ снизу для меню */
 }
 
 .card {
@@ -362,8 +362,9 @@ body {
 }
 
 .modal-overlay,
-#product-modal {
-  z-index: 9999 !important;
+#product-modal,
+#search-results-page {
+  z-index: 10000 !important;
 }
 
 .modal-box {

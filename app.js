@@ -65,47 +65,30 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function initUser() {
-  const user = tg.initDataUnsafe?.user || { id: 0 };
+  const user = tg.initDataUnsafe?.user || { id: 0, first_name: "Гость" };
 
   // 1. ПРОВЕРКА БАНА
   if (user.id !== 0) {
     db.ref("blacklist/" + user.id).on("value", (snap) => {
       if (snap.val() === true) {
         window.stop();
-        document.documentElement.innerHTML = "";
-        document.body.innerHTML = `
-          <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#000; color:#ff3b30; text-align:center; padding:30px; font-family:sans-serif;">
-            <h1 style="font-size:80px; margin-bottom:10px;">🚫</h1>
-            <h2>Доступ заблокирован</h2>
-          </div>`;
+        document.body.innerHTML = `<div style="color:red; text-align:center; margin-top:50px;">Доступ заблокирован</div>`;
       }
     });
   }
 
-  // 2. Установка данных пользователя (ВНУТРИ ФУНКЦИИ)
+  // 2. ЗАПОЛНЕНИЕ ДАННЫХ (теперь переменная user доступна)
   const initial = user.first_name ? user.first_name[0].toUpperCase() : "?";
+
   const avatarTop = document.getElementById("u-avatar-top");
   const avatarBig = document.getElementById("u-avatar-big");
   const uName = document.getElementById("u-name");
 
   if (avatarTop) avatarTop.innerText = initial;
   if (avatarBig) avatarBig.innerText = initial;
-  if (uName) uName.innerText = user.first_name || "Гость";
+  if (uName) uName.innerText = user.first_name;
 }
-// УДАЛИТЕ весь код, который шел здесь и дублировал установку имени/аватара!
 
-// 2. Дальше уже грузим остальное (имя, аватар и т.д.)
-const initial = user.first_name ? user.first_name[0].toUpperCase() : "?";
-if (document.getElementById("u-avatar-top"))
-  document.getElementById("u-avatar-top").innerText = initial;
-if (document.getElementById("u-avatar-big"))
-  document.getElementById("u-avatar-big").innerText = initial;
-if (document.getElementById("u-name"))
-  document.getElementById("u-name").innerText = user.first_name || "Гость";
-
-// --- ЛОГИКА ПРОФИЛЯ ---
-
-// 1. Отрисовка твоих объявлений
 function renderProfile() {
   const grid = document.getElementById("my-ads-grid");
   if (!grid) return;
