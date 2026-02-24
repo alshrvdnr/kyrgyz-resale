@@ -326,51 +326,39 @@
               "
             ></div>
           </div>
-          <div
-            id="anti-fraud-section"
-            style="
-              background: #1c1c1e;
-              border: 2px solid var(--yellow-main);
-              padding: 20px;
-              border-radius: 15px;
-              margin-top: 25px;
-            "
-          >
-            <h3
-              style="margin-top: 0; color: var(--yellow-main); font-size: 18px"
+          <!-- Блок верификации -->
+          <div class="verification-card">
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 10px;
+              "
             >
-              🛡️ Проверка на мошенничество
-            </h3>
-            <p style="font-size: 13px; color: #ccc; line-height: 1.4">
-              Напишите на листке бумаги текущее время и код:
-              <b
-                id="display-verify-code"
-                style="
-                  font-size: 22px;
-                  color: #fff;
-                  background: #333;
-                  padding: 2px 8px;
-                  border-radius: 5px;
-                "
-                >0000</b
-              >. <br /><br />
-              Сфотографируйте этот листок <b>рядом с товаром</b> и загрузите
-              ниже:
+              <i
+                class="fa-solid fa-shield-halved"
+                style="color: var(--yellow-main); font-size: 18px"
+              ></i>
+              <span style="font-weight: bold; font-size: 15px"
+                >Подтверждение наличия</span
+              >
+            </div>
+
+            <p class="verification-text">
+              Напишите на листке код
+              <b id="display-verify-code" class="code-badge">0000</b> и время.
+              Положите листок рядом с товаром и сделайте фото.
             </p>
 
             <button
               type="button"
-              class="main-input"
+              class="verification-btn"
               onclick="document.getElementById('verify-photo-input').click()"
-              style="
-                background: var(--yellow-main);
-                color: #000;
-                font-weight: bold;
-                border: none;
-              "
             >
-              📸 ДОБАВИТЬ ФОТО ДЛЯ ПРОВЕРКИ
+              <i class="fa-solid fa-camera"></i> Сделать фото с кодом
             </button>
+
             <input
               type="file"
               id="verify-photo-input"
@@ -379,11 +367,8 @@
               accept="image/*"
             />
 
-            <div id="verify-preview" style="margin-top: 10px; display: none">
-              <span style="color: #4cd964; font-size: 12px"
-                >✅ Фото для проверки добавлено</span
-              >
-            </div>
+            <!-- Сюда будет выводиться статус "Фото добавлено" -->
+            <div id="verify-preview" class="hidden"></div>
           </div>
           <div class="f-group" id="cat-group">
             <label>Категория</label

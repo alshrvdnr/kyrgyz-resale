@@ -862,23 +862,23 @@ window.handleFileSelect = function (input) {
   console.log("Выбрано основных фото:", selectedFiles.length);
 };
 
-// ФУНКЦИЯ ДЛЯ ОДНОГО ПРОВЕРОЧНОГО ФОТО (с листком бумаги)
 window.handleVerifyPhotoSelect = function (input) {
   if (input.files && input.files[0]) {
-    // Сохраняем файл в отдельную переменную
-    verifyPhotoFile = input.files[0];
+    verifyPhotoFile = input.files[0]; // Сохраняем файл в переменную
 
-    const previewText = document.getElementById("verify-preview");
-    if (previewText) {
-      previewText.style.display = "block";
-      previewText.innerHTML = `
-        <div style="display:flex; align-items:center; gap:8px; background:rgba(76,217,100,0.1); padding:8px; border-radius:10px; border:1px solid #4cd964; margin-top:10px;">
-          <i class="fa-solid fa-circle-check" style="color:#4cd964;"></i>
-          <span style="color: #4cd964; font-size: 13px; font-weight:bold;">Фото с кодом успешно добавлено</span>
-        </div>
-      `;
+    const preview = document.getElementById("verify-preview");
+    if (preview) {
+      preview.classList.remove("hidden");
+      preview.innerHTML = `<i class="fa-solid fa-check-double"></i> Фото подтверждения добавлено`;
     }
-    console.log("Проверочное фото готово к загрузке");
+
+    // Подсвечиваем кнопку зеленым, чтобы юзер видел успех
+    const btn = document.querySelector(".verification-btn");
+    if (btn) {
+      btn.style.borderColor = "#4cd964";
+      btn.style.color = "#4cd964";
+      btn.style.background = "rgba(76,217,100,0.1)";
+    }
   }
 };
 
