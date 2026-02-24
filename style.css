@@ -31,16 +31,16 @@ body {
 
 /* ХЕДЕР И ПОИСК */
 .main-header {
-  position: fixed !important; /* Четкая фиксация для работы скролла */
-  top: 0 !important;
+  position: fixed !important;
+  top: 0;
   left: 0;
   width: 100%;
   background: #121212;
   z-index: 5000;
-  /* Увеличили нижний отступ (15px), чтобы не прилипало к категориям */
-  padding: 10px 15px 15px !important;
+  padding: 10px 15px 12px;
   box-sizing: border-box;
-  transition: transform 0.3s ease-in-out; /* Плавность для JS */
+  /* Плавность движения через свойство top */
+  transition: top 0.3s ease-in-out !important;
   margin: 0 !important;
   border-bottom: 1px solid #1c1c1e;
 }

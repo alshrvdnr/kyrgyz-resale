@@ -732,27 +732,23 @@ function clearFavs() {
   renderFeed();
 }
 
-let lastScrollTop = 0;
+let prevScrollpos = window.pageYOffset;
 
-window.addEventListener(
-  "scroll",
-  function () {
-    const header = document.getElementById("dynamic-header");
-    if (!header) return;
+window.onscroll = function () {
+  const header = document.getElementById("dynamic-header");
+  if (!header) return; // Если хедер не найден, выходим
 
-    let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  let currentScrollPos = window.pageYOffset;
 
-    if (scrollTop > lastScrollTop && scrollTop > 100) {
-      // Скролл ВНИЗ - прячем
-      header.classList.add("header-hidden");
-      console.log("Хедер спрятан");
-    } else if (scrollTop < lastScrollTop) {
-      // Скролл ВВЕРХ - показываем
-      header.classList.remove("header-hidden");
-      console.log("Хедер показан");
+  if (prevScrollpos > currentScrollPos) {
+    // Скролл ВВЕРХ - показываем (координата 0)
+    header.style.top = "0";
+  } else {
+    // Скролл ВНИЗ - прячем (уводим на -250 пикселей вверх)
+    // Прячем только если прокрутили хотя бы на 50px
+    if (currentScrollPos > 50) {
+      header.style.top = "-250px";
     }
-
-    lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
-  },
-  { passive: true }
-);
+  }
+  prevScrollpos = currentScrollPos;
+};
