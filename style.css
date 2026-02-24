@@ -11,15 +11,14 @@
 }
 
 /* Вставь это вместо старых отступов страниц */
-#page-add,
+#page-profile,
 #page-favs,
-#page-profile {
+#page-add {
   padding-top: 20px !important;
 }
 
-/* И убедись, что для главной страницы отступ остается большим! */
 #page-home {
-  padding-top: 180px !important; /* Оставляем место под фиксированную шапку */
+  padding-top: 175px !important;
 }
 
 /* Добавь отступ заголовку, чтобы он не лип к объявлениям */
@@ -41,9 +40,7 @@
 
 /* Фикс хедера, чтобы он не вылезал за границы */
 .main-header {
-  max-width: 100vw !important;
-  left: 0 !important;
-  right: 0 !important;
+  transition: top 0.3s ease-in-out !important;
 }
 
 /* Убираем пустой отступ на страницах, где нет шапки */
@@ -249,14 +246,14 @@ body {
   bottom: 0 !important;
   left: 0;
   width: 100%;
-  height: 60px;
+  height: 65px;
   background: #121212;
   border-top: 1px solid #333;
   display: flex;
   justify-content: space-around;
   align-items: center;
   z-index: 6000;
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: env(safe-area-inset-bottom); /* Отступ для iPhone */
   box-sizing: content-box;
 }
 
@@ -288,33 +285,43 @@ body {
 }
 .nav-center-content {
   position: absolute;
-  top: -24px; /* Опустили ниже (было -32) */
+  top: -24px; /* Позиция над панелью */
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 80px;
+}
+
+.nav-center-content span {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--gray);
+  font-weight: bold;
 }
 
 .yellow-plus-main {
-  width: 62px !important;
-  height: 62px !important;
+  width: 60px !important;
+  height: 60px !important;
   background: var(--yellow-main) !important;
-  border-radius: 50% !important; /* Делаем круглой */
-  border: 4px solid #121212 !important; /* Ободок */
+  border-radius: 50% !important; /* КРУГ */
+  border: 5px solid #121212 !important; /* Рамка в цвет фона */
   color: #000 !important;
   display: flex !important;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  box-shadow: 0 4px 10px rgba(255, 204, 0, 0.3);
+  font-size: 26px !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
   padding: 0 !important;
+  margin: 0 !important;
 }
 
 /* ПРОФИЛЬ ТАБЫ */
 .profile-tabs {
   display: flex;
   border-bottom: 1px solid #333;
+  margin-bottom: 15px;
 }
 .p-tab {
   flex: 1;
@@ -324,7 +331,9 @@ body {
   font-weight: bold;
   cursor: pointer;
   transition: 0.3s;
+  border-bottom: 2px solid transparent;
 }
+
 .p-tab.active {
   color: var(--yellow-main) !important;
   border-bottom: 3px solid var(--yellow-main) !important;

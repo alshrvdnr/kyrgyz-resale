@@ -103,16 +103,59 @@ if (document.getElementById("u-avatar-big"))
 if (document.getElementById("u-name"))
   document.getElementById("u-name").innerText = user.first_name || "Гость";
 
-function showPage(p) {
-  // 1. Скрываем все страницы
+// --- ЛОГИКА ПРОФИЛЯ ---
+
+// 1. Отрисовка твоих объявлений
+function renderProfile() {
+  const grid = document.getElementById("my-ads-grid");
+  if (!grid) return;
+
+  grid.innerHTML = "";
+  const myId = tg.initDataUnsafe?.user?.id || 0;
+
+  // Фильтруем: только мои и только по выбранной вкладке (active или sold)
+  const filtered = ads.filter(
+    (ad) =>
+      ad.userId === myId &&
+      (profTab === "active" ? ad.status === "active" : ad.status === "sold")
+  );
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `<p style="text-align:center; color:gray; grid-column:1/3; margin-top:30px;">Здесь пока ничего нет</p>`;
+  } else {
+    // Рисуем карточки (второй параметр true говорит, что это для профиля)
+    filtered.forEach((ad) => grid.appendChild(createAdCard(ad, true)));
+  }
+}
+
+// 2. Переключатель вкладок (Активные / Архив)
+window.switchProfileTab = function (t) {
+  console.log("Переключение вкладки на:", t);
+  profTab = t;
+
+  const tabActive = document.getElementById("tab-active");
+  const tabArchive = document.getElementById("tab-archive");
+
+  if (tabActive) tabActive.classList.toggle("active", t === "active");
+  if (tabArchive) tabArchive.classList.toggle("active", t === "archive");
+
+  renderProfile();
+};
+
+// 1. Функция переключения страниц
+window.showPage = function (p) {
+  console.log("Переход на страницу:", p);
+
+  // Скрываем абсолютно все страницы
   document.querySelectorAll(".page").forEach((s) => s.classList.add("hidden"));
 
-  // 2. Показываем нужную страницу
+  // Показываем ту, которую нужно
   const targetPage = document.getElementById(`page-${p}`);
-  if (targetPage) targetPage.classList.remove("hidden");
+  if (targetPage) {
+    targetPage.classList.remove("hidden");
+  }
 
-  // 3. ЖЕСТКИЙ ФИКС ШАПКИ:
-  // Она будет физически ИСЧЕЗАТЬ везде, кроме главной страницы
+  // ФИКС КРЕСТИКА И КНОПОК: Прячем главную шапку везде, кроме Главной страницы
   const header = document.getElementById("dynamic-header");
   if (header) {
     if (p === "home") {
@@ -122,33 +165,32 @@ function showPage(p) {
     }
   }
 
-  // 4. Обновляем кнопки меню
+  // Обновляем активную иконку в нижнем меню
   document
     .querySelectorAll(".nav-item")
     .forEach((i) => i.classList.remove("active"));
-  if (p === "home") document.getElementById("n-home")?.classList.add("active");
-  if (p === "favs") {
-    document.getElementById("n-favs")?.classList.add("active");
-    renderFavs();
+  const navHome = document.getElementById("n-home");
+  const navFavs = document.getElementById("n-favs");
+
+  if (p === "home" && navHome) navHome.classList.add("active");
+  if (p === "favs" && navFavs) {
+    navFavs.classList.add("active");
+    if (typeof renderFavs === "function") renderFavs();
   }
 
-  function cancelAdd() {
-    console.log("Кнопка закрыть нажата");
-    resetAddForm(); // Очистить форму
-    showPage("home"); // Вернуться на главную
-  }
+  // Запуск функций разделов
+  if (p === "profile" && typeof renderProfile === "function") renderProfile();
+  if (p === "add" && !editingId && typeof resetAddForm === "function")
+    resetAddForm();
+};
 
-  // 4. Подсветка кнопок меню
-  document
-    .querySelectorAll(".nav-item")
-    .forEach((item) => item.classList.remove("active"));
-  if (p === "home") document.getElementById("n-home")?.classList.add("active");
-  if (p === "favs") {
-    document.getElementById("n-favs")?.classList.add("active");
-    renderFavs();
-  }
-  if (p === "profile") renderProfile();
-}
+// 2. Функция для кнопки "X" (Закрыть)
+window.cancelAdd = function () {
+  console.log("Нажат крестик закрытия");
+  if (typeof resetAddForm === "function") resetAddForm();
+  showPage("home"); // Возвращаемся домой и включаем шапку
+};
+
 // 4. СИНХРОНИЗАЦИЯ
 function listenSettings() {
   db.ref("settings").on("value", (snap) => {
@@ -760,43 +802,30 @@ function clearFavs() {
   renderFeed();
 }
 
-let prevScrollpos = window.pageYOffset;
-
-window.onscroll = function () {
-  const header = document.getElementById("dynamic-header");
-  // Если шапка скрыта (мы не на главной), ничего не делаем
-  if (!header || header.style.display === "none") return;
-
-  let currentScrollPos = window.pageYOffset;
-
-  if (prevScrollpos > currentScrollPos) {
-    header.style.top = "0"; // Показываем (выезжает сверху)
-  } else {
-    if (currentScrollPos > 80) {
-      header.style.top = "-250px"; // Прячем (улетает вверх)
-    }
-  }
-  prevScrollpos = currentScrollPos;
-};
-
+// --- ЛОГИКА СКРЫТИЯ ШАПКИ ПРИ СКРОЛЛЕ ---
 let lastScrollTop = 0;
+
 window.addEventListener(
   "scroll",
   function () {
     const header = document.getElementById("dynamic-header");
-    // Если мы не на главной, логика скролла не нужна
+
+    // Если шапка скрыта программно (на страницах Профиль/Подать), ничего не делаем
     if (!header || header.style.display === "none") return;
 
-    let st = window.pageYOffset || document.documentElement.scrollTop;
+    let currentScroll =
+      window.pageYOffset || document.documentElement.scrollTop;
 
-    if (st > lastScrollTop && st > 60) {
-      // Скролл ВНИЗ - Прячем
+    if (currentScroll > lastScrollTop && currentScroll > 100) {
+      // Листаем ВНИЗ — прячем шапку (уводим вверх)
       header.style.top = "-250px";
-    } else {
-      // Скролл ВВЕРХ - Показываем
+    } else if (currentScroll < lastScrollTop) {
+      // Листаем ВВЕРХ — показываем шапку
       header.style.top = "0";
     }
-    lastScrollTop = st <= 0 ? 0 : st;
+
+    // Запоминаем позицию (фикс для iOS, чтобы не было глюков при отскоке)
+    lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
   },
   { passive: true }
 );
