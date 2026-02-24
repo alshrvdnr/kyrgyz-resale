@@ -17,8 +17,9 @@
   padding-top: 20px !important;
 }
 
-#page-home {
-  padding-top: 185px !important; /* Увеличили отступ, теперь VIP не спрячется */
+#page-add {
+  background: #121212;
+  min-height: 100vh;
 }
 
 /* Добавь отступ заголовку, чтобы он не лип к объявлениям */
@@ -265,25 +266,20 @@ body {
 }
 
 .nav-item {
-  background: none;
-  border: none;
-  color: var(--gray);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  width: 30%;
+  color: var(--gray); /* Обычный цвет (серый) */
   transition: 0.3s;
 }
 .nav-item i {
-  font-size: 32px;
+  font-size: 24px;
+  margin-bottom: 4px;
 }
+
 .nav-item span {
   font-size: 12px;
   font-weight: bold;
 }
 .nav-item.active {
-  color: var(--yellow-main);
+  color: var(--yellow-main) !important; /* Активный цвет (желтый) */
 }
 .nav-center-container {
   position: relative;

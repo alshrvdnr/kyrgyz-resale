@@ -790,26 +790,33 @@ function clearFavs() {
   renderFeed();
 }
 
-let prevScrollpos = window.pageYOffset;
+// --- ЛОГИКА СКРЫТИЯ ШАПКИ (СКРОЛЛ) ---
+let lastScrollTop = 0;
 
-window.onscroll = function () {
-  const header = document.getElementById("dynamic-header");
-  // Если шапка выключена (мы в Профиле или Подать) — скролл не трогаем
-  if (!header || header.style.display === "none") return;
+window.addEventListener(
+  "scroll",
+  function () {
+    const header = document.getElementById("dynamic-header");
 
-  let currentScrollPos = window.pageYOffset;
+    // Если шапка скрыта функцией showPage (мы в Профиле или Подать), скролл не трогаем
+    if (!header || header.style.display === "none") return;
 
-  if (prevScrollpos > currentScrollPos) {
-    // Скроллим ВВЕРХ — показываем шапку
-    header.style.top = "0";
-  } else {
-    // Скроллим ВНИЗ — прячем шапку (улетает вверх)
-    if (currentScrollPos > 100) {
+    let currentScroll =
+      window.pageYOffset || document.documentElement.scrollTop;
+
+    if (currentScroll > lastScrollTop && currentScroll > 100) {
+      // Скроллим ВНИЗ — прячем шапку (уводим вверх)
       header.style.top = "-250px";
+    } else if (currentScroll < lastScrollTop) {
+      // Скроллим ВВЕРХ — показываем шапку
+      header.style.top = "0";
     }
-  }
-  prevScrollpos = currentScrollPos;
-};
+
+    // Запоминаем позицию (фикс для iOS)
+    lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+  },
+  { passive: true }
+);
 
 // --- ЛОГИКА КАТЕГОРИЙ И ПОИСКА ---
 
@@ -825,7 +832,7 @@ window.filterByCat = function (c, el) {
   if (el) {
     el.classList.add("active");
   } else {
-    // Если элемент не передан, ищем его по тексту (для надежности)
+    // Если элемент не передан, ищем его по тексту
     const cards = document.querySelectorAll(".cat-card");
     cards.forEach((card) => {
       if (card.innerText.includes(catMap[c] || c)) card.classList.add("active");
@@ -851,7 +858,7 @@ window.selectCity = function (c) {
   if (label) label.innerText = c;
 
   // Закрываем окно выбора
-  toggleCitySelector();
+  window.toggleCitySelector();
 
   // Обновляем ленту под новый город
   if (typeof renderFeed === "function") renderFeed();
@@ -865,8 +872,8 @@ window.toggleCitySelector = function () {
   }
 };
 
-// 4. Поиск (срабатывает при нажатии Enter)
-function startSearch(val) {
+// 4. Поиск (глобальная функция для HTML)
+window.startSearch = function (val) {
   if (!val || val.trim() === "") return;
 
   console.log("Поиск по запросу:", val);
@@ -890,7 +897,7 @@ function startSearch(val) {
     }
     searchPage.classList.remove("hidden");
   }
-}
+};
 
 // 5. Закрыть окно поиска
 window.closeSearch = function () {
