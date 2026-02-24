@@ -409,15 +409,22 @@ function openProduct(ad) {
 async function uploadFile(file) {
   if (!file) return null;
   try {
-    const fileName = Date.now() + "_" + file.name;
-    // Используем firebase.storage() напрямую
+    const fileName = Date.now() + "_" + Math.random().toString(36).substring(7);
     const storageRef = firebase.storage().ref("ads/" + fileName);
-    const snapshot = await storageRef.put(file);
+
+    // МЕТАДАННЫЕ: Без них ваши правила Storage могут блокировать загрузку
+    const metadata = {
+      contentType: file.type || "image/jpeg",
+    };
+
+    // Загрузка
+    const snapshot = await storageRef.put(file, metadata);
+    // Ссылка
     const url = await snapshot.ref.getDownloadURL();
+    console.log("Файл загружен:", url);
     return url;
   } catch (e) {
-    console.error("Ошибка загрузки:", e);
-    alert("Ошибка загрузки фото: " + e.message);
+    console.error("Ошибка загрузки в Storage:", e);
     return null;
   }
 }
@@ -426,6 +433,8 @@ async function publishAndSend() {
   const btn = document.getElementById("pub-btn");
   const title = document.getElementById("in-title").value;
   const price = document.getElementById("in-price").value;
+
+  if (!title || !price) return alert("Укажите название и цену!");
 
   // --- АНТИ-СПАМ: Ограничение 1 минута ---
   const lastPost = localStorage.getItem("last_post_time");
@@ -446,9 +455,9 @@ async function publishAndSend() {
         address: document.getElementById("in-address").value,
         phone: document.getElementById("in-wa").value,
         desc: document.getElementById("in-desc").value,
-        needs_sync_tg: true, // Флаг для бота, чтобы обновил пост в канале
+        needs_sync_tg: true, // Флаг для бота
       });
-      alert("Изменения сохранены! Данные в Telegram обновятся скоро.");
+      alert("Изменения сохранены!");
       resetAddForm();
       showPage("home");
     } catch (e) {
@@ -459,6 +468,78 @@ async function publishAndSend() {
     }
     return;
   }
+
+  // --- ЛОГИКА СОЗДАНИЯ НОВОГО ОБЪЯВЛЕНИЯ ---
+  const isPaid = holidayMode || selectedTariff === "vip";
+
+  // Проверка чека для платных
+  if (isPaid && !receiptAttached) {
+    return alert("Прикрепите чек об оплате!");
+  }
+  
+  // Проверка наличия фото
+  if (selectedFiles.length === 0) {
+    return alert("Добавьте хотя бы одно фото товара!");
+  }
+
+  btn.disabled = true;
+  btn.innerText = "ЗАГРУЗКА ФОТО...";
+
+  try {
+    // 1. Загрузка чека (если есть)
+    let receiptUrl = null;
+    if (isPaid) {
+      const receiptFile = document.getElementById("receipt-input").files[0];
+      receiptUrl = await uploadFile(receiptFile);
+      if (!receiptUrl) throw new Error("Не удалось загрузить чек.");
+    }
+
+    // 2. Загрузка фотографий товара
+    // Ждем, пока ВСЕ фото загрузятся, прежде чем идти дальше
+    const imgs = await Promise.all(selectedFiles.map(file => uploadFile(file)));
+    const validImgs = imgs.filter(url => url !== null);
+
+    if (validImgs.length === 0) {
+      throw new Error("Ошибка загрузки изображений товара.");
+    }
+
+    // 3. Формирование объекта (теперь со всеми ссылками на фото)
+    const newAd = {
+      title: title,
+      price: price,
+      cat: document.getElementById("in-cat").value,
+      city: document.getElementById("in-city").value,
+      address: document.getElementById("in-address").value,
+      phone: document.getElementById("in-wa").value,
+      tgNick: document.getElementById("in-tg").value,
+      desc: document.getElementById("in-desc").value,
+      receiveDate: document.getElementById("in-receive-date").value,
+      img: validImgs,
+      receipt_url: receiptUrl,
+      status: "pending",     // Сначала на модерацию
+      bot_notified: false,   // Бот увидит запись и отправит в группу
+      tariff: selectedTariff,
+      is_holiday: holidayMode,
+      userId: tg.initDataUnsafe?.user?.id || 0,
+      createdAt: Math.floor(Date.now() / 1000),
+    };
+
+    // 4. Отправка в базу (только теперь, когда всё готово!)
+    await db.ref("ads").push(newAd);
+    
+    localStorage.setItem("last_post_time", Date.now());
+    alert("Успешно! Объявление отправлено модератору.");
+    
+    resetAddForm();
+    showPage("home");
+  } catch (e) {
+    console.error(e);
+    alert("Ошибка: " + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerText = "Опубликовать";
+  }
+}
 
   // --- ЛОГИКА СОЗДАНИЯ НОВОГО ОБЪЯВЛЕНИЯ ---
   const isPaid = holidayMode || selectedTariff === "vip";
@@ -705,25 +786,26 @@ function resetAddForm() {
   applyHolidayUI();
 }
 
-function handleFileSelect(i) {
-  selectedFiles = Array.from(i.files).slice(0, 5);
-  const p = document.getElementById("gallery-preview");
-  if (p) {
-    p.innerHTML = "";
-    selectedFiles.forEach((f) => {
-      const r = new FileReader();
-      r.onload = (e) => {
-        const img = document.createElement("img");
-        img.src = e.target.result;
-        img.style =
-          "width:60px;height:60px;object-fit:cover;border-radius:8px;";
-        p.appendChild(img);
-      };
-      r.readAsDataURL(f);
-    });
-  }
-}
+window.handleFileSelect = function (input) {
+  // Сохраняем файлы в глобальный массив selectedFiles
+  selectedFiles = Array.from(input.files).slice(0, 5);
 
+  const preview = document.getElementById("gallery-preview");
+  if (!preview) return;
+
+  preview.innerHTML = "";
+  selectedFiles.forEach((file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = document.createElement("img");
+      img.src = e.target.result;
+      img.style =
+        "width:70px;height:70px;object-fit:cover;border-radius:10px;border:1px solid #333;";
+      preview.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+  });
+};
 function selectTariff(t) {
   selectedTariff = t;
   document.getElementById("tariff-std").className =
