@@ -111,14 +111,31 @@ function showPage(p) {
   const targetPage = document.getElementById(`page-${p}`);
   if (targetPage) targetPage.classList.remove("hidden");
 
-  // 3. УПРАВЛЕНИЕ ШАПКОЙ: Чтобы она не блокировала кнопку "X"
-  const mainHeader = document.getElementById("dynamic-header");
-  if (mainHeader) {
+  // 3. ЖЕСТКИЙ ФИКС ШАПКИ:
+  // Она будет физически ИСЧЕЗАТЬ везде, кроме главной страницы
+  const header = document.getElementById("dynamic-header");
+  if (header) {
     if (p === "home") {
-      mainHeader.style.display = "block"; // Только на главной
+      header.style.setProperty("display", "block", "important");
     } else {
-      mainHeader.style.display = "none"; // Полностью удаляем на других страницах
+      header.style.setProperty("display", "none", "important");
     }
+  }
+
+  // 4. Обновляем кнопки меню
+  document
+    .querySelectorAll(".nav-item")
+    .forEach((i) => i.classList.remove("active"));
+  if (p === "home") document.getElementById("n-home")?.classList.add("active");
+  if (p === "favs") {
+    document.getElementById("n-favs")?.classList.add("active");
+    renderFavs();
+  }
+
+  function cancelAdd() {
+    console.log("Кнопка закрыть нажата");
+    resetAddForm(); // Очистить форму
+    showPage("home"); // Вернуться на главную
   }
 
   // 4. Подсветка кнопок меню
