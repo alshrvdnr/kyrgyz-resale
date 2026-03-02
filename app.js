@@ -505,7 +505,7 @@ async function publishAndSend() {
 
   // 1. ОЧИСТКА И ПРОВЕРКА ДАННЫХ
   const cleanTitle = title.trim();
-  const numericPrice = parseInt(priceInput); // Превращаем в чистое число
+  const numericPrice = parseInt(priceInput);
 
   if (cleanTitle.length < 3) {
     return alert("Название слишком короткое (минимум 3 символа)!");
@@ -557,7 +557,7 @@ async function publishAndSend() {
     return alert("Прикрепите чек об оплате!");
   }
 
-  // КРИТИЧЕСКАЯ ПРОСВЕРКА: Фото с листком (сигна)
+  // КРИТИЧЕСКАЯ ПРОВЕРКА: Фото с листком (сигна)
   if (!verifyPhotoFile) {
     return alert(
       "ОШИБКА: Загрузите фото товара с листком бумаги (код и время) в блоке проверки!"
@@ -574,15 +574,14 @@ async function publishAndSend() {
 
   try {
     // А. Загрузка чека (если есть)
-    let receiptUrl = null;
+    let receiptUrl = "";
     if (isPaid) {
       const receiptFile = document.getElementById("receipt-input").files[0];
       receiptUrl = await uploadFile(receiptFile);
-      if (!receiptUrl) throw new Error("Не удалось загрузить чек.");
+      if (!receiptUrl) throw new Error("Не удалось загрузить чек об оплате.");
     }
 
     // Б. Загрузка проверочного фото (Сигна)
-    // Мы загружаем его отдельно, чтобы бот знал, какое фото НЕ публиковать в каналы
     const verifyPhotoUrl = await uploadFile(verifyPhotoFile);
     if (!verifyPhotoUrl)
       throw new Error("Не удалось загрузить проверочное фото.");
@@ -609,15 +608,16 @@ async function publishAndSend() {
       desc: document.getElementById("in-desc").value,
       receiveDate: document.getElementById("in-receive-date").value,
 
-      img: validImgs, // Основные фото для ТГ-каналов
-      verify_photo: verifyPhotoUrl, // Фото с листком (ТОЛЬКО для админа)
+      img: validImgs, // Массив ссылок на фото товара
+      verify_photo: verifyPhotoUrl, // Ссылка на фото с листком
       verify_code: currentVerifyCode, // Код, который был на экране
 
-      receipt_url: receiptUrl,
-      status: "pending",
-      bot_notified: false,
-      tariff: selectedTariff,
-      is_holiday: holidayMode,
+      receipt_url: receiptUrl, // Ссылка на чек (бот прочитает её!)
+      status: "pending", // Статус для начала модерации
+      bot_notified: false, // КРИТИЧНО: бот увидит это и пришлет уведомление
+      tariff: selectedTariff, // vip или standard
+      is_holiday: holidayMode, // true или false
+
       userId: tg.initDataUnsafe?.user?.id || 0,
       createdAt: Math.floor(Date.now() / 1000),
     };
@@ -626,11 +626,13 @@ async function publishAndSend() {
     await db.ref("ads").push(newAd);
     localStorage.setItem("last_post_time", Date.now());
 
-    alert("Успешно! Объявление и проверочное фото отправлены на модерацию.");
+    alert(
+      "Успешно! Объявление и чек отправлены на модерацию. Ожидайте подтверждения в Telegram."
+    );
     resetAddForm();
     showPage("home");
   } catch (e) {
-    console.error(e);
+    console.error("Ошибка при публикации:", e);
     alert("Ошибка публикации: " + e.message);
   } finally {
     btn.disabled = false;
