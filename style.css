@@ -852,3 +852,87 @@ body {
   color: var(--gray);
   margin-top: 4px;
 }
+
+/* Контейнер для сторис */
+.stories-wrapper {
+  padding: 10px 0 15px 0;
+  overflow-x: auto;
+  scrollbar-width: none; /* Убираем полосу прокрутки */
+}
+.stories-wrapper::-webkit-scrollbar {
+  display: none;
+}
+
+.stories-container {
+  display: flex;
+  gap: 15px;
+  padding-left: 15px;
+}
+
+/* Элемент сторис */
+.story-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 75px;
+}
+
+/* Кружок "Стать партнером" */
+.story-circle-add {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2px dashed #444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--yellow-main);
+  font-size: 20px;
+  background: #1c1c1e;
+}
+
+/* Пустые кружки для массовки */
+.story-circle-empty {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #1c1c1e;
+  border: 1px solid #333;
+}
+
+.story-item span {
+  font-size: 10px;
+  font-weight: bold;
+  color: #fff;
+}
+
+/* Категории в стиле "Пилюли" (как на фото) */
+.categories-container {
+  display: flex;
+  gap: 10px;
+  padding: 5px 15px;
+  overflow-x: auto;
+}
+
+.cat-card {
+  background: #2c2c2e !important;
+  border-radius: 20px !important; /* Делаем овальными */
+  padding: 8px 16px !important;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #333 !important;
+  min-width: auto !important;
+}
+
+.cat-card i {
+  margin: 0 !important;
+  font-size: 14px !important;
+}
+
+.cat-card.active {
+  background: var(--yellow-main) !important;
+  color: #000 !important;
+  border-color: var(--yellow-main) !important;
+}

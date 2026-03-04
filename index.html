@@ -52,6 +52,31 @@
             </div>
           </div>
 
+          <div class="stories-wrapper">
+            <div class="stories-container" id="shop-stories">
+              <!-- Кнопка "Стать партнером" -->
+              <div
+                class="story-item partner-invite"
+                onclick="tg.openTelegramLink('https://t.me/D1NCHO')"
+              >
+                <div class="story-circle-add">
+                  <i class="fa-solid fa-plus"></i>
+                </div>
+                <span>Стать партнером</span>
+              </div>
+
+              <!-- Заглушки будущих магазинов (для вида) -->
+              <div class="story-item placeholder">
+                <div class="story-circle-empty"></div>
+                <span>Скоро...</span>
+              </div>
+              <div class="story-item placeholder">
+                <div class="story-circle-empty"></div>
+                <span>Скоро...</span>
+              </div>
+            </div>
+          </div>
+
           <!-- Категории (остаются под поиском) -->
           <div class="categories-wrapper">
             <div class="categories-container">
@@ -81,31 +106,71 @@
       </section>
 
       <section id="page-shops" class="page hidden">
-        <div
-          style="
-            height: 80vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 30px;
-          "
-        >
-          <div style="font-size: 50px; color: #333; margin-bottom: 20px">
-            <i class="fa-solid fa-store"></i>
-          </div>
-          <h2 style="color: #fff; margin-bottom: 10px">Магазины скоро!</h2>
-          <p style="color: var(--gray); font-size: 14px; margin-bottom: 25px">
-            Мы подключаем лучшие цветочные салоны и кондитерские.
-          </p>
-          <button
-            class="btn-premium-unity"
-            style="width: auto; padding: 12px 30px"
-            onclick="tg.openTelegramLink('https://t.me/твой_ник')"
+        <div style="padding: 20px">
+          <!-- Красивая карточка-приглашение -->
+          <div
+            style="
+              background: linear-gradient(135deg, #1c1c1e 0%, #121212 100%);
+              border: 1px solid #333;
+              border-radius: 20px;
+              padding: 30px;
+              text-align: center;
+              margin-top: 50px;
+            "
           >
-            Стать партнером
-          </button>
+            <div
+              style="
+                width: 80px;
+                height: 80px;
+                background: rgba(255, 204, 0, 0.1);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 20px;
+                color: var(--yellow-main);
+                font-size: 32px;
+              "
+            >
+              <i class="fa-solid fa-rocket"></i>
+            </div>
+            <h2 style="color: #fff; margin-bottom: 10px; font-size: 22px">
+              Ваш магазин будет здесь!
+            </h2>
+            <p
+              style="
+                color: #8e8e93;
+                font-size: 14px;
+                line-height: 1.5;
+                margin-bottom: 25px;
+              "
+            >
+              Мы собираем лучшие цветочные лавки и кондитерские в одном месте.
+              Станьте первым партнером Gifts KG!
+            </p>
+
+            <div style="display: flex; flex-direction: column; gap: 12px">
+              <button
+                class="btn-premium-unity"
+                onclick="tg.openTelegramLink('https://t.me/D1NCHO')"
+              >
+                Оставить заявку
+              </button>
+              <button
+                style="
+                  background: none;
+                  border: 1px solid #444;
+                  color: #fff;
+                  padding: 12px;
+                  border-radius: 12px;
+                  font-weight: bold;
+                "
+                onclick="showPage('home')"
+              >
+                Вернуться в ленту
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
