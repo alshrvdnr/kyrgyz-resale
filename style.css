@@ -11,7 +11,7 @@
 }
 
 #page-home {
-  padding-top: 200px !important;
+  padding-top: 260px !important;
 }
 
 #page-add,
@@ -30,9 +30,11 @@
 
 /* Добавь отступ заголовку, чтобы он не лип к объявлениям */
 #dynamic-feed-title {
-  margin: 15px 0 10px 0 !important;
-  background: #121212;
+  margin: 15px 0 5px 0 !important;
+  font-size: 18px;
+  font-weight: 800;
 }
+
 /* 5. Кнопка "X" на странице Подать */
 /* Делаем кнопку X огромной для нажатия */
 #page-add header i.fa-times {
@@ -51,7 +53,9 @@
   left: 0;
   width: 100%;
   background: #121212;
-  z-index: 1000 !important; /* Понижаем слой, чтобы кнопки на страницах были выше */
+  z-index: 5000;
+  padding: 10px 15px 5px !important;
+  border-bottom: 1px solid #1c1c1e;
 }
 
 /* Убираем пустой отступ на страницах, где нет шапки */
@@ -181,7 +185,7 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  padding: 10px 15px 120px !important; /* Отступ снизу для меню */
+  padding: 10px 15px 120px !important; /* 120px хватит, чтобы всё было видно */
 }
 
 .card {
@@ -855,10 +859,9 @@ body {
 
 /* Контейнер для сторис */
 .stories-wrapper {
-  padding: 10px 0 15px 0;
-  overflow-x: auto;
-  scrollbar-width: none; /* Убираем полосу прокрутки */
+  padding: 5px 0 10px 0;
 }
+
 .stories-wrapper::-webkit-scrollbar {
   display: none;
 }
@@ -935,4 +938,34 @@ body {
   background: var(--yellow-main) !important;
   color: #000 !important;
   border-color: var(--yellow-main) !important;
+}
+
+.categories-wrapper {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.card {
+  background: #1c1c1e;
+  border-radius: 15px;
+  border: 1px solid #333; /* Тонкая рамка как на скрине */
+  overflow: hidden;
+}
+
+.card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+/* Зона цены и названия */
+.card-info {
+  padding: 10px;
+}
+
+/* Желтая цена KGS */
+.price-tag {
+  color: var(--yellow-main);
+  font-weight: 800;
+  font-size: 15px;
 }
