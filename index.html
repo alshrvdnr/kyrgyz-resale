@@ -35,21 +35,8 @@
       <section id="page-home" class="page">
         <!-- Проверь, чтобы было именно так -->
         <header class="main-header" id="dynamic-header">
-          <!-- 1. Город (Бишкек) -->
-          <div class="top-location-bar" onclick="toggleCitySelector()">
-            <i
-              class="fa-solid fa-location-dot"
-              style="color: var(--yellow-main)"
-            ></i>
-            <span id="current-city-label">Бишкек</span>
-            <i
-              class="fa-solid fa-chevron-right"
-              style="font-size: 8px; margin-left: 4px"
-            ></i>
-          </div>
-
-          <!-- 2. Поиск + Профиль (Теперь в одну линию и выше) -->
-          <div class="search-profile-row">
+          <!-- Строка: Поиск + Кнопка Города -->
+          <div class="search-city-row">
             <div class="search-wrapper">
               <i class="fa fa-search" style="color: var(--gray)"></i>
               <input
@@ -58,16 +45,14 @@
                 placeholder="Поиск подарков..."
               />
             </div>
-            <div
-              id="u-avatar-top"
-              class="u-avatar-top-circle"
-              onclick="showPage('profile')"
-            >
-              ?
+
+            <div class="city-pill" onclick="toggleCitySelector()">
+              <i class="fa-solid fa-location-dot"></i>
+              <span id="current-city-label">Бишкек</span>
             </div>
           </div>
 
-          <!-- 3. Категории (С градиентом) -->
+          <!-- Категории (остаются под поиском) -->
           <div class="categories-wrapper">
             <div class="categories-container">
               <div class="cat-card active" onclick="filterByCat('Все', this)">
@@ -88,12 +73,40 @@
             </div>
           </div>
 
-          <!-- 4. Заголовок ленты -->
           <h2 id="dynamic-feed-title" style="margin: 12px 0 0; font-size: 18px">
             Свежие предложения
           </h2>
         </header>
         <main class="listings-grid" id="home-grid"></main>
+      </section>
+
+      <section id="page-shops" class="page hidden">
+        <div
+          style="
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 30px;
+          "
+        >
+          <div style="font-size: 50px; color: #333; margin-bottom: 20px">
+            <i class="fa-solid fa-store"></i>
+          </div>
+          <h2 style="color: #fff; margin-bottom: 10px">Магазины скоро!</h2>
+          <p style="color: var(--gray); font-size: 14px; margin-bottom: 25px">
+            Мы подключаем лучшие цветочные салоны и кондитерские.
+          </p>
+          <button
+            class="btn-premium-unity"
+            style="width: auto; padding: 12px 30px"
+            onclick="tg.openTelegramLink('https://t.me/твой_ник')"
+          >
+            Стать партнером
+          </button>
+        </div>
       </section>
 
       <!-- ОКНО РЕЗУЛЬТАТОВ ПОИСКА -->
@@ -557,25 +570,26 @@
 
       <nav class="bottom-nav">
         <button class="nav-item active" onclick="showPage('home')" id="n-home">
-          <i class="fa-solid fa-house"></i><span>Главное</span>
+          <i class="fa-solid fa-house"></i><span>Лента</span>
         </button>
-        <div class="nav-center-container">
-          <div class="nav-center-content" onclick="showPage('add')">
-            <button class="yellow-plus-main">
-              <i class="fa-solid fa-plus"></i></button
-            ><span
-              style="
-                font-size: 12px;
-                margin-top: 4px;
-                color: var(--gray);
-                font-weight: bold;
-              "
-              >Подать</span
-            >
+
+        <button class="nav-item" onclick="showPage('shops')" id="n-shops">
+          <i class="fa-solid fa-store"></i><span>Магазины</span>
+        </button>
+
+        <div class="nav-center-container" onclick="showPage('add')">
+          <div class="yellow-plus-main">
+            <i class="fa-solid fa-plus"></i>
           </div>
+          <span class="plus-label">Подать</span>
         </div>
+
         <button class="nav-item" onclick="showPage('favs')" id="n-favs">
-          <i class="fa-solid fa-heart"></i><span>Избранные</span>
+          <i class="fa-solid fa-heart"></i><span>Избранное</span>
+        </button>
+
+        <button class="nav-item" onclick="showPage('profile')" id="n-profile">
+          <i class="fa-solid fa-user"></i><span>Профиль</span>
         </button>
       </nav>
     </div>

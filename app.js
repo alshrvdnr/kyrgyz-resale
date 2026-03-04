@@ -157,25 +157,32 @@ window.showPage = function (p) {
     }
   }
 
-  // 4. Красим активную кнопку в желтый в нижнем меню
+  // 4. Красим активную кнопку в желтый в нижнем меню (ОБРАБОТКА 5 КНОПОК)
   document.querySelectorAll(".nav-item").forEach((item) => {
     item.classList.remove("active");
   });
 
   if (p === "home") document.getElementById("n-home")?.classList.add("active");
+
+  // Добавляем подсветку для новой кнопки Магазины
+  if (p === "shops")
+    document.getElementById("n-shops")?.classList.add("active");
+
   if (p === "favs") {
     document.getElementById("n-favs")?.classList.add("active");
     if (typeof renderFavs === "function") renderFavs();
   }
 
-  // 5. Если зашли в Профиль - запускаем его отрисовку
+  // Если зашли в Профиль - подсвечиваем кнопку в меню и запускаем отрисовку
   if (p === "profile") {
+    document.getElementById("n-profile")?.classList.add("active");
     if (typeof renderProfile === "function") renderProfile();
   }
 
   // 6. Если зашли в Подать - СБРОС ФОРМЫ И ГЕНЕРАЦИЯ КОДА АНТИ-ФРОД
   if (p === "add") {
-    // Если это не редактирование старого, а создание нового
+    // Кнопка Плюс не имеет класса .nav-item, поэтому её не красим в желтый через active,
+    // но логику подаче оставляем полной
     if (!editingId) {
       if (typeof resetAddForm === "function") resetAddForm();
 
@@ -189,6 +196,9 @@ window.showPage = function (p) {
       if (formScroll) formScroll.scrollTop = 0;
     }
   }
+
+  // Всегда прокручиваем страницу в самый верх при смене вкладки
+  window.scrollTo(0, 0);
 };
 
 // ДОБАВЬ ЭТУ ФУНКЦИЮ НИЖЕ, если её ещё нет в твоем файле app.js:
