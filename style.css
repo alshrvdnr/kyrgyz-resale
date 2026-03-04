@@ -30,9 +30,8 @@
 
 /* Добавь отступ заголовку, чтобы он не лип к объявлениям */
 #dynamic-feed-title {
-  margin: 15px 0 5px 0 !important;
+  margin: 8px 0 5px 0 !important;
   font-size: 18px;
-  font-weight: 800;
 }
 
 /* 5. Кнопка "X" на странице Подать */
@@ -48,14 +47,8 @@
 }
 
 .main-header {
-  position: fixed !important;
-  top: 0;
-  left: 0;
-  width: 100%;
+  padding: 8px 15px 0px !important; /* Уменьшили отступы */
   background: #121212;
-  z-index: 5000;
-  padding: 10px 15px 5px !important;
-  border-bottom: 1px solid #1c1c1e;
 }
 
 /* Убираем пустой отступ на страницах, где нет шапки */
@@ -298,15 +291,12 @@ body {
   width: 60px;
   height: 100%;
 }
-.nav-center-content {
-  position: absolute;
-  top: -24px; /* Позиция над панелью */
-  left: 50%;
-  transform: translateX(-50%);
+.nav-center-container {
+  margin-top: -25px; /* Поднимаем круг выше панели */
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 80px;
+  z-index: 6000;
 }
 
 .nav-center-content span {
@@ -317,19 +307,19 @@ body {
 }
 
 .yellow-plus-main {
-  width: 60px !important;
-  height: 60px !important;
+  width: 56px !important; /* Жестко задаем размер */
+  height: 56px !important; /* Ширина должна быть равна высоте */
   background: var(--yellow-main) !important;
-  border-radius: 50% !important; /* КРУГ */
-  border: 5px solid #121212 !important; /* Рамка в цвет фона */
-  color: #000 !important;
+  border-radius: 50% !important; /* Это делает её кругом */
   display: flex !important;
   align-items: center;
   justify-content: center;
   font-size: 26px !important;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  color: #000 !important;
+  border: 4px solid #121212 !important;
+  box-shadow: 0 4px 15px rgba(255, 204, 0, 0.3);
+  flex-shrink: 0; /* Чтобы её не сплющило на узких экранах */
   padding: 0 !important;
-  margin: 0 !important;
 }
 
 /* ПРОФИЛЬ ТАБЫ */
@@ -772,11 +762,7 @@ body {
 
 /* Шапка: Поиск и Город в одну линию */
 .search-city-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  margin-bottom: 12px;
+  margin-bottom: 5px !important; /* Было 15, стало 5 */
 }
 
 .search-wrapper {
@@ -857,9 +843,8 @@ body {
   margin-top: 4px;
 }
 
-/* Контейнер для сторис */
 .stories-wrapper {
-  padding: 5px 0 10px 0;
+  padding: 0px 0 5px 0 !important; /* Максимально прижали */
 }
 
 .stories-wrapper::-webkit-scrollbar {
@@ -941,8 +926,8 @@ body {
 }
 
 .categories-wrapper {
-  margin-top: 5px;
-  margin-bottom: 5px;
+  margin-top: 0px !important;
+  margin-bottom: 0px !important;
 }
 
 .card {
