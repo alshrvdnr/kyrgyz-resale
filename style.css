@@ -30,8 +30,9 @@
 
 /* Добавь отступ заголовку, чтобы он не лип к объявлениям */
 #dynamic-feed-title {
-  margin: 8px 0 5px 0 !important;
-  font-size: 18px;
+  margin: 5px 0 5px 0 !important;
+  padding: 0 !important;
+  font-size: 16px !important;
 }
 
 /* 5. Кнопка "X" на странице Подать */
@@ -47,8 +48,7 @@
 }
 
 .main-header {
-  padding: 8px 15px 0px !important; /* Уменьшили отступы */
-  background: #121212;
+  padding: 8px 15px 5px !important; /* Минимальный внутренний отступ */
 }
 
 /* Убираем пустой отступ на страницах, где нет шапки */
@@ -762,33 +762,40 @@ body {
 
 /* Шапка: Поиск и Город в одну линию */
 .search-city-row {
-  margin-bottom: 5px !important; /* Было 15, стало 5 */
+  display: flex !important;
+  flex-direction: row !important; /* Только горизонтально */
+  flex-wrap: nowrap !important; /* Запрещаем перенос на новую строку */
+  align-items: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+  margin-bottom: 8px !important;
 }
 
 .search-wrapper {
-  flex: 1; /* Поиск занимает всё место */
-  background: #1c1c1e;
-  border-radius: 12px;
-  height: 42px;
-  display: flex;
-  align-items: center;
-  padding: 0 12px;
-  border: 1px solid #333;
+  flex: 1 !important; /* Поиск забирает всё свободное место */
+  background: #1c1c1e !important;
+  border-radius: 12px !important;
+  height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 0 12px !important;
+  border: 1px solid #333 !important;
+  min-width: 0 !important; /* Важно для flex-контейнеров */
 }
 
 .city-pill {
-  background: var(--yellow-main);
-  color: #000;
-  padding: 0 14px;
-  height: 42px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 800;
-  font-size: 13px;
-  cursor: pointer;
-  white-space: nowrap; /* Чтобы название города не переносилось */
+  flex-shrink: 0 !important; /* Запрещаем кнопке города сжиматься */
+  background: var(--yellow-main) !important;
+  color: #000 !important;
+  padding: 0 12px !important;
+  height: 40px !important;
+  border-radius: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-weight: 800 !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
 }
 
 /* Нижнее меню на 5 кнопок */
@@ -844,7 +851,8 @@ body {
 }
 
 .stories-wrapper {
-  padding: 0px 0 5px 0 !important; /* Максимально прижали */
+  margin: 0 !important;
+  padding: 0 0 8px 0 !important; /* Оставляем только маленький отступ снизу */
 }
 
 .stories-wrapper::-webkit-scrollbar {
@@ -926,10 +934,9 @@ body {
 }
 
 .categories-wrapper {
-  margin-top: 0px !important;
-  margin-bottom: 0px !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
-
 .card {
   background: #1c1c1e;
   border-radius: 15px;
