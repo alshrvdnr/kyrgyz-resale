@@ -818,15 +818,23 @@ function reportAd(adId, sellerId) {
   alert("Жалоба отправлена модератору! Спасибо за помощь.");
 }
 
-function confirmAction(type) {
+// В app.js, там где вы отправляете обновления в базу
+async function confirmAction(type) {
   if (!confirm("Подтвердить действие?")) return;
+
+  // 1. Сначала меняем статус самого объявления
+  let updateData = { status: type, needs_sync_tg: true }; // Бот увидит этот флаг!
+  await db.ref("ads/" + currentManageId).update(updateData);
+
+  // 2. Отправляем запрос на управление (для истории)
   db.ref("management_requests").push({
     adId: currentManageId,
     action: type,
     userId: tg.initDataUnsafe?.user?.id || 0,
     processed: false,
   });
-  alert("Запрос отправлен!");
+
+  alert("Выполнено!");
   closeManageModal();
 }
 
