@@ -322,19 +322,27 @@ function renderFeed() {
 
   // 2. СОРТИРОВКА: Новые всегда ВЫШЕ старых
   filtered.sort((a, b) => {
+    const now = Math.floor(Date.now() / 1000);
+    const threeDays = 259200;
+
     // А. Проданные всегда в самом низу
     const aSold = a.status === "sold" ? 1 : 0;
     const bSold = b.status === "sold" ? 1 : 0;
     if (aSold !== bSold) return aSold - bSold;
 
-    // Б. Если оба активны, VIP ставим выше обычных
-    if (a.status !== "sold") {
-      const aVip = a.tariff === "vip" ? 1 : 0;
-      const bVip = b.tariff === "vip" ? 1 : 0;
-      if (aVip !== bVip) return bVip - aVip;
-    }
+    // Б. Проверка VIP с учетом времени (3 дня)
+    const aIsVip =
+      a.tariff === "vip" && now - (a.approvedAt || a.createdAt) < threeDays
+        ? 1
+        : 0;
+    const bIsVip =
+      b.tariff === "vip" && now - (b.approvedAt || b.createdAt) < threeDays
+        ? 1
+        : 0;
 
-    // В. Внутри своих групп сортируем по ВРЕМЕНИ (самые свежие — сверху)
+    if (aIsVip !== bIsVip) return bIsVip - aIsVip; // Активные VIP выше
+
+    // В. Внутри своих групп сортируем по ВРЕМЕНИ
     const aTime = Number(a.approvedAt || a.createdAt || 0);
     const bTime = Number(b.approvedAt || b.createdAt || 0);
 
@@ -350,8 +358,20 @@ function createAdCard(ad, isProfile = false) {
   const displayPrice = String(ad.price).replace(/[^0-9]/g, "") || "0";
 
   const isFav = favs.includes(ad.id),
-    isSold = ad.status === "sold",
-    isVip = ad.tariff === "vip" && !isSold;
+    isSold = ad.status === "sold";
+
+  // --- ЛОГИКА ТАЙМЕРА VIP (3 ДНЯ) ---
+  const now = Math.floor(Date.now() / 1000); // Текущее время в секундах
+  const approvedTime = Number(ad.approvedAt || ad.createdAt || 0); // Время старта
+  const threeDaysInSeconds = 259200; // 3 * 24 * 60 * 60 (ровно 3 дня)
+
+  // Объявление считается VIP только если:
+  // 1. В базе стоит тариф "vip"
+  // 2. Оно не продано
+  // 3. Прошло МЕНЬШЕ 3 дней с момента публикации
+  const isVip =
+    ad.tariff === "vip" && !isSold && now - approvedTime < threeDaysInSeconds;
+  // ---------------------------------
 
   const card = document.createElement("div");
   card.className = `card ${isVip ? "card-vip" : ""} ${
