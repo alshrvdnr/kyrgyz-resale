@@ -98,11 +98,14 @@ function handleVerifyPhotoSelect(input) {
   }
 }
 
-function initUser() {
+async function initUser() {
   const user = tg.initDataUnsafe?.user || { id: 0, first_name: "Гость" };
 
-  // 1. ПРОВЕРКА БАНА
+  // 1. ПРИНУДИТЕЛЬНАЯ ПРОВЕРКА РОЛИ
   if (user.id !== 0) {
+    await checkUserRole(user.id); // Ждем, пока база ответит, кто ты
+
+    // ПРОВЕРКА БАНА
     db.ref("blacklist/" + user.id).on("value", (snap) => {
       if (snap.val() === true) {
         window.stop();
@@ -111,16 +114,23 @@ function initUser() {
     });
   }
 
-  // 2. ЗАПОЛНЕНИЕ ДАННЫХ (теперь переменная user доступна)
+  // 2. ЗАПОЛНЕНИЕ ДАННЫХ
   const initial = user.first_name ? user.first_name[0].toUpperCase() : "?";
-
   const avatarTop = document.getElementById("u-avatar-top");
   const avatarBig = document.getElementById("u-avatar-big");
   const uName = document.getElementById("u-name");
 
   if (avatarTop) avatarTop.innerText = initial;
   if (avatarBig) avatarBig.innerText = initial;
-  if (uName) uName.innerText = user.first_name;
+
+  // Если админ — припишем это к имени для теста
+  if (currentUserRole === "admin") {
+    uName.innerText = user.first_name + " (Админ 👑)";
+  } else if (currentUserRole === "business" && myShopData) {
+    uName.innerText = myShopData.shopName + " (Магазин)";
+  } else {
+    uName.innerText = user.first_name;
+  }
 }
 
 function renderProfile() {
@@ -379,19 +389,32 @@ function renderFeed() {
 }
 
 function createAdCard(ad, isProfile = false) {
+  // 1. ОЧИСТКА ЦЕНЫ: Оставляем только цифры для отображения
   const displayPrice = String(ad.price).replace(/[^0-9]/g, "") || "0";
-  const isFav = favs.includes(ad.id);
-  const isSold = ad.status === "sold";
 
-  // Таймер VIP
-  const now = Math.floor(Date.now() / 1000);
-  const approvedTime = Number(ad.approvedAt || ad.createdAt || 0);
-  const isVip = ad.tariff === "vip" && !isSold && now - approvedTime < 259200;
+  const isFav = favs.includes(ad.id),
+    isSold = ad.status === "sold";
+
+  // --- ЛОГИКА ТАЙМЕРА VIP (3 ДНЯ) ---
+  const now = Math.floor(Date.now() / 1000); // Текущее время в секундах
+  const approvedTime = Number(ad.approvedAt || ad.createdAt || 0); // Время старта
+  const threeDaysInSeconds = 259200; // 3 * 24 * 60 * 60 (ровно 3 дня)
+
+  // Объявление считается VIP только если:
+  // 1. В базе стоит тариф "vip"
+  // 2. Оно не продано
+  // 3. Прошло МЕНЬШЕ 3 дней с момента публикации
+  const isVip =
+    ad.tariff === "vip" && !isSold && now - approvedTime < threeDaysInSeconds;
+  // ---------------------------------
 
   const card = document.createElement("div");
+  // Добавляем классы в зависимости от статуса и тарифа
   card.className = `card ${isVip ? "card-vip" : ""} ${
     ad.status === "deleted" ? "card-deleted" : ""
   }`;
+
+  // Клик по всей карточке открывает просмотр товара
   card.onclick = () => openProduct(ad);
 
   card.innerHTML = `
@@ -409,6 +432,7 @@ function createAdCard(ad, isProfile = false) {
     <img src="${ad.img ? ad.img[0] : ""}" loading="lazy">
     <div style="padding:10px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+        <!-- ОТОБРАЖАЕМ ЦЕНУ И ВАЛЮТУ -->
         <div style="color:var(--yellow-main); font-weight:bold; font-size:15px;">${displayPrice} KGS</div>
         <div style="color:var(--gray); font-size:10px;">${formatRelativeDate(
           ad.approvedAt || ad.createdAt
@@ -418,21 +442,30 @@ function createAdCard(ad, isProfile = false) {
         ad.title
       }</div>
       
-      <!-- ИНСТРУМЕНТЫ АДМИНА -->
+      <!-- БЛОК ИНСТРУМЕНТОВ АДМИНИСТРАТОРА (Виден только тебе) -->
       ${
         currentUserRole === "admin"
           ? `
         <div style="margin-top:8px; padding-top:8px; border-top:1px dashed #444;">
-          <div style="font-size:10px; color:#ff3b30; margin-bottom:5px;">USER_ID: <code>${ad.userId}</code></div>
-          <button onclick="event.stopPropagation(); adminDeleteAd('${ad.id}')" style="width:100%; background:#ff3b30; color:#fff; border:none; padding:4px; border-radius:4px; font-size:10px; font-weight:bold;">УДАЛИТЬ ОБЪЯВЛЕНИЕ</button>
+          <div style="font-size:10px; color:#ff3b30; margin-bottom:5px; font-family:monospace;">
+            USER_ID: <code>${ad.userId}</code>
+          </div>
+          <button onclick="event.stopPropagation(); adminDeleteAd('${ad.id}')" 
+                  style="width:100%; background:#ff3b30; color:#fff; border:none; padding:6px; border-radius:6px; font-size:10px; font-weight:bold; cursor:pointer;">
+            УДАЛИТЬ (АДМИН)
+          </button>
         </div>
       `
           : ""
       }
 
+      <!-- КНОПКА УПРАВЛЕНИЯ ДЛЯ ВЛАДЕЛЬЦА (В профиле) -->
       ${
         isProfile && ad.status === "active"
-          ? `<button onclick="event.stopPropagation(); openManageModal('${ad.id}')" style="width:100%; background:var(--yellow-main); color:#000; border:none; padding:8px; border-radius:8px; font-size:11px; font-weight:bold; margin-top:8px;">Управление</button>`
+          ? `<button onclick="event.stopPropagation(); openManageModal('${ad.id}')" 
+                     style="width:100%; background:var(--yellow-main); color:#000; border:none; padding:8px; border-radius:8px; font-size:11px; font-weight:bold; margin-top:8px;">
+               Управление
+             </button>`
           : ""
       }
     </div>`;
@@ -441,11 +474,18 @@ function createAdCard(ad, isProfile = false) {
 }
 
 // Вспомогательная функция для админа
-window.adminDeleteAd = async function (id) {
-  if (!confirm("Удалить чужой пост?")) return;
-  await db.ref("ads/" + id).update({ status: "deleted", needs_sync_tg: true });
-  alert("Удалено");
-  location.reload();
+window.adminDeleteAd = async function (adId) {
+  if (!confirm("Внимание! Вы удаляете чужое объявление. Удалить?")) return;
+
+  try {
+    await db.ref("ads/" + adId).update({
+      status: "deleted",
+      needs_sync_tg: true, // Бот удалит из канала
+    });
+    alert("Объявление удалено админом.");
+  } catch (e) {
+    alert("Ошибка удаления: " + e.message);
+  }
 };
 
 // 6. МОДАЛКА И КОНТАКТЫ
