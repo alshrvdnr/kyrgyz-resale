@@ -423,6 +423,10 @@ function createAdCard(ad, isProfile = false) {
   card.innerHTML = `
     ${isSold ? '<div class="sold-badge">ПРОДАНО</div>' : ""}
     ${isVip ? '<div class="vip-badge">VIP</div>' : ""}
+    
+    <!-- ДОБАВЛЕНО: БЕЙДЖ ДЛЯ КОМБО-НАБОРОВ -->
+    ${ad.isCombo ? '<div class="combo-badge">КОМБО 🔥</div>' : ""}
+
     ${
       !isProfile
         ? `<div class="fav-heart-btn ${
@@ -445,7 +449,7 @@ function createAdCard(ad, isProfile = false) {
         ad.title
       }</div>
       
-      <!-- БЛОК ИНСТРУМЕНТОВ АДМИНИСТРАТОРА (Виден только тебе) -->
+      <!-- БЛОК ИНСТРУМЕНТОВ АДМИНИСТРАТОРА (Виден только если currentUserRole === "admin") -->
       ${
         currentUserRole === "admin"
           ? `
@@ -462,7 +466,7 @@ function createAdCard(ad, isProfile = false) {
           : ""
       }
 
-      <!-- КНОПКА УПРАВЛЕНИЯ ДЛЯ ВЛАДЕЛЬЦА (В профиле) -->
+      <!-- КНОПКА УПРАВЛЕНИЯ ДЛЯ ВЛАДЕЛЬЦА (В профиле или кабинете бизнеса) -->
       ${
         isProfile && ad.status === "active"
           ? `<button onclick="event.stopPropagation(); openManageModal('${ad.id}')" 
@@ -497,9 +501,14 @@ function openProduct(ad) {
   const isSold = ad.status === "sold",
     isFav = favs.includes(ad.id);
   const isVerified = ad.verified === true;
+
+  // Проверка прав админа
+  const isAdmin = currentUserRole === "admin";
+
   let contactLink = ad.tgNick
     ? `https://t.me/${ad.tgNick.replace("@", "")}`
     : `https://wa.me/${ad.phone?.replace(/[^0-9]/g, "")}`;
+
   let dots = ad.img
     ? ad.img
         .map(
@@ -541,14 +550,44 @@ function openProduct(ad) {
       <div style="margin-bottom:20px; font-size:16px;"><b>${
         catMap[ad.cat] || "Товар"
       }</b> — ${ad.title} ${isVerified ? "🔵" : ""}</div>
+      
       ${
         isSold
-          ? `<div style="background:#333; padding:15px; border-radius:12px; color:#ff3b30; text-align:center; font-weight:bold;">Продано</div>`
+          ? `<div style="background:#333; padding:15px; border-radius:12px; color:#ff3b30; text-align:center; font-weight:bold; margin-bottom:20px;">Продано</div>`
           : `
           <a href="${contactLink}" class="btn-premium-unity" style="text-decoration:none; margin-bottom:20px;">Написать продавцу</a>
+
+          <!-- ЛОГИКА ОТОБРАЖЕНИЯ СОСТАВА КОМБО -->
+          ${
+            ad.isCombo
+              ? `
+            <div class="combo-items-list">
+              <div style="font-weight:bold; color:var(--yellow-main); margin-bottom:10px;">В наборе:</div>
+              ${ad.comboItems
+                .split(",")
+                .map(
+                  (item) => `
+                <div class="combo-item-row">
+                  <i class="fa-solid fa-check"></i>
+                  <div>${item.trim()}</div>
+                </div>
+              `
+                )
+                .join("")}
+              ${
+                ad.comboBenefit
+                  ? `<div style="margin-top:10px; font-size:12px; color:#4cd964; font-weight:bold;">🔥 ${ad.comboBenefit}</div>`
+                  : ""
+              }
+            </div>
+          `
+              : ""
+          }
+
           <div style="background:#2c2c2e; padding:15px; border-radius:12px; margin:20px 0; white-space: pre-wrap; font-size:15px;">${
             ad.desc || "Нет описания"
           }</div>
+
           <div style="background:#1c1c1e; padding:18px; border-radius:15px; border:1px solid #333; display:flex; flex-direction:column; gap:15px;">
              <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-location-dot" style="color:#ff3b30; font-size:18px; width:20px; text-align:center;"></i><div>${
                ad.city
@@ -562,12 +601,38 @@ function openProduct(ad) {
                  : ""
              }
           </div>
+          
           <div onclick="reportAd('${ad.id}', '${
               ad.userId
             }')" style="background:rgba(255,204,0,0.1); color:var(--yellow-main); border:1px solid var(--yellow-main); padding:12px; border-radius:12px; text-align:center; font-size:14px; font-weight:bold; cursor:pointer; margin-top:25px;">Пожаловаться на мошенника</div>
       `
       }
+
+      <!-- СПЕЦИАЛЬНЫЙ БЛОК ДЛЯ АДМИНА -->
+      ${
+        isAdmin
+          ? `
+        <div style="margin-top:30px; padding:15px; background:rgba(255,59,48,0.1); border:1px solid #ff3b30; border-radius:15px;">
+          <div style="color:#ff3b30; font-weight:bold; margin-bottom:12px; font-size:14px; text-transform:uppercase; letter-spacing:1px;">Админ-панель</div>
+          <div style="font-size:12px; color:#fff; display:flex; flex-direction:column; gap:8px; font-family:monospace;">
+            <div>🆔 ID Продавца: <span style="color:var(--yellow-main)">${
+              ad.userId
+            }</span></div>
+            <div>📅 Дата публ.: ${new Date(
+              (ad.approvedAt || ad.createdAt) * 1000
+            ).toLocaleString()}</div>
+            <div>📑 ID Поста: ${ad.id}</div>
+            <div>🎫 Тариф: ${ad.tariff}</div>
+          </div>
+          <button onclick="adminDeleteAd('${
+            ad.id
+          }')" style="width:100%; background:#ff3b30; color:#fff; border:none; padding:12px; border-radius:10px; margin-top:15px; font-weight:bold; cursor:pointer;">УДАЛИТЬ ПОСТ (АДМИН)</button>
+        </div>
+      `
+          : ""
+      }
     </div>`;
+
   const slider = document.getElementById(`slider-${ad.id}`);
   if (slider)
     slider.onscroll = () => {
@@ -725,6 +790,10 @@ async function publishAndSend() {
       tgNick: document.getElementById("in-tg").value,
       desc: document.getElementById("in-desc").value,
       receiveDate: document.getElementById("in-receive-date").value,
+      // Добавь это внутрь формирования объекта newAd:
+      isCombo: currentAddingType === "combo",
+      comboItems: document.getElementById("in-combo-items").value || "",
+      comboBenefit: document.getElementById("in-combo-benefit").value || "",
 
       img: validImgs, // Ссылки на фото
       verify_photo: verifyPhotoUrl || "",
@@ -1255,12 +1324,20 @@ function renderBusinessDashboard() {
 }
 
 // Функция для открытия формы (обычный товар или комбо)
+let currentAddingType = "standard"; // Глобальная переменная
+
 window.openAddForm = function (type) {
+  currentAddingType = type;
   showPage("add");
+
+  const comboBlock = document.getElementById("combo-fields");
+  const titleText = document.getElementById("add-title-text");
+
   if (type === "combo") {
-    document.getElementById("add-title-text").innerText = "Создать КОМБО";
-    // Тут можно добавить логику показа доп. полей для комбо
+    titleText.innerText = "Создать КОМБО";
+    comboBlock.classList.remove("hidden");
   } else {
-    document.getElementById("add-title-text").innerText = "Новый товар";
+    titleText.innerText = "Новый товар";
+    comboBlock.classList.add("hidden");
   }
 };
