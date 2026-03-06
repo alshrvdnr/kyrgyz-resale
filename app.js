@@ -1,14 +1,13 @@
 const tg = window.Telegram.WebApp;
-// 1. Насильно раскрываем окно на максимум (убирает возможность свернуть вниз)
 tg.expand();
-
-// 2. Красим верхнюю панель Telegram (где время и зарядки) в цвет твоего фона
 tg.setHeaderColor("#121212");
-
-// 3. Красим цвет подложки Telegram в цвет фона (видно, когда тянешь страницу вверх или вниз)
 tg.setBackgroundColor("#121212");
 
-// 1. CONFIG
+// --- 1. CONFIG & ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ РОЛЕЙ ---
+const MY_ADMIN_ID = 1615492914; // !!! ЗАМЕНИ НА СВОЙ ID ЦИФРАМИ !!!
+let currentUserRole = "user"; // Роль: user, business, admin
+let myShopData = null; // Данные магазина (если роль business)
+
 const firebaseConfig = {
   apiKey: "AIzaSyCxaC3C9dx6IEhXWH9eATdKZO8SCRYe33I",
   authDomain: "gifts-kg.firebaseapp.com",
@@ -22,7 +21,33 @@ const firebaseConfig = {
 
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-const storage = firebase.storage(); // Теперь это заработает!
+const storage = firebase.storage();
+
+// Функция проверки роли (вызывается при старте)
+async function checkUserRole(uid) {
+  // 1. Сначала проверяем, не главный ли ты админ
+  if (uid == MY_ADMIN_ID) {
+    currentUserRole = "admin";
+    document.body.classList.add("is-admin");
+    console.log("Вход выполнен как АДМИН");
+    return;
+  }
+
+  // 2. Ищем пользователя в базе (ветка users)
+  try {
+    const snap = await db.ref("users/" + uid).once("value");
+    const userData = snap.val();
+    if (userData && userData.role === "business") {
+      currentUserRole = "business";
+      myShopData = userData; // Сохраняем название магазина и т.д.
+      document.body.classList.add("is-business");
+      console.log("Вход выполнен как БИЗНЕС:", userData.shopName);
+    }
+  } catch (e) {
+    console.error("Ошибка проверки роли:", e);
+  }
+}
+// -----------------------------------------------
 
 const catMap = {
   flowers: "Цветы",
@@ -354,30 +379,19 @@ function renderFeed() {
 }
 
 function createAdCard(ad, isProfile = false) {
-  // 1. ОЧИСТКА ЦЕНЫ: Удаляем все буквы и пробелы, оставляем только цифры
   const displayPrice = String(ad.price).replace(/[^0-9]/g, "") || "0";
+  const isFav = favs.includes(ad.id);
+  const isSold = ad.status === "sold";
 
-  const isFav = favs.includes(ad.id),
-    isSold = ad.status === "sold";
-
-  // --- ЛОГИКА ТАЙМЕРА VIP (3 ДНЯ) ---
-  const now = Math.floor(Date.now() / 1000); // Текущее время в секундах
-  const approvedTime = Number(ad.approvedAt || ad.createdAt || 0); // Время старта
-  const threeDaysInSeconds = 259200; // 3 * 24 * 60 * 60 (ровно 3 дня)
-
-  // Объявление считается VIP только если:
-  // 1. В базе стоит тариф "vip"
-  // 2. Оно не продано
-  // 3. Прошло МЕНЬШЕ 3 дней с момента публикации
-  const isVip =
-    ad.tariff === "vip" && !isSold && now - approvedTime < threeDaysInSeconds;
-  // ---------------------------------
+  // Таймер VIP
+  const now = Math.floor(Date.now() / 1000);
+  const approvedTime = Number(ad.approvedAt || ad.createdAt || 0);
+  const isVip = ad.tariff === "vip" && !isSold && now - approvedTime < 259200;
 
   const card = document.createElement("div");
   card.className = `card ${isVip ? "card-vip" : ""} ${
     ad.status === "deleted" ? "card-deleted" : ""
   }`;
-
   card.onclick = () => openProduct(ad);
 
   card.innerHTML = `
@@ -395,7 +409,6 @@ function createAdCard(ad, isProfile = false) {
     <img src="${ad.img ? ad.img[0] : ""}" loading="lazy">
     <div style="padding:10px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-        <!-- ИСПОЛЬЗУЕМ ТОЛЬКО ЦИФРОВУЮ ЦЕНУ -->
         <div style="color:var(--yellow-main); font-weight:bold; font-size:15px;">${displayPrice} KGS</div>
         <div style="color:var(--gray); font-size:10px;">${formatRelativeDate(
           ad.approvedAt || ad.createdAt
@@ -404,6 +417,19 @@ function createAdCard(ad, isProfile = false) {
       <div style="font-size:12px; color:#ccc; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${
         ad.title
       }</div>
+      
+      <!-- ИНСТРУМЕНТЫ АДМИНА -->
+      ${
+        currentUserRole === "admin"
+          ? `
+        <div style="margin-top:8px; padding-top:8px; border-top:1px dashed #444;">
+          <div style="font-size:10px; color:#ff3b30; margin-bottom:5px;">USER_ID: <code>${ad.userId}</code></div>
+          <button onclick="event.stopPropagation(); adminDeleteAd('${ad.id}')" style="width:100%; background:#ff3b30; color:#fff; border:none; padding:4px; border-radius:4px; font-size:10px; font-weight:bold;">УДАЛИТЬ ОБЪЯВЛЕНИЕ</button>
+        </div>
+      `
+          : ""
+      }
+
       ${
         isProfile && ad.status === "active"
           ? `<button onclick="event.stopPropagation(); openManageModal('${ad.id}')" style="width:100%; background:var(--yellow-main); color:#000; border:none; padding:8px; border-radius:8px; font-size:11px; font-weight:bold; margin-top:8px;">Управление</button>`
@@ -413,6 +439,14 @@ function createAdCard(ad, isProfile = false) {
 
   return card;
 }
+
+// Вспомогательная функция для админа
+window.adminDeleteAd = async function (id) {
+  if (!confirm("Удалить чужой пост?")) return;
+  await db.ref("ads/" + id).update({ status: "deleted", needs_sync_tg: true });
+  alert("Удалено");
+  location.reload();
+};
 
 // 6. МОДАЛКА И КОНТАКТЫ
 function openProduct(ad) {
