@@ -292,6 +292,63 @@
         </div>
       </div>
 
+      <!-- СЕКЦИЯ: ОФИС МАГАЗИНА (Dashboard) -->
+      <section id="page-business-admin" class="page hidden">
+        <div style="padding: 20px">
+          <!-- Шапка офиса -->
+          <div
+            style="
+              background: var(--premium-grad);
+              padding: 20px;
+              border-radius: 20px;
+              color: #000;
+              margin-bottom: 20px;
+            "
+          >
+            <div id="biz-name" style="font-size: 20px; font-weight: 800">
+              Мой Магазин
+            </div>
+            <div style="font-size: 12px; opacity: 0.8">
+              Статус: Золотой партнер 🏆
+            </div>
+          </div>
+
+          <!-- Кнопки действий -->
+          <div
+            style="
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 10px;
+              margin-bottom: 25px;
+            "
+          >
+            <div
+              class="modal-action-btn"
+              onclick="openAddForm('standard')"
+              style="background: #1c1c1e; border: 1px solid #333"
+            >
+              <i class="fa-solid fa-plus" style="color: var(--yellow-main)"></i
+              ><br />
+              <span style="font-size: 11px">Товар</span>
+            </div>
+            <div
+              class="modal-action-btn"
+              onclick="openAddForm('combo')"
+              style="background: #1c1c1e; border: 1px solid #333"
+            >
+              <i class="fa-solid fa-layer-group" style="color: #ff3b30"></i
+              ><br />
+              <span style="font-size: 11px">Комбо-набор</span>
+            </div>
+          </div>
+
+          <h3 style="font-size: 16px; margin-bottom: 15px">Моя витрина</h3>
+          <div id="biz-my-ads" class="listings-grid">
+            <!-- Сюда JS выведет только товары этого магазина -->
+          </div>
+        </div>
+      </section>
+
       <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ -->
       <section id="page-add" class="page hidden">
         <header

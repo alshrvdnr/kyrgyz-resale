@@ -215,21 +215,24 @@ window.showPage = function (p) {
   }
 
   // 6. Если зашли в Подать - СБРОС ФОРМЫ И ГЕНЕРАЦИЯ КОДА АНТИ-ФРОД
+  // Внутри функции showPage(p)
   if (p === "add") {
-    // Кнопка Плюс не имеет класса .nav-item, поэтому её не красим в желтый через active,
-    // но логику подаче оставляем полной
-    if (!editingId) {
-      if (typeof resetAddForm === "function") resetAddForm();
-
-      // ГЕНЕРИРУЕМ НОВЫЙ КОД ДЛЯ ПРОВЕРКИ
-      if (typeof generateVerifyCode === "function") {
-        generateVerifyCode();
-      }
-
-      // Прокручиваем форму наверх, чтобы пользователь увидел блок с кодом
-      const formScroll = document.querySelector(".form-scroll");
-      if (formScroll) formScroll.scrollTop = 0;
+    // Если зашел БИЗНЕС — кидаем его в Офис, а не на форму
+    if (currentUserRole === "business") {
+      showPage("business-admin");
+      renderBusinessDashboard();
+      return; // Останавливаем выполнение, чтобы не открылась страница page-add
     }
+
+    // Если зашел обычный юзер — открываем стандартную форму (твой старый код)
+    if (!editingId) {
+      resetAddForm();
+      generateVerifyCode();
+    }
+  }
+
+  if (p === "business-admin") {
+    renderBusinessDashboard();
   }
 
   // Всегда прокручиваем страницу в самый верх при смене вкладки
@@ -607,7 +610,12 @@ async function publishAndSend() {
   const title = document.getElementById("in-title").value;
   const priceInput = document.getElementById("in-price").value;
 
-  // 1. ОЧИСТКА И ПРОВЕРКА ДАННЫХ
+  // --- 1. ОПРЕДЕЛЕНИЕ ПРАВ ---
+  // Проверяем, является ли пользователь партнером (Бизнес или Админ)
+  const isPartner =
+    currentUserRole === "business" || currentUserRole === "admin";
+
+  // --- 2. ОЧИСТКА И ПРОВЕРКА ДАННЫХ ---
   const cleanTitle = title.trim();
   const numericPrice = parseInt(priceInput);
 
@@ -621,14 +629,16 @@ async function publishAndSend() {
     return alert("Цена не может быть больше 1,000,000 KGS!");
   }
 
-  // 2. АНТИ-СПАМ: Ограничение 1 минута
-  const lastPost = localStorage.getItem("last_post_time");
-  if (lastPost && Date.now() - lastPost < 60000) {
-    const waitSec = Math.ceil((60000 - (Date.now() - lastPost)) / 1000);
-    return alert(`Слишком часто! Подождите ${waitSec} сек.`);
+  // --- 3. АНТИ-СПАМ: Ограничение 1 минута (только для обычных юзеров) ---
+  if (!isPartner) {
+    const lastPost = localStorage.getItem("last_post_time");
+    if (lastPost && Date.now() - lastPost < 60000) {
+      const waitSec = Math.ceil((60000 - (Date.now() - lastPost)) / 1000);
+      return alert(`Слишком часто! Подождите ${waitSec} сек.`);
+    }
   }
 
-  // --- ЛОГИКА РЕДАКТИРОВАНИЯ ---
+  // --- 4. ЛОГИКА РЕДАКТИРОВАНИЯ ---
   if (editingId) {
     btn.disabled = true;
     btn.innerText = "СОХРАНЕНИЕ...";
@@ -653,22 +663,23 @@ async function publishAndSend() {
     return;
   }
 
-  // --- ЛОГИКА СОЗДАНИЯ НОВОГО ОБЪЯВЛЕНИЯ ---
-  const isPaid = holidayMode || selectedTariff === "vip";
+  // --- 5. ЛОГИКА СОЗДАНИЯ НОВОГО ОБЪЯВЛЕНИЯ ---
 
-  // Проверка чека для платных тарифов
+  // А. Проверка чека (только для платных тарифов обычных юзеров)
+  const isPaid = (holidayMode || selectedTariff === "vip") && !isPartner;
   if (isPaid && !receiptAttached) {
     return alert("Прикрепите чек об оплате!");
   }
 
-  // КРИТИЧЕСКАЯ ПРОВЕРКА: Фото с листком (сигна)
-  if (!verifyPhotoFile) {
+  // Б. КРИТИЧЕСКАЯ ПРОВЕРКА: Фото с листком (сигна)
+  // Для Магазинов и Админа эту проверку можно пропустить
+  if (!isPartner && !verifyPhotoFile) {
     return alert(
       "ОШИБКА: Загрузите фото товара с листком бумаги (код и время) в блоке проверки!"
     );
   }
 
-  // Проверка обычных фотографий товара
+  // В. Проверка основных фотографий товара
   if (selectedFiles.length === 0) {
     return alert("Добавьте основные фотографии вашего товара!");
   }
@@ -677,7 +688,7 @@ async function publishAndSend() {
   btn.innerText = "ЗАГРУЗКА ДАННЫХ...";
 
   try {
-    // А. Загрузка чека (если есть)
+    // 1. Загрузка чека (если есть и если юзер не партнер)
     let receiptUrl = "";
     if (isPaid) {
       const receiptFile = document.getElementById("receipt-input").files[0];
@@ -685,12 +696,15 @@ async function publishAndSend() {
       if (!receiptUrl) throw new Error("Не удалось загрузить чек об оплате.");
     }
 
-    // Б. Загрузка проверочного фото (Сигна)
-    const verifyPhotoUrl = await uploadFile(verifyPhotoFile);
-    if (!verifyPhotoUrl)
-      throw new Error("Не удалось загрузить проверочное фото.");
+    // 2. Загрузка проверочного фото (Сигна)
+    let verifyPhotoUrl = "";
+    if (verifyPhotoFile) {
+      verifyPhotoUrl = await uploadFile(verifyPhotoFile);
+      if (!verifyPhotoUrl && !isPartner)
+        throw new Error("Не удалось загрузить проверочное фото.");
+    }
 
-    // В. Загрузка основных фотографий товара
+    // 3. Загрузка основных фотографий товара
     const imgs = await Promise.all(
       selectedFiles.map((file) => uploadFile(file))
     );
@@ -700,7 +714,7 @@ async function publishAndSend() {
       throw new Error("Ошибка загрузки основных изображений товара.");
     }
 
-    // Г. Формирование объекта для базы
+    // 4. ФОРМИРОВАНИЕ ОБЪЕКТА ДЛЯ БАЗЫ
     const newAd = {
       title: cleanTitle,
       price: numericPrice,
@@ -712,27 +726,43 @@ async function publishAndSend() {
       desc: document.getElementById("in-desc").value,
       receiveDate: document.getElementById("in-receive-date").value,
 
-      img: validImgs, // Массив ссылок на фото товара
-      verify_photo: verifyPhotoUrl, // Ссылка на фото с листком
-      verify_code: currentVerifyCode, // Код, который был на экране
+      img: validImgs, // Ссылки на фото
+      verify_photo: verifyPhotoUrl || "",
+      verify_code: isPartner ? "PARTNER_BYPASS" : currentVerifyCode,
 
-      receipt_url: receiptUrl, // Ссылка на чек (бот прочитает её!)
-      status: "pending", // Статус для начала модерации
-      bot_notified: false, // КРИТИЧНО: бот увидит это и пришлет уведомление
+      receipt_url: receiptUrl,
+
+      // ГЛАВНАЯ ЛОГИКА: если партнер — статус сразу ACTIVE, если нет — PENDING
+      status: isPartner ? "active" : "pending",
+      bot_notified: isPartner ? true : false, // Чтобы бот не слал админу посты от партнеров
+
+      isShop: isPartner,
+      shopName: isPartner
+        ? myShopData
+          ? myShopData.shopName
+          : "Администрация"
+        : "",
+      verified: isPartner, // Магазины и админ верифицированы по умолчанию
+
       tariff: selectedTariff, // vip или standard
-      is_holiday: holidayMode, // true или false
+      is_holiday: isPartner ? false : holidayMode,
 
       userId: tg.initDataUnsafe?.user?.id || 0,
       createdAt: Math.floor(Date.now() / 1000),
     };
 
-    // Д. Отправка в Firebase
+    // 5. ОТПРАВКА В FIREBASE
     await db.ref("ads").push(newAd);
     localStorage.setItem("last_post_time", Date.now());
 
-    alert(
-      "Успешно! Объявление и чек отправлены на модерацию. Ожидайте подтверждения в Telegram."
-    );
+    if (isPartner) {
+      alert("Успешно! Ваше объявление опубликовано мгновенно.");
+    } else {
+      alert(
+        "Успешно! Объявление и чек отправлены на модерацию. Ожидайте подтверждения в Telegram."
+      );
+    }
+
     resetAddForm();
     showPage("home");
   } catch (e) {
@@ -1197,4 +1227,40 @@ window.startSearch = function (val) {
 window.closeSearch = function () {
   const searchPage = document.getElementById("search-results-page");
   if (searchPage) searchPage.classList.add("hidden");
+};
+
+function renderBusinessDashboard() {
+  const container = document.getElementById("biz-my-ads");
+  if (!container) return;
+
+  const myId = tg.initDataUnsafe?.user?.id || 0;
+  document.getElementById("biz-name").innerText = myShopData
+    ? myShopData.shopName
+    : "Мой Магазин";
+
+  // Фильтруем: только мои товары
+  const myAds = ads.filter(
+    (ad) => ad.userId === myId && ad.status !== "deleted"
+  );
+
+  container.innerHTML = "";
+  if (myAds.length === 0) {
+    container.innerHTML = `<p style="grid-column: 1/3; color:gray; text-align:center;">У вас пока нет товаров</p>`;
+  } else {
+    myAds.forEach((ad) => {
+      const card = createAdCard(ad, true); // true означает режим профиля (с кнопками управления)
+      container.appendChild(card);
+    });
+  }
+}
+
+// Функция для открытия формы (обычный товар или комбо)
+window.openAddForm = function (type) {
+  showPage("add");
+  if (type === "combo") {
+    document.getElementById("add-title-text").innerText = "Создать КОМБО";
+    // Тут можно добавить логику показа доп. полей для комбо
+  } else {
+    document.getElementById("add-title-text").innerText = "Новый товар";
+  }
 };
