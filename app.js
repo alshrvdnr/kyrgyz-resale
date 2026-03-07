@@ -675,27 +675,19 @@ async function publishAndSend() {
   const title = document.getElementById("in-title").value;
   const priceInput = document.getElementById("in-price").value;
 
-  // --- 1. ОПРЕДЕЛЕНИЕ ПРАВ ---
-  // Проверяем, является ли пользователь партнером (Бизнес или Админ)
+  // --- 1. ПРЕДВАРИТЕЛЬНАЯ ПРОВЕРКА (ВАЛИДАЦИЯ) ---
   const isPartner =
     currentUserRole === "business" || currentUserRole === "admin";
-
-  // --- 2. ОЧИСТКА И ПРОВЕРКА ДАННЫХ ---
   const cleanTitle = title.trim();
   const numericPrice = parseInt(priceInput);
 
-  if (cleanTitle.length < 3) {
-    return alert("Название слишком короткое (минимум 3 символа)!");
-  }
-  if (isNaN(numericPrice) || numericPrice <= 0) {
-    return alert("Введите корректную цену цифрами (больше 0)!");
-  }
-  if (numericPrice > 1000000) {
-    return alert("Цена не может быть больше 1,000,000 KGS!");
-  }
+  if (cleanTitle.length < 3) return alert("Название слишком короткое!");
+  if (isNaN(numericPrice) || numericPrice <= 0)
+    return alert("Введите корректную цену!");
+  if (numericPrice > 1000000) return alert("Цена слишком высокая!");
 
-  // --- 3. АНТИ-СПАМ: Ограничение 1 минута (только для обычных юзеров) ---
-  if (!isPartner) {
+  // Проверка анти-спама для обычных юзеров
+  if (!isPartner && !editingId) {
     const lastPost = localStorage.getItem("last_post_time");
     if (lastPost && Date.now() - lastPost < 60000) {
       const waitSec = Math.ceil((60000 - (Date.now() - lastPost)) / 1000);
@@ -703,83 +695,80 @@ async function publishAndSend() {
     }
   }
 
-  // --- 4. ЛОГИКА РЕДАКТИРОВАНИЯ ---
-  if (editingId) {
-    btn.disabled = true;
-    btn.innerText = "СОХРАНЕНИЕ...";
-    try {
+  // --- 2. ВКЛЮЧАЕМ ОПТИМИСТИЧНЫЙ ЛОАДЕР ---
+  const overlay = document.getElementById("upload-overlay");
+  const lTitle = document.getElementById("loader-title");
+  const lText = document.getElementById("loader-text");
+  const lBtn = document.getElementById("loader-error-btn");
+  const lVisual = document.getElementById("loader-visual");
+
+  if (overlay) {
+    overlay.classList.remove("hidden");
+    lTitle.innerText = "Принято!";
+    lVisual.classList.remove("error-shake");
+    lVisual.classList.add("pulse-heart");
+    lVisual.style.color = "var(--yellow-main)";
+    lBtn.classList.add("hidden");
+    lText.innerText = "Ваши данные получены, загружаем фотографии в облако...";
+  }
+
+  try {
+    // --- 3. ЛОГИКА РЕДАКТИРОВАНИЯ ---
+    if (editingId) {
       await db.ref("ads/" + editingId).update({
         title: cleanTitle,
         price: numericPrice,
         address: document.getElementById("in-address").value,
         phone: document.getElementById("in-wa").value,
         desc: document.getElementById("in-desc").value,
-        needs_sync_tg: true, // Сигнал боту обновить данные в Telegram
+        needs_sync_tg: true,
       });
-      alert("Изменения сохранены!");
-      resetAddForm();
-      showPage("home");
-    } catch (e) {
-      alert("Ошибка при сохранении: " + e.message);
-    } finally {
-      btn.disabled = false;
-      btn.innerText = "Опубликовать";
+
+      finishUpload("Изменения сохранены!");
+      return;
     }
-    return;
-  }
 
-  // --- 5. ЛОГИКА СОЗДАНИЯ НОВОГО ОБЪЯВЛЕНИЯ ---
+    // --- 4. ПОДГОТОВКА ФАЙЛОВ ДЛЯ НОВОГО ОБЪЯВЛЕНИЯ ---
 
-  // А. Проверка чека (только для платных тарифов обычных юзеров)
-  const isPaid = (holidayMode || selectedTariff === "vip") && !isPartner;
-  if (isPaid && !receiptAttached) {
-    return alert("Прикрепите чек об оплате!");
-  }
+    // А. Проверка обязательных полей перед загрузкой
+    if (
+      !isPartner &&
+      (holidayMode || selectedTariff === "vip") &&
+      !receiptAttached
+    ) {
+      throw new Error("Прикрепите чек об оплате!");
+    }
+    if (!isPartner && !verifyPhotoFile) {
+      throw new Error("Загрузите проверочное фото с кодом!");
+    }
+    if (selectedFiles.length === 0) {
+      throw new Error("Добавьте фотографии товара!");
+    }
 
-  // Б. КРИТИЧЕСКАЯ ПРОВЕРКА: Фото с листком (сигна)
-  // Для Магазинов и Админа эту проверку можно пропустить
-  if (!isPartner && !verifyPhotoFile) {
-    return alert(
-      "ОШИБКА: Загрузите фото товара с листком бумаги (код и время) в блоке проверки!"
-    );
-  }
-
-  // В. Проверка основных фотографий товара
-  if (selectedFiles.length === 0) {
-    return alert("Добавьте основные фотографии вашего товара!");
-  }
-
-  btn.disabled = true;
-  btn.innerText = "ЗАГРУЗКА ДАННЫХ...";
-
-  try {
-    // 1. Загрузка чека (если есть и если юзер не партнер)
+    // Б. Загрузка чека
     let receiptUrl = "";
-    if (isPaid) {
+    if (!isPartner && (holidayMode || selectedTariff === "vip")) {
       const receiptFile = document.getElementById("receipt-input").files[0];
-      receiptUrl = await uploadFile(receiptFile);
-      if (!receiptUrl) throw new Error("Не удалось загрузить чек об оплате.");
+      if (receiptFile) receiptUrl = await uploadFile(receiptFile);
     }
 
-    // 2. Загрузка проверочного фото (Сигна)
+    // В. Загрузка проверочного фото
     let verifyPhotoUrl = "";
     if (verifyPhotoFile) {
       verifyPhotoUrl = await uploadFile(verifyPhotoFile);
-      if (!verifyPhotoUrl && !isPartner)
-        throw new Error("Не удалось загрузить проверочное фото.");
     }
 
-    // 3. Загрузка основных фотографий товара
+    // Г. Загрузка основных фото
+    if (lText) lText.innerText = "Почти готово, сохраняем изображения...";
     const imgs = await Promise.all(
       selectedFiles.map((file) => uploadFile(file))
     );
     const validImgs = imgs.filter((url) => url !== null);
 
-    if (validImgs.length === 0) {
-      throw new Error("Ошибка загрузки основных изображений товара.");
-    }
+    if (validImgs.length === 0)
+      throw new Error("Ошибка при загрузке изображений");
 
-    // 4. ФОРМИРОВАНИЕ ОБЪЕКТА ДЛЯ БАЗЫ
+    // --- 5. ОТПРАВКА В БАЗУ ДАННЫХ ---
     const newAd = {
       title: cleanTitle,
       price: numericPrice,
@@ -790,20 +779,21 @@ async function publishAndSend() {
       tgNick: document.getElementById("in-tg").value,
       desc: document.getElementById("in-desc").value,
       receiveDate: document.getElementById("in-receive-date").value,
-      // Добавь это внутрь формирования объекта newAd:
-      isCombo: currentAddingType === "combo",
-      comboItems: document.getElementById("in-combo-items").value || "",
-      comboBenefit: document.getElementById("in-combo-benefit").value || "",
 
-      img: validImgs, // Ссылки на фото
+      // Поля для бизнеса/комбо
+      isCombo:
+        typeof currentAddingType !== "undefined" &&
+        currentAddingType === "combo",
+      comboItems: document.getElementById("in-combo-items")?.value || "",
+      comboBenefit: document.getElementById("in-combo-benefit")?.value || "",
+
+      img: validImgs,
       verify_photo: verifyPhotoUrl || "",
       verify_code: isPartner ? "PARTNER_BYPASS" : currentVerifyCode,
-
       receipt_url: receiptUrl,
 
-      // ГЛАВНАЯ ЛОГИКА: если партнер — статус сразу ACTIVE, если нет — PENDING
       status: isPartner ? "active" : "pending",
-      bot_notified: isPartner ? true : false, // Чтобы бот не слал админу посты от партнеров
+      bot_notified: isPartner ? true : false,
 
       isShop: isPartner,
       shopName: isPartner
@@ -811,37 +801,58 @@ async function publishAndSend() {
           ? myShopData.shopName
           : "Администрация"
         : "",
-      verified: isPartner, // Магазины и админ верифицированы по умолчанию
+      verified: isPartner,
 
-      tariff: selectedTariff, // vip или standard
+      tariff: selectedTariff,
       is_holiday: isPartner ? false : holidayMode,
 
       userId: tg.initDataUnsafe?.user?.id || 0,
       createdAt: Math.floor(Date.now() / 1000),
     };
 
-    // 5. ОТПРАВКА В FIREBASE
     await db.ref("ads").push(newAd);
     localStorage.setItem("last_post_time", Date.now());
 
-    if (isPartner) {
-      alert("Успешно! Ваше объявление опубликовано мгновенно.");
-    } else {
-      alert(
-        "Успешно! Объявление и чек отправлены на модерацию. Ожидайте подтверждения в Telegram."
-      );
-    }
-
-    resetAddForm();
-    showPage("home");
+    finishUpload(
+      isPartner ? "Опубликовано мгновенно!" : "Отправлено на модерацию!"
+    );
   } catch (e) {
-    console.error("Ошибка при публикации:", e);
-    alert("Ошибка публикации: " + e.message);
-  } finally {
-    btn.disabled = false;
-    btn.innerText = "Опубликовать";
+    // ОБРАБОТКА ОШИБОК
+    if (overlay) {
+      lVisual.classList.remove("pulse-heart");
+      lVisual.classList.add("error-shake");
+      lVisual.style.color = "#ff3b30";
+      lTitle.innerText = "Ой, ошибка!";
+      lText.innerText = e.message;
+      lBtn.classList.remove("hidden");
+    } else {
+      alert("Ошибка: " + e.message);
+    }
+    console.error(e);
   }
 }
+
+// Вспомогательная функция для красивого финала
+function finishUpload(msg) {
+  const lTitle = document.getElementById("loader-title");
+  const lText = document.getElementById("loader-text");
+  const overlay = document.getElementById("upload-overlay");
+
+  if (lTitle) lTitle.innerText = "Успешно!";
+  if (lText) lText.innerText = msg;
+
+  setTimeout(() => {
+    if (overlay) overlay.classList.add("hidden");
+    resetAddForm();
+    showPage("home");
+  }, 1800);
+}
+
+// Функция закрытия окна ошибки
+window.closeUploadOverlay = function () {
+  const overlay = document.getElementById("upload-overlay");
+  if (overlay) overlay.classList.add("hidden");
+};
 
 // 8. ФИЛЬТРЫ И УТИЛИТЫ
 function filterByCat(c, el) {

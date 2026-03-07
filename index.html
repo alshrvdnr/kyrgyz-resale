@@ -744,5 +744,62 @@
       </nav>
     </div>
     <script src="app.js"></script>
+
+    <!-- ЭКРАН ФОНОВОЙ ЗАГРУЗКИ -->
+    <div
+      id="upload-overlay"
+      class="hidden"
+      style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(18, 18, 18, 0.95);
+        z-index: 20000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(10px);
+      "
+    >
+      <div style="text-align: center; padding: 30px">
+        <div
+          id="loader-visual"
+          class="pulse-heart"
+          style="
+            font-size: 60px;
+            color: var(--yellow-main);
+            margin-bottom: 20px;
+          "
+        >
+          <i class="fa-solid fa-heart"></i>
+        </div>
+        <h2 id="loader-title" style="margin-bottom: 10px; font-size: 24px">
+          Принято!
+        </h2>
+        <p id="loader-text" style="color: var(--gray); font-size: 14px">
+          Ваше объявление обрабатывается и скоро появится в ленте.
+        </p>
+
+        <!-- Кнопка появится только в случае ошибки -->
+        <button
+          id="loader-error-btn"
+          class="hidden"
+          onclick="closeUploadOverlay()"
+          style="
+            margin-top: 20px;
+            background: #ff3b30;
+            color: #fff;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 12px;
+            font-weight: bold;
+          "
+        >
+          Понятно
+        </button>
+      </div>
+    </div>
   </body>
 </html>
