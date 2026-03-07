@@ -73,11 +73,18 @@ let verifyPhotoFile = null; // Файл проверочного фото
 let ads = [],
   favs = JSON.parse(localStorage.getItem("favs_v15")) || [];
 let curCat = "Все",
-  curCity = "Бишкек",
+  curCity = "bishkek", // Теперь по умолчанию латиница
   selectedTariff = "standard",
   editingId = null,
   selectedFiles = [],
   profTab = "active";
+const cityNames = {
+  bishkek: "Бишкек",
+  osh: "Ош",
+  manas: "Манас",
+  tokmok: "Токмок",
+  karakol: "Каракол",
+};
 let currentManageId = null,
   holidayMode = false,
   receiptAttached = false,
@@ -453,17 +460,25 @@ function renderFeed() {
   if (!grid) return;
   grid.innerHTML = "";
 
-  // 1. Фильтруем объявления по городу, категории и статусу
-  let filtered = ads.filter(
-    (ad) =>
-      (curCat === "Все" || ad.cat === curCat) &&
-      ad.city === curCity &&
+  // 1. ФИЛЬТРАЦИЯ ОБЪЯВЛЕНИЙ
+  let filtered = ads.filter((ad) => {
+    // А. Проверка категории
+    const catMatch = curCat === "Все" || ad.cat === curCat;
+
+    // Б. Проверка города (самое важное!)
+    // cityNames[curCity] берет "Бишкек" из словаря, если curCity равен "bishkek"
+    const cityMatch = ad.city_key === curCity || ad.city === cityNames[curCity];
+
+    // В. Проверка статуса
+    const statusMatch =
       ad.status !== "deleted" &&
       ad.status !== "pending" &&
-      ad.status !== "rejected"
-  );
+      ad.status !== "rejected";
 
-  // 2. СОРТИРОВКА: Новые всегда ВЫШЕ старых
+    return catMatch && cityMatch && statusMatch;
+  });
+
+  // 2. СОРТИРОВКА: VIP (на 3 дня) выше, новые сверху
   filtered.sort((a, b) => {
     const now = Math.floor(Date.now() / 1000);
     const threeDays = 259200;
@@ -473,7 +488,7 @@ function renderFeed() {
     const bSold = b.status === "sold" ? 1 : 0;
     if (aSold !== bSold) return aSold - bSold;
 
-    // Б. Проверка VIP с учетом времени (3 дня)
+    // Б. Проверка VIP с учетом времени (только если прошло меньше 3 дней)
     const aIsVip =
       a.tariff === "vip" && now - (a.approvedAt || a.createdAt) < threeDays
         ? 1
@@ -483,17 +498,21 @@ function renderFeed() {
         ? 1
         : 0;
 
-    if (aIsVip !== bIsVip) return bIsVip - aIsVip; // Активные VIP выше
+    if (aIsVip !== bIsVip) return bIsVip - aIsVip; // Активные VIP ставим выше
 
-    // В. Внутри своих групп сортируем по ВРЕМЕНИ
+    // В. Внутри своих групп сортируем по ВРЕМЕНИ (самые свежие — сверху)
     const aTime = Number(a.approvedAt || a.createdAt || 0);
     const bTime = Number(b.approvedAt || b.createdAt || 0);
 
     return bTime - aTime;
   });
 
-  // 3. Отрисовываем карточки
-  filtered.forEach((ad) => grid.appendChild(createAdCard(ad)));
+  // 3. ОТРИСОВКА КАРТОЧЕК
+  if (filtered.length === 0) {
+    grid.innerHTML = `<p style="text-align:center; color:gray; grid-column: 1/3; margin-top:50px;">В этом городе пока нет объявлений</p>`;
+  } else {
+    filtered.forEach((ad) => grid.appendChild(createAdCard(ad)));
+  }
 }
 
 function createAdCard(ad, isProfile = false) {
@@ -833,37 +852,34 @@ async function publishAndSend() {
       return;
     }
 
-    // --- 4. ПОДГОТОВКА ФАЙЛОВ ДЛЯ НОВОГО ОБЪЯВЛЕНИЯ ---
+    // --- 4. ПОДГОТОВКА ФАЙЛОВ И ДАННЫХ ---
+    const catSelect = document.getElementById("in-cat");
+    const citySelect = document.getElementById("in-city");
 
-    // А. Проверка обязательных полей перед загрузкой
-    if (
-      !isPartner &&
-      (holidayMode || selectedTariff === "vip") &&
-      !receiptAttached
-    ) {
-      throw new Error("Прикрепите чек об оплате!");
+    // Проверки перед загрузкой для обычных юзеров
+    if (!isPartner) {
+      if ((holidayMode || selectedTariff === "vip") && !receiptAttached)
+        throw new Error("Прикрепите чек об оплате!");
+      if (!verifyPhotoFile)
+        throw new Error("Загрузите проверочное фото с кодом!");
     }
-    if (!isPartner && !verifyPhotoFile) {
-      throw new Error("Загрузите проверочное фото с кодом!");
-    }
-    if (selectedFiles.length === 0) {
+    if (selectedFiles.length === 0)
       throw new Error("Добавьте фотографии товара!");
-    }
 
-    // Б. Загрузка чека
+    // Загрузка чека
     let receiptUrl = "";
     if (!isPartner && (holidayMode || selectedTariff === "vip")) {
       const receiptFile = document.getElementById("receipt-input").files[0];
       if (receiptFile) receiptUrl = await uploadFile(receiptFile);
     }
 
-    // В. Загрузка проверочного фото
+    // Загрузка проверочного фото
     let verifyPhotoUrl = "";
     if (verifyPhotoFile) {
       verifyPhotoUrl = await uploadFile(verifyPhotoFile);
     }
 
-    // Г. Загрузка основных фото
+    // Загрузка основных фото
     if (lText) lText.innerText = "Почти готово, сохраняем изображения...";
     const imgs = await Promise.all(
       selectedFiles.map((file) => uploadFile(file))
@@ -873,19 +889,24 @@ async function publishAndSend() {
     if (validImgs.length === 0)
       throw new Error("Ошибка при загрузке изображений");
 
-    // --- 5. ОТПРАВКА В БАЗУ ДАННЫХ ---
+    // --- 5. ФОРМИРОВАНИЕ ОБЪЕКТА ДЛЯ БАЗЫ ---
     const newAd = {
       title: cleanTitle,
       price: numericPrice,
-      cat: document.getElementById("in-cat").value,
-      city: document.getElementById("in-city").value,
+
+      // КАТЕГОРИЯ: Берем ключ (flowers), а не текст
+      cat: catSelect.value,
+
+      // ГОРОД: Ключ для бота (osh) + Название для людей (Ош)
+      city_key: citySelect.value,
+      city: citySelect.options[citySelect.selectedIndex].text,
+
       address: document.getElementById("in-address").value,
       phone: document.getElementById("in-wa").value,
       tgNick: document.getElementById("in-tg").value,
       desc: document.getElementById("in-desc").value,
       receiveDate: document.getElementById("in-receive-date").value,
 
-      // Поля для бизнеса/комбо
       isCombo:
         typeof currentAddingType !== "undefined" &&
         currentAddingType === "combo",
@@ -899,7 +920,6 @@ async function publishAndSend() {
 
       status: isPartner ? "active" : "pending",
       bot_notified: isPartner ? true : false,
-
       isShop: isPartner,
       shopName: isPartner
         ? myShopData
@@ -907,7 +927,6 @@ async function publishAndSend() {
           : "Администрация"
         : "",
       verified: isPartner,
-
       tariff: selectedTariff,
       is_holiday: isPartner ? false : holidayMode,
 
@@ -915,6 +934,7 @@ async function publishAndSend() {
       createdAt: Math.floor(Date.now() / 1000),
     };
 
+    // 6. ОТПРАВКА
     await db.ref("ads").push(newAd);
     localStorage.setItem("last_post_time", Date.now());
 
@@ -971,12 +991,6 @@ function filterByCat(c, el) {
   renderFeed();
 }
 
-function selectCity(c) {
-  curCity = c;
-  document.getElementById("current-city-label").innerText = c;
-  toggleCitySelector();
-  renderFeed();
-}
 function toggleCitySelector() {
   document.getElementById("city-selector").classList.toggle("hidden");
 }
@@ -1353,17 +1367,15 @@ window.filterByCat = function (c, el) {
 
 // 2. Выбор города
 window.selectCity = function (c) {
-  console.log("Выбран город:", c);
+  console.log("Выбран город (ключ):", c);
   curCity = c;
 
+  // Берем "Бишкек" из словаря cityNames по ключу "bishkek"
   const label = document.getElementById("current-city-label");
-  if (label) label.innerText = c;
+  if (label) label.innerText = cityNames[c] || c;
 
-  // Закрываем окно выбора
-  window.toggleCitySelector();
-
-  // Обновляем ленту под новый город
-  if (typeof renderFeed === "function") renderFeed();
+  toggleCitySelector();
+  renderFeed(); // Перерисовываем ленту
 };
 
 // 3. Показать/скрыть выбор города
