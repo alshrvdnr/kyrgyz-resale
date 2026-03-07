@@ -645,8 +645,16 @@
         <main id="favs-content-area"></main>
       </section>
 
+      <!-- СЕКЦИЯ ПРОФИЛЯ (УНИВЕРСАЛЬНАЯ: ЮЗЕР + БИЗНЕС) -->
       <section id="page-profile" class="page hidden">
-        <header style="padding: 15px">
+        <header
+          style="
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+          "
+        >
           <button
             onclick="showPage('home')"
             style="
@@ -660,28 +668,175 @@
           >
             <i class="fa fa-arrow-left"></i> Назад
           </button>
-        </header>
-        <div style="text-align: center; padding: 10px 20px 20px">
-          <div
-            id="u-avatar-big"
+          <!-- Кнопка настроек видна только бизнесу -->
+          <i
+            id="biz-setup-icon"
+            class="fa-solid fa-gear hidden"
+            onclick="openEditBizModal()"
             style="
-              width: 70px;
-              height: 70px;
-              background: var(--yellow-main);
-              border-radius: 50%;
-              margin: 0 auto;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              color: #000;
-              font-size: 24px;
-              font-weight: bold;
+              font-size: 20px;
+              color: var(--gray);
+              cursor: pointer;
+              padding: 5px;
             "
-          >
-            ?
+          ></i>
+        </header>
+
+        <!-- 1. ВИД ОБЫЧНОГО ПОЛЬЗОВАТЕЛЯ -->
+        <div id="user-profile-view">
+          <div style="text-align: center; padding: 10px 20px 20px">
+            <div
+              id="u-avatar-big"
+              style="
+                width: 70px;
+                height: 70px;
+                background: var(--yellow-main);
+                border-radius: 50%;
+                margin: 0 auto;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #000;
+                font-size: 24px;
+                font-weight: bold;
+              "
+            >
+              ?
+            </div>
+            <h2 id="u-name" style="margin-top: 10px">Никнейм</h2>
           </div>
-          <h2 id="u-name" style="margin-top: 10px">Никнейм</h2>
         </div>
+
+        <!-- 2. ВИД БИЗНЕС-ПРОФИЛЯ (Instagram Style) -->
+        <div id="biz-profile-view" class="hidden">
+          <div style="padding: 0 20px 20px">
+            <!-- Header: Аватар + Статистика -->
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: 20px;
+                margin-bottom: 20px;
+              "
+            >
+              <div
+                id="biz-logo"
+                class="shop-logo-circle"
+                style="
+                  width: 80px;
+                  height: 80px;
+                  flex-shrink: 0;
+                  background-color: #2c2c2e;
+                  border: 2px solid var(--yellow-main);
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 28px;
+                  color: var(--yellow-main);
+                  background-size: cover;
+                "
+              >
+                ?
+              </div>
+
+              <div
+                style="
+                  display: flex;
+                  flex: 1;
+                  justify-content: space-around;
+                  text-align: center;
+                "
+              >
+                <div>
+                  <div
+                    id="biz-stat-ads"
+                    style="font-weight: 800; font-size: 17px; color: #fff"
+                  >
+                    0
+                  </div>
+                  <div style="font-size: 10px; color: var(--gray)">Товаров</div>
+                </div>
+                <div>
+                  <div style="font-weight: 800; font-size: 17px; color: #fff">
+                    —
+                  </div>
+                  <div style="font-size: 10px; color: var(--gray)">
+                    Просмотров
+                  </div>
+                </div>
+                <div>
+                  <div
+                    style="
+                      font-weight: 800;
+                      font-size: 17px;
+                      color: var(--yellow-main);
+                    "
+                  >
+                    💎
+                  </div>
+                  <div style="font-size: 10px; color: var(--gray)">PRO</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Информация о магазине -->
+            <div style="margin-bottom: 15px">
+              <div
+                id="biz-name-display"
+                style="
+                  font-weight: 800;
+                  font-size: 18px;
+                  margin-bottom: 4px;
+                  color: #fff;
+                "
+              >
+                Название магазина
+              </div>
+              <div
+                id="biz-bio-display"
+                style="
+                  font-size: 13px;
+                  color: #ccc;
+                  line-height: 1.4;
+                  margin-bottom: 12px;
+                "
+              >
+                Описание вашего магазина...
+              </div>
+
+              <div style="display: flex; gap: 8px; flex-wrap: wrap">
+                <div class="biz-tag">
+                  <i class="fa-regular fa-clock"></i>
+                  <span id="biz-hours-display">09:00 - 21:00</span>
+                </div>
+                <div class="biz-tag" style="color: var(--yellow-main)">
+                  <i class="fa-brands fa-instagram"></i>
+                  <span id="biz-inst-display">Instagram</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Кнопки управления -->
+            <div style="display: flex; gap: 8px">
+              <button
+                class="biz-edit-btn"
+                onclick="openEditBizModal()"
+                style="flex: 1"
+              >
+                Изменить профиль
+              </button>
+              <button
+                class="biz-edit-btn"
+                onclick="tg.openTelegramLink('https://t.me/D1NCHO')"
+                style="width: 45px"
+              >
+                <i class="fa-solid fa-headset"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. ОБЩАЯ ЧАСТЬ: ТАБЫ (Всегда видны) -->
         <div class="profile-tabs">
           <div
             class="p-tab active"
@@ -698,8 +853,64 @@
             Архив
           </div>
         </div>
+
+        <!-- 4. СЕТКА ОБЪЯВЛЕНИЙ (Всегда видна) -->
         <main class="listings-grid" id="my-ads-grid"></main>
       </section>
+
+      <!-- МОДАЛКА РЕДАКТИРОВАНИЯ БИЗНЕСА (Положи в конец body) -->
+      <div id="edit-biz-modal" class="hidden modal-overlay">
+        <div class="modal-box" style="max-width: 90%; width: 340px">
+          <h3 style="margin-bottom: 20px">Настройки магазина</h3>
+
+          <div class="f-group" style="text-align: left">
+            <label>Описание (Bio)</label>
+            <textarea
+              id="edit-biz-bio"
+              class="main-input"
+              rows="2"
+              placeholder="Доставка, свежие цветы..."
+            ></textarea>
+          </div>
+
+          <div class="f-group" style="text-align: left">
+            <label>График работы</label>
+            <input
+              type="text"
+              id="edit-biz-hours"
+              class="main-input"
+              placeholder="Пн-Вс, 09:00 - 20:00"
+            />
+          </div>
+
+          <div class="f-group" style="text-align: left">
+            <label>Instagram (ник без @)</label>
+            <input
+              type="text"
+              id="edit-biz-inst"
+              class="main-input"
+              placeholder="my_shop"
+            />
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 20px">
+            <button
+              class="modal-action-btn"
+              onclick="closeEditBizModal()"
+              style="flex: 1; background: #333"
+            >
+              Отмена
+            </button>
+            <button
+              class="modal-action-btn"
+              onclick="saveBizProfile()"
+              style="flex: 1; background: var(--yellow-main); color: #000"
+            >
+              Сохранить
+            </button>
+          </div>
+        </div>
+      </div>
 
       <div
         id="product-modal"

@@ -1092,3 +1092,42 @@ body {
     transform: translateX(10px);
   }
 }
+
+/* Теги в био магазина */
+.biz-tag {
+  background: #1c1c1e;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  border: 1px solid #333;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #8e8e93;
+}
+
+/* Кнопка "Изменить профиль" */
+.biz-edit-btn {
+  background: #2c2c2e;
+  border: none;
+  color: #fff;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.biz-edit-btn:active {
+  background: #3a3a3c;
+  transform: scale(0.98);
+}
+
+/* Логотип магазина */
+.shop-logo-circle {
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}

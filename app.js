@@ -133,27 +133,102 @@ async function initUser() {
   }
 }
 
+// 1. Обновляем отрисовку профиля
 function renderProfile() {
   const grid = document.getElementById("my-ads-grid");
   if (!grid) return;
 
-  grid.innerHTML = "";
   const myId = tg.initDataUnsafe?.user?.id || 0;
 
-  // Фильтруем: только мои и только по выбранной вкладке (active или sold)
+  // АВТО-ПЕРЕКЛЮЧЕНИЕ ВИДА
+  const bizView = document.getElementById("biz-profile-view");
+  const userView = document.getElementById("user-profile-view");
+
+  if (currentUserRole === "business" || currentUserRole === "admin") {
+    userView.classList.add("hidden");
+    bizView.classList.remove("hidden");
+    updateBizProfileUI(); // Заполняем данные Инста-шапки
+  } else {
+    userView.classList.remove("hidden");
+    bizView.classList.add("hidden");
+  }
+
+  // Отрисовка объявлений (твой старый код)
+  grid.innerHTML = "";
   const filtered = ads.filter(
     (ad) =>
       ad.userId === myId &&
       (profTab === "active" ? ad.status === "active" : ad.status === "sold")
   );
 
+  document.getElementById("biz-stat-ads").innerText = filtered.length; // Статистика
+
   if (filtered.length === 0) {
     grid.innerHTML = `<p style="text-align:center; color:gray; grid-column:1/3; margin-top:30px;">Здесь пока ничего нет</p>`;
   } else {
-    // Рисуем карточки (второй параметр true говорит, что это для профиля)
     filtered.forEach((ad) => grid.appendChild(createAdCard(ad, true)));
   }
 }
+
+// 2. Функция заполнения Инста-шапки
+function updateBizProfileUI() {
+  if (!myShopData) return;
+  document.getElementById("biz-name-display").innerText =
+    myShopData.shopName || "Мой Магазин";
+  document.getElementById("biz-bio-display").innerText =
+    myShopData.bio || "Цветочный бутик. Лучшие подарки здесь.";
+  document.getElementById("biz-hours-display").innerText =
+    myShopData.workHours || "09:00 - 21:00";
+  document.getElementById("biz-inst-display").innerText = myShopData.instagram
+    ? "@" + myShopData.instagram
+    : "Instagram";
+
+  const logo = document.getElementById("biz-logo");
+  if (myShopData.logo) {
+    logo.style.backgroundImage = `url('${myShopData.logo}')`;
+    logo.innerText = "";
+  } else {
+    logo.innerText = myShopData.shopName ? myShopData.shopName[0] : "?";
+  }
+}
+
+// 3. Управление модалкой настроек
+window.openEditBizModal = function () {
+  document.getElementById("edit-biz-bio").value = myShopData.bio || "";
+  document.getElementById("edit-biz-hours").value = myShopData.workHours || "";
+  document.getElementById("edit-biz-inst").value = myShopData.instagram || "";
+  document.getElementById("edit-biz-modal").classList.remove("hidden");
+};
+
+window.closeEditBizModal = function () {
+  document.getElementById("edit-biz-modal").classList.add("hidden");
+};
+
+// 4. Сохранение данных в Firebase
+window.saveBizProfile = async function () {
+  const myId = tg.initDataUnsafe?.user?.id || 0;
+  const newBio = document.getElementById("edit-biz-bio").value;
+  const newHours = document.getElementById("edit-biz-hours").value;
+  const newInst = document.getElementById("edit-biz-inst").value;
+
+  try {
+    await db.ref("users/" + myId).update({
+      bio: newBio,
+      workHours: newHours,
+      instagram: newInst,
+    });
+    // Обновляем локальные данные, чтобы не перезагружать страницу
+    myShopData.bio = newBio;
+    myShopData.workHours = newHours;
+    myShopData.instagram = newInst;
+
+    closeEditBizModal();
+    renderProfile();
+    alert("Профиль обновлен!");
+  } catch (e) {
+    alert("Ошибка сохранения: " + e.message);
+  }
+};
 
 // 2. Переключатель вкладок (Активные / Архив)
 window.switchProfileTab = function (t) {
