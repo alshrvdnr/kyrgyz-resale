@@ -25,23 +25,27 @@ const storage = firebase.storage();
 
 // Функция проверки роли (вызывается при старте)
 async function checkUserRole(uid) {
-  // 1. Сначала проверяем, не главный ли ты админ
+  // 1. Сначала проверяем на главного админа
   if (uid == MY_ADMIN_ID) {
     currentUserRole = "admin";
     document.body.classList.add("is-admin");
-    console.log("Вход выполнен как АДМИН");
+    console.log("Вход как АДМИН");
     return;
   }
 
-  // 2. Ищем пользователя в базе (ветка users)
+  // 2. Ищем в папке users
   try {
     const snap = await db.ref("users/" + uid).once("value");
     const userData = snap.val();
+
     if (userData && userData.role === "business") {
       currentUserRole = "business";
-      myShopData = userData; // Сохраняем название магазина и т.д.
+      myShopData = userData; // ВАЖНО: сохраняем инфо о магазине (имя, био)
       document.body.classList.add("is-business");
-      console.log("Вход выполнен как БИЗНЕС:", userData.shopName);
+      console.log("Бизнес-аккаунт активирован:", myShopData.shopName);
+    } else {
+      currentUserRole = "user";
+      document.body.classList.remove("is-business");
     }
   } catch (e) {
     console.error("Ошибка проверки роли:", e);
@@ -140,20 +144,27 @@ function renderProfile() {
 
   const myId = tg.initDataUnsafe?.user?.id || 0;
 
-  // АВТО-ПЕРЕКЛЮЧЕНИЕ ВИДА
-  const bizView = document.getElementById("biz-profile-view");
+  // --- ЛОГИКА ПЕРЕКЛЮЧЕНИЯ ИНТЕРФЕЙСА ---
   const userView = document.getElementById("user-profile-view");
+  const bizView = document.getElementById("biz-profile-view");
+  const bizSettingsIcon = document.getElementById("biz-setup-icon");
 
   if (currentUserRole === "business" || currentUserRole === "admin") {
-    userView.classList.add("hidden");
-    bizView.classList.remove("hidden");
-    updateBizProfileUI(); // Заполняем данные Инста-шапки
+    // Если это бизнес - меняем блоки местами
+    if (userView) userView.classList.add("hidden");
+    if (bizView) bizView.classList.remove("hidden");
+    if (bizSettingsIcon) bizSettingsIcon.classList.remove("hidden");
+
+    // Заполняем Инста-шапку данными
+    updateBizProfileUI();
   } else {
-    userView.classList.remove("hidden");
-    bizView.classList.add("hidden");
+    // Если обычный юзер
+    if (userView) userView.classList.remove("hidden");
+    if (bizView) bizView.classList.add("hidden");
+    if (bizSettingsIcon) bizSettingsIcon.classList.add("hidden");
   }
 
-  // Отрисовка объявлений (твой старый код)
+  // --- ОТРИСОВКА ОБЪЯВЛЕНИЙ ---
   grid.innerHTML = "";
   const filtered = ads.filter(
     (ad) =>
@@ -161,7 +172,9 @@ function renderProfile() {
       (profTab === "active" ? ad.status === "active" : ad.status === "sold")
   );
 
-  document.getElementById("biz-stat-ads").innerText = filtered.length; // Статистика
+  // Обновляем счетчик товаров в статистике (цифра в шапке)
+  const statAdsCount = document.getElementById("biz-stat-ads");
+  if (statAdsCount) statAdsCount.innerText = filtered.length;
 
   if (filtered.length === 0) {
     grid.innerHTML = `<p style="text-align:center; color:gray; grid-column:1/3; margin-top:30px;">Здесь пока ничего нет</p>`;
@@ -173,22 +186,39 @@ function renderProfile() {
 // 2. Функция заполнения Инста-шапки
 function updateBizProfileUI() {
   if (!myShopData) return;
-  document.getElementById("biz-name-display").innerText =
-    myShopData.shopName || "Мой Магазин";
-  document.getElementById("biz-bio-display").innerText =
-    myShopData.bio || "Цветочный бутик. Лучшие подарки здесь.";
-  document.getElementById("biz-hours-display").innerText =
-    myShopData.workHours || "09:00 - 21:00";
-  document.getElementById("biz-inst-display").innerText = myShopData.instagram
-    ? "@" + myShopData.instagram
-    : "Instagram";
 
+  // Подставляем название магазина
+  const nameEl = document.getElementById("biz-name-display");
+  if (nameEl) nameEl.innerText = myShopData.shopName || "Магазин";
+
+  // Подставляем Описание (Bio)
+  const bioEl = document.getElementById("biz-bio-display");
+  if (bioEl)
+    bioEl.innerText = myShopData.bio || "Настройте описание магазина...";
+
+  // График работы
+  const hoursEl = document.getElementById("biz-hours-display");
+  if (hoursEl) hoursEl.innerText = myShopData.workHours || "09:00 - 21:00";
+
+  // Instagram
+  const instEl = document.getElementById("biz-inst-display");
+  if (instEl)
+    instEl.innerText = myShopData.instagram
+      ? "@" + myShopData.instagram
+      : "Instagram";
+
+  // Логотип (если есть)
   const logo = document.getElementById("biz-logo");
-  if (myShopData.logo) {
-    logo.style.backgroundImage = `url('${myShopData.logo}')`;
-    logo.innerText = "";
-  } else {
-    logo.innerText = myShopData.shopName ? myShopData.shopName[0] : "?";
+  if (logo) {
+    if (myShopData.logo) {
+      logo.style.backgroundImage = `url('${myShopData.logo}')`;
+      logo.innerText = "";
+    } else {
+      logo.style.backgroundImage = "none";
+      logo.innerText = myShopData.shopName
+        ? myShopData.shopName[0].toUpperCase()
+        : "?";
+    }
   }
 }
 
