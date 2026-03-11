@@ -25,24 +25,23 @@ const storage = firebase.storage();
 
 // Функция проверки роли (вызывается при старте)
 async function checkUserRole(uid) {
-  // 1. Сначала проверяем на главного админа
   if (uid == MY_ADMIN_ID) {
     currentUserRole = "admin";
     document.body.classList.add("is-admin");
-    console.log("Вход как АДМИН");
     return;
   }
 
-  // 2. Ищем в папке users
   try {
     const snap = await db.ref("users/" + uid).once("value");
     const userData = snap.val();
 
     if (userData && userData.role === "business") {
       currentUserRole = "business";
-      myShopData = userData; // ВАЖНО: сохраняем инфо о магазине (имя, био)
+      myShopData = userData;
       document.body.classList.add("is-business");
-      console.log("Бизнес-аккаунт активирован:", myShopData.shopName);
+
+      // Сразу подставляем данные в UI, если мы уже на странице профиля
+      updateBizProfileUI();
     } else {
       currentUserRole = "user";
       document.body.classList.remove("is-business");
@@ -51,6 +50,7 @@ async function checkUserRole(uid) {
     console.error("Ошибка проверки роли:", e);
   }
 }
+
 // -----------------------------------------------
 
 const catMap = {
@@ -146,45 +146,42 @@ async function initUser() {
 
 // 1. Обновляем отрисовку профиля
 function renderProfile() {
-  const grid = document.getElementById("my-ads-grid");
-  if (!grid) return;
-
   const myId = tg.initDataUnsafe?.user?.id || 0;
 
-  // --- ЛОГИКА ПЕРЕКЛЮЧЕНИЯ ИНТЕРФЕЙСА ---
   const userView = document.getElementById("user-profile-view");
   const bizView = document.getElementById("biz-profile-view");
   const bizSettingsIcon = document.getElementById("biz-setup-icon");
+  const grid = document.getElementById("my-ads-grid");
 
+  if (!grid) return;
+
+  // ПЕРЕКЛЮЧЕНИЕ ИНТЕРФЕЙСА
   if (currentUserRole === "business" || currentUserRole === "admin") {
-    // Если это бизнес - меняем блоки местами
-    if (userView) userView.classList.add("hidden");
-    if (bizView) bizView.classList.remove("hidden");
-    if (bizSettingsIcon) bizSettingsIcon.classList.remove("hidden");
-
-    // Заполняем Инста-шапку данными
+    userView?.classList.add("hidden");
+    bizView?.classList.remove("hidden");
+    bizSettingsIcon?.classList.remove("hidden");
     updateBizProfileUI();
   } else {
-    // Если обычный юзер
-    if (userView) userView.classList.remove("hidden");
-    if (bizView) bizView.classList.add("hidden");
-    if (bizSettingsIcon) bizSettingsIcon.classList.add("hidden");
+    userView?.classList.remove("hidden");
+    bizView?.classList.add("hidden");
+    bizSettingsIcon?.classList.add("hidden");
   }
 
-  // --- ОТРИСОВКА ОБЪЯВЛЕНИЙ ---
+  // Отрисовка товаров
   grid.innerHTML = "";
-  const filtered = ads.filter(
-    (ad) =>
-      ad.userId === myId &&
-      (profTab === "active" ? ad.status === "active" : ad.status === "sold")
+  const myAds = ads.filter((ad) => ad.userId === myId);
+
+  // Фильтруем по вкладкам (Активные / Архив)
+  const filtered = myAds.filter((ad) =>
+    profTab === "active" ? ad.status === "active" : ad.status === "sold"
   );
 
-  // Обновляем счетчик товаров в статистике (цифра в шапке)
-  const statAdsCount = document.getElementById("biz-stat-ads");
-  if (statAdsCount) statAdsCount.innerText = filtered.length;
+  // Обновляем счетчик товаров в шапке профиля
+  const statCount = document.getElementById("biz-stat-ads");
+  if (statCount) statCount.innerText = myAds.length;
 
   if (filtered.length === 0) {
-    grid.innerHTML = `<p style="text-align:center; color:gray; grid-column:1/3; margin-top:30px;">Здесь пока ничего нет</p>`;
+    grid.innerHTML = `<p style="text-align:center; color:gray; grid-column:1/3; margin-top:30px;">Нет товаров в этой категории</p>`;
   } else {
     filtered.forEach((ad) => grid.appendChild(createAdCard(ad, true)));
   }
@@ -194,40 +191,69 @@ function renderProfile() {
 function updateBizProfileUI() {
   if (!myShopData) return;
 
-  // Подставляем название магазина
-  const nameEl = document.getElementById("biz-name-display");
-  if (nameEl) nameEl.innerText = myShopData.shopName || "Магазин";
-
-  // Подставляем Описание (Bio)
-  const bioEl = document.getElementById("biz-bio-display");
-  if (bioEl)
-    bioEl.innerText = myShopData.bio || "Настройте описание магазина...";
-
-  // График работы
-  const hoursEl = document.getElementById("biz-hours-display");
-  if (hoursEl) hoursEl.innerText = myShopData.workHours || "09:00 - 21:00";
-
-  // Instagram
-  const instEl = document.getElementById("biz-inst-display");
-  if (instEl)
-    instEl.innerText = myShopData.instagram
+  const fields = {
+    "biz-name-display": myShopData.shopName || "Мой Магазин",
+    "biz-bio-display": myShopData.bio || "Описание не заполнено",
+    "biz-hours-display": myShopData.workHours || "09:00 - 21:00",
+    "biz-inst-display": myShopData.instagram
       ? "@" + myShopData.instagram
-      : "Instagram";
+      : "Instagram не привязан",
+  };
 
-  // Логотип (если есть)
-  const logo = document.getElementById("biz-logo");
-  if (logo) {
+  for (let id in fields) {
+    const el = document.getElementById(id);
+    if (el) el.innerText = fields[id];
+  }
+
+  // Логотип
+  const logoCircle = document.getElementById("biz-logo");
+  if (logoCircle) {
     if (myShopData.logo) {
-      logo.style.backgroundImage = `url('${myShopData.logo}')`;
-      logo.innerText = "";
+      logoCircle.style.backgroundImage = `url('${myShopData.logo}')`;
+      logoCircle.innerText = "";
     } else {
-      logo.style.backgroundImage = "none";
-      logo.innerText = myShopData.shopName
-        ? myShopData.shopName[0].toUpperCase()
-        : "?";
+      logoCircle.style.backgroundImage = "none";
+      logoCircle.innerText = myShopData.shopName ? myShopData.shopName[0] : "?";
     }
   }
 }
+
+// 4. Сохранение профиля (с поддержкой загрузки логотипа)
+window.saveBizProfile = async function () {
+  const myId = tg.initDataUnsafe?.user?.id || 0;
+
+  // Добавляем получение названия магазина, если оно есть в модалке
+  const newName =
+    document.getElementById("edit-biz-name")?.value || myShopData.shopName;
+  const newBio = document.getElementById("edit-biz-bio").value;
+  const newHours = document.getElementById("edit-biz-hours").value;
+  const newInst = document.getElementById("edit-biz-inst").value;
+
+  try {
+    await db.ref("users/" + myId).update({
+      shopName: newName, // Теперь сохраняем и имя
+      bio: newBio,
+      workHours: newHours,
+      instagram: newInst,
+    });
+
+    // Обновляем локальную переменную
+    myShopData.shopName = newName;
+    myShopData.bio = newBio;
+    myShopData.workHours = newHours;
+    myShopData.instagram = newInst;
+
+    closeEditBizModal();
+
+    // ПРИНУДИТЕЛЬНО вызываем обновление текста в шапке
+    updateBizProfileUI();
+    renderProfile();
+
+    alert("Профиль магазина обновлен!");
+  } catch (e) {
+    alert("Ошибка сохранения: " + e.message);
+  }
+};
 
 // 3. Управление модалкой настроек
 window.openEditBizModal = function () {

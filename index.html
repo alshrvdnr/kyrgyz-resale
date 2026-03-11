@@ -859,9 +859,21 @@
       </section>
 
       <!-- МОДАЛКА РЕДАКТИРОВАНИЯ БИЗНЕСА (Положи в конец body) -->
+      <!-- Найди в index.html id="edit-biz-modal" и замени его содержимое -->
       <div id="edit-biz-modal" class="hidden modal-overlay">
         <div class="modal-box" style="max-width: 90%; width: 340px">
           <h3 style="margin-bottom: 20px">Настройки магазина</h3>
+
+          <!-- Поле для ЛОГОТИПА -->
+          <div class="f-group" style="text-align: left">
+            <label>Логотип магазина</label>
+            <input
+              type="file"
+              id="edit-biz-logo-input"
+              class="main-input"
+              accept="image/*"
+            />
+          </div>
 
           <div class="f-group" style="text-align: left">
             <label>Описание (Bio)</label>
@@ -911,7 +923,6 @@
           </div>
         </div>
       </div>
-
       <div
         id="product-modal"
         class="hidden"
