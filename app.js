@@ -24,33 +24,39 @@ const db = firebase.database();
 const storage = firebase.storage();
 
 // Функция проверки роли (вызывается при старте)
-async function checkUserRole(uid) {
+function checkUserRole(uid) {
+  // 1. Сначала проверяем на главного админа
   if (uid == MY_ADMIN_ID) {
     currentUserRole = "admin";
     document.body.classList.add("is-admin");
-    return;
+    console.log("Вход как АДМИН");
+    // Даже админу нужно подтянуть данные магазина, если он хочет что-то постить
   }
 
-  try {
-    const snap = await db.ref("users/" + uid).once("value");
+  // 2. Слушаем изменения в папке пользователя в реальном времени (.on вместо .once)
+  db.ref("users/" + uid).on("value", (snap) => {
     const userData = snap.val();
+    console.log("Данные профиля из базы:", userData);
 
     if (userData && userData.role === "business") {
       currentUserRole = "business";
-      myShopData = userData;
+      myShopData = userData; // Сохраняем био, название и т.д.
       document.body.classList.add("is-business");
-
-      // Сразу подставляем данные в UI, если мы уже на странице профиля
-      updateBizProfileUI();
-    } else {
+      console.log("Бизнес-аккаунт активен:", myShopData.shopName);
+    } else if (uid != MY_ADMIN_ID) {
       currentUserRole = "user";
       document.body.classList.remove("is-business");
     }
-  } catch (e) {
-    console.error("Ошибка проверки роли:", e);
-  }
-}
 
+    // ВАЖНО: Перерисовываем профиль сразу, как только роль обновилась
+    if (
+      document.getElementById("page-profile").classList.contains("hidden") ===
+      false
+    ) {
+      renderProfile();
+    }
+  });
+}
 // -----------------------------------------------
 
 const catMap = {
@@ -311,70 +317,84 @@ window.switchProfileTab = function (t) {
 window.showPage = function (p) {
   console.log("Переход на страницу:", p);
 
-  // 1. Прячем все страницы
+  // 1. Прячем абсолютно все страницы (секции с классом .page)
   document.querySelectorAll(".page").forEach((s) => s.classList.add("hidden"));
 
-  // 2. Находим нужную страницу и показываем её
-  const targetPage = document.getElementById(`page-${p}`);
-  if (targetPage) {
-    targetPage.classList.remove("hidden");
-  }
-
-  // 3. ФИКС: Убираем шапку поиска везде, кроме главной
-  const header = document.getElementById("dynamic-header");
-  if (header) {
-    if (p === "home") {
-      header.style.display = "block";
-    } else {
-      header.style.display = "none";
+  // 2. ЛОГИКА ПЕРЕАДРЕСАЦИИ ДЛЯ КНОПКИ "ПОДАТЬ" (Центральный плюс)
+  if (p === "add") {
+    if (currentUserRole === "business" || currentUserRole === "admin") {
+      // Если это бизнес или админ — принудительно меняем страницу на Офис
+      p = "business-admin";
     }
   }
 
-  // 4. Красим активную кнопку в желтый в нижнем меню (ОБРАБОТКА 5 КНОПОК)
+  // 3. Показываем нужную страницу
+  const targetPage = document.getElementById(`page-${p}`);
+  if (targetPage) {
+    targetPage.classList.remove("hidden");
+  } else {
+    console.error("Страница не найдена: page-" + p);
+  }
+
+  // 4. УПРАВЛЕНИЕ ШАПКОЙ (Поиск и Город)
+  // Шапка видна ТОЛЬКО на главной. На остальных (профиль, офис, подача) — прячем.
+  const header = document.getElementById("dynamic-header");
+  if (header) {
+    header.style.display = p === "home" ? "block" : "none";
+  }
+
+  // 5. ПОДСВЕТКА КНОПОК В НИЖНЕМ МЕНЮ
   document.querySelectorAll(".nav-item").forEach((item) => {
     item.classList.remove("active");
   });
 
+  // Подсвечиваем иконки (домашняя, магазины, избранное, профиль)
   if (p === "home") document.getElementById("n-home")?.classList.add("active");
-
-  // Добавляем подсветку для новой кнопки Магазины
   if (p === "shops")
     document.getElementById("n-shops")?.classList.add("active");
+  if (p === "favs") document.getElementById("n-favs")?.classList.add("active");
+  if (p === "profile")
+    document.getElementById("n-profile")?.classList.add("active");
 
+  // Если мы в Офисе, можно подсветить центральную кнопку (если у неё есть ID)
+  // В твоем случае центральная кнопка — это div, но если добавишь ей ID n-add, будет работать:
+  if (p === "business-admin" || p === "add") {
+    document.getElementById("n-add")?.classList.add("active");
+  }
+
+  // 6. СПЕЦИАЛЬНАЯ ЛОГИКА ДЛЯ КАЖДОЙ СТРАНИЦЫ (Отрисовка данных)
+
+  // Страница Избранного
   if (p === "favs") {
-    document.getElementById("n-favs")?.classList.add("active");
     if (typeof renderFavs === "function") renderFavs();
   }
 
-  // Если зашли в Профиль - подсвечиваем кнопку в меню и запускаем отрисовку
+  // Страница Профиля
   if (p === "profile") {
-    document.getElementById("n-profile")?.classList.add("active");
+    // Если это бизнес — сначала обновляем текст в Инста-шапке
+    if (currentUserRole === "business" || currentUserRole === "admin") {
+      if (typeof updateBizProfileUI === "function") updateBizProfileUI();
+    }
+    // Затем рисуем список товаров
     if (typeof renderProfile === "function") renderProfile();
   }
 
-  // 6. Если зашли в Подать - СБРОС ФОРМЫ И ГЕНЕРАЦИЯ КОДА АНТИ-ФРОД
-  // Внутри функции showPage(p)
+  // Страница Обычной Подачи (только для юзеров)
   if (p === "add") {
-    // Если зашел БИЗНЕС — кидаем его в Офис, а не на форму
-    if (currentUserRole === "business") {
-      showPage("business-admin");
-      renderBusinessDashboard();
-      return; // Останавливаем выполнение, чтобы не открылась страница page-add
-    }
-
-    // Если зашел обычный юзер — открываем стандартную форму (твой старый код)
     if (!editingId) {
-      resetAddForm();
-      generateVerifyCode();
+      if (typeof resetAddForm === "function") resetAddForm();
+      if (typeof generateVerifyCode === "function") generateVerifyCode();
     }
   }
 
+  // Страница Офиса Магазина (Dashboard)
   if (p === "business-admin") {
-    renderBusinessDashboard();
+    if (typeof renderBusinessDashboard === "function")
+      renderBusinessDashboard();
   }
 
-  // Всегда прокручиваем страницу в самый верх при смене вкладки
-  window.scrollTo(0, 0);
+  // 7. СКРОЛЛ ВВЕРХ
+  window.scrollTo({ top: 0, behavior: "instant" });
 };
 
 // ДОБАВЬ ЭТУ ФУНКЦИЮ НИЖЕ, если её ещё нет в твоем файле app.js:
