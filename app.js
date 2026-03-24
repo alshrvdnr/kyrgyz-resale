@@ -485,7 +485,7 @@ function applyHolidayUI() {
   if (qrImg && currentQrUrl) qrImg.src = currentQrUrl;
 
   if (holidayMode) {
-    if (labelStd) labelStd.innerText = "Стандарт + ТОП";
+    if (labelStd) labelStd.innerText = "Стандарт";
     if (priceStd) priceStd.innerText = "100 сом";
     if (priceVip) priceVip.innerText = "200 сом";
     if (vBlock) vBlock.classList.remove("hidden");
