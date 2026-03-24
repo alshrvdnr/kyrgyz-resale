@@ -1515,3 +1515,45 @@ window.openAddForm = function (type) {
     comboBlock.classList.add("hidden");
   }
 };
+
+// Функция мониторинга бота (Сердцебиение)
+function monitorBotStatus() {
+  // 1. Проверка прав: если не админ, выходим
+  if (currentUserRole !== "admin") return;
+
+  const block = document.getElementById("admin-bot-status");
+  const dot = document.getElementById("status-dot");
+  const text = document.getElementById("status-text");
+  const timeLabel = document.getElementById("status-time");
+
+  if (block) block.classList.remove("hidden");
+
+  // 2. Слушаем метку времени из Firebase
+  db.ref("settings/bot_status/last_seen").on("value", (snap) => {
+    const lastSeen = snap.val() || 0;
+
+    // Сбрасываем старый таймер если он был
+    if (window.botMonitorInterval) clearInterval(window.botMonitorInterval);
+
+    // Обновляем статус каждую секунду
+    window.botMonitorInterval = setInterval(() => {
+      const now = Math.floor(Date.now() / 1000);
+      const diff = now - lastSeen;
+
+      if (diff < 45) {
+        // Если бот подавал признаки жизни меньше 45 сек назад
+        dot.className = "dot-online";
+        text.innerText = "БОТ ОНЛАЙН";
+        text.style.color = "#4cd964";
+        timeLabel.innerText = "Сигнал получен " + diff + " сек. назад";
+        block.style.borderColor = "rgba(76,217,100,0.3)";
+      } else {
+        dot.className = "dot-offline";
+        text.innerText = "БОТ ОФФЛАЙН";
+        text.style.color = "#ff3b30";
+        timeLabel.innerText = "Нет связи уже " + diff + " сек.";
+        block.style.borderColor = "rgba(255,59,48,0.3)";
+      }
+    }, 1000);
+  });
+}
