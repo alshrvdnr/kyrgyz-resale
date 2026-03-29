@@ -657,13 +657,114 @@
 
       <!-- СЕКЦИЯ ПРОФИЛЯ (УНИВЕРСАЛЬНАЯ: ЮЗЕР + БИЗНЕС) -->
       <section id="page-profile" class="page hidden">
-        <!-- 1. ИНТЕРФЕЙС АДМИНА (Только системные данные) -->
+        <!-- 1. ПАНЕЛЬ АДМИНИСТРАТОРА (Core Control) -->
         <div id="view-admin" class="hidden">
           <div style="padding: 20px">
-            <h2 style="color: var(--yellow-main); margin-bottom: 20px">
-              ПАНЕЛЬ УПРАВЛЕНИЯ
+            <h2
+              style="
+                color: var(--yellow-main);
+                margin-bottom: 20px;
+                font-weight: 900;
+              "
+            >
+              ADMIN PANEL
             </h2>
-            <div id="admin-bot-status">
+
+            <!-- Блок статистики (Цифры) -->
+            <div
+              style="
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 10px;
+                margin-bottom: 25px;
+              "
+            >
+              <div
+                style="
+                  background: #1c1c1e;
+                  padding: 15px;
+                  border-radius: 15px;
+                  border: 1px solid #333;
+                  text-align: center;
+                "
+              >
+                <b
+                  id="adm-total-ads"
+                  style="
+                    font-size: 20px;
+                    color: var(--yellow-main);
+                    display: block;
+                  "
+                  >0</b
+                >
+                <span
+                  style="
+                    font-size: 10px;
+                    color: gray;
+                    text-transform: uppercase;
+                  "
+                  >Всего постов</span
+                >
+              </div>
+              <div
+                style="
+                  background: #1c1c1e;
+                  padding: 15px;
+                  border-radius: 15px;
+                  border: 1px solid #333;
+                  text-align: center;
+                "
+              >
+                <b
+                  id="adm-active-ads"
+                  style="font-size: 20px; color: #4cd964; display: block"
+                  >0</b
+                >
+                <span
+                  style="
+                    font-size: 10px;
+                    color: gray;
+                    text-transform: uppercase;
+                  "
+                  >Активных</span
+                >
+              </div>
+              <div
+                style="
+                  background: #1c1c1e;
+                  padding: 15px;
+                  border-radius: 15px;
+                  border: 1px solid #333;
+                  text-align: center;
+                "
+              >
+                <b
+                  id="adm-active-users"
+                  style="font-size: 20px; color: #0088cc; display: block"
+                  >0</b
+                >
+                <span
+                  style="
+                    font-size: 10px;
+                    color: gray;
+                    text-transform: uppercase;
+                  "
+                  >Продавцов</span
+                >
+              </div>
+            </div>
+
+            <!-- Статус бота -->
+            <div
+              id="admin-bot-status"
+              style="
+                background: #1c1c1e;
+                padding: 15px;
+                border-radius: 15px;
+                border: 1px solid #333;
+                margin-bottom: 20px;
+              "
+            >
               <div class="status-content">
                 <div id="status-dot"></div>
                 <div class="status-info">
@@ -672,15 +773,22 @@
                 </div>
               </div>
             </div>
-            <!-- Здесь будут жалобы и статистика системы -->
-            <div id="admin-reports-list" style="margin-top: 20px"></div>
+
+            <!-- Место для жалоб (если нужно) -->
+            <h3 style="font-size: 16px">Жалобы (Reports)</h3>
+            <div
+              id="admin-reports-list"
+              style="color: gray; font-size: 14px; margin-top: 10px"
+            >
+              Жалоб пока нет.
+            </div>
           </div>
         </div>
 
-        <!-- 2. ИНТЕРФЕЙС МАГАЗИНА (WB Style Storefront) -->
+        <!-- 2. ИНТЕРФЕЙС МАГАЗИНА (STOREFRONT) -->
         <div id="view-business" class="hidden">
           <div class="shop-header-container">
-            <!-- Баннер (Cover) -->
+            <!-- Большая обложка -->
             <div
               id="biz-banner"
               class="shop-banner"
@@ -690,7 +798,7 @@
             ></div>
 
             <div class="shop-logo-wrapper">
-              <!-- Логотип (Круглый/Квадратный скругленный) -->
+              <!-- Логотип -->
               <div id="biz-logo-main" class="shop-logo-main">?</div>
               <div class="shop-title-box">
                 <div id="biz-name-main" class="shop-name-main">Загрузка...</div>
@@ -701,7 +809,7 @@
             </div>
           </div>
 
-          <!-- УПРАВЛЕНИЕ (Dashboard владельца) -->
+          <!-- Кнопки управления магазином -->
           <div class="owner-dashboard">
             <div class="dash-card" onclick="openAddForm('standard')">
               <i class="fa-solid fa-plus" style="color: var(--yellow-main)"></i>
@@ -721,10 +829,12 @@
               >
                 <div style="text-align: left">
                   <b id="biz-views-count">0</b>
-                  <span>Просмотров витрины</span>
+                  <span style="font-size: 10px; color: gray; display: block"
+                    >ПРОСМОТРОВ МАГАЗИНА</span
+                  >
                 </div>
                 <button class="biz-edit-btn" onclick="openEditBizModal()">
-                  Настройки
+                  Настройки профиля
                 </button>
               </div>
             </div>
@@ -749,29 +859,63 @@
           <main class="listings-grid" id="biz-ads-grid"></main>
         </div>
 
-        <!-- 3. ИНТЕРФЕЙС ОБЫЧНОГО ЮЗЕРА -->
-        <div
-          id="view-user"
-          class="hidden"
-          style="text-align: center; padding: 50px 20px"
-        >
-          <div
-            id="u-avatar-big"
-            class="shop-logo-main"
-            style="margin: 0 auto 20px"
-          >
-            ?
+        <!-- 3. ИНТЕРФЕЙС ОБЫЧНОГО ЮЗЕРА (Твой старый формат) -->
+        <div id="view-user" class="hidden">
+          <div style="text-align: center; padding: 30px 20px 20px">
+            <div
+              id="u-avatar-big"
+              style="
+                width: 80px;
+                height: 80px;
+                background: var(--yellow-main);
+                border-radius: 50%;
+                margin: 0 auto;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #000;
+                font-size: 28px;
+                font-weight: bold;
+              "
+            >
+              ?
+            </div>
+            <h2 id="u-name-simple" style="margin-top: 15px; font-size: 22px">
+              Пользователь
+            </h2>
+            <p style="color: gray; font-size: 14px; margin-bottom: 20px">
+              Стандартный аккаунт
+            </p>
           </div>
-          <h2 id="u-name-simple">Пользователь</h2>
-          <p style="color: var(--gray); font-size: 14px; margin-bottom: 30px">
-            У вас пока нет магазина
-          </p>
-          <button
-            class="btn-premium-unity"
-            onclick="tg.openTelegramLink('https://t.me/D1NCHO')"
-          >
-            Стать партнером
-          </button>
+
+          <div class="profile-tabs">
+            <div
+              class="p-tab active"
+              id="tab-active"
+              onclick="switchProfileTab('active')"
+            >
+              Активные
+            </div>
+            <div
+              class="p-tab"
+              id="tab-archive"
+              onclick="switchProfileTab('archive')"
+            >
+              Продано
+            </div>
+          </div>
+
+          <!-- Твоя старая сетка для юзеров -->
+          <main class="listings-grid" id="my-ads-grid"></main>
+
+          <div style="padding: 20px">
+            <button
+              class="btn-premium-unity"
+              onclick="tg.openTelegramLink('https://t.me/D1NCHO')"
+            >
+              Стать партнером
+            </button>
+          </div>
         </div>
       </section>
 
