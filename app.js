@@ -24,36 +24,61 @@ const db = firebase.database();
 const storage = firebase.storage();
 
 // Функция проверки роли (вызывается при старте)
+// --- ПОЛНЫЙ КОД ПРОВЕРКИ РОЛИ ---
 function checkUserRole(uid) {
-  // 1. Сначала проверяем на главного админа
-  if (uid == MY_ADMIN_ID) {
-    currentUserRole = "admin";
-    document.body.classList.add("is-admin");
-    console.log("Вход как АДМИН");
-    // Даже админу нужно подтянуть данные магазина, если он хочет что-то постить
+  if (!uid) {
+    console.error("Ошибка: UID не передан в checkUserRole");
+    return;
   }
 
-  // 2. Слушаем изменения в папке пользователя в реальном времени (.on вместо .once)
+  // 1. Устанавливаем слушатель Firebase на папку пользователя
+  // Используем .on('value'), чтобы приложение само менялось, если ты изменишь что-то в базе
   db.ref("users/" + uid).on("value", (snap) => {
-    const userData = snap.val();
-    console.log("Данные профиля из базы:", userData);
+    const userData = snap.val() || {};
 
-    if (userData && userData.role === "business") {
-      currentUserRole = "business";
-      myShopData = userData; // Сохраняем био, название и т.д.
-      document.body.classList.add("is-business");
-      console.log("Бизнес-аккаунт активен:", myShopData.shopName);
-    } else if (uid != MY_ADMIN_ID) {
-      currentUserRole = "user";
+    // Сохраняем данные в глобальную переменную (для использования в Storefront)
+    myShopData = userData;
+
+    // 2. ЛОГИКА ОПРЕДЕЛЕНИЯ РОЛИ (Приоритет сверху вниз)
+
+    if (uid == MY_ADMIN_ID) {
+      // ПЕРВЫЙ ПРИОРИТЕТ: Твой личный ID (Админ)
+      currentUserRole = "admin";
+      document.body.classList.add("is-admin");
       document.body.classList.remove("is-business");
+      console.log("ROLE: Авторизован как Главный Администратор 👑");
+    } else if (userData.role === "business") {
+      // ВТОРОЙ ПРИОРИТЕТ: Если в базе стоит пометка 'business'
+      currentUserRole = "business";
+      document.body.classList.add("is-business");
+      document.body.classList.remove("is-admin");
+      console.log("ROLE: Авторизован как Магазин / Партнер 🛡️");
+    } else {
+      // ПО УМОЛЧАНИЮ: Обычный покупатель
+      currentUserRole = "user";
+      document.body.classList.remove("is-admin", "is-business");
+      console.log("ROLE: Обычный пользователь 👤");
     }
 
-    // ВАЖНО: Перерисовываем профиль сразу, как только роль обновилась
-    if (
-      document.getElementById("page-profile").classList.contains("hidden") ===
-      false
-    ) {
-      renderProfile();
+    // 3. МГНОВЕННОЕ ОБНОВЛЕНИЕ ИНТЕРФЕЙСА
+    // Проверяем, открыта ли сейчас страница профиля
+    const profilePage = document.getElementById("page-profile");
+    if (profilePage && !profilePage.classList.contains("hidden")) {
+      // Если открыта — вызываем перерисовку (чтобы применился Storefront или Админка)
+      if (typeof renderProfile === "function") {
+        renderProfile();
+      }
+    }
+
+    // Также обновляем имя в шапке, если оно там есть
+    const uName = document.getElementById("u-name");
+    if (uName) {
+      if (currentUserRole === "admin")
+        uName.innerText =
+          (tg.initDataUnsafe?.user?.first_name || "Админ") + " 👑";
+      else if (currentUserRole === "business")
+        uName.innerText = myShopData.shopName || "Магазин";
+      else uName.innerText = tg.initDataUnsafe?.user?.first_name || "Гость";
     }
   });
 }
@@ -154,110 +179,303 @@ async function initUser() {
 function renderProfile() {
   const myId = tg.initDataUnsafe?.user?.id || 0;
 
-  const userView = document.getElementById("user-profile-view");
-  const bizView = document.getElementById("biz-profile-view");
-  const bizSettingsIcon = document.getElementById("biz-setup-icon");
-  const grid = document.getElementById("my-ads-grid");
+  // 1. Находим контейнеры (вьюхи) в HTML
+  const vAdmin = document.getElementById("view-admin");
+  const vBusiness = document.getElementById("view-business");
+  const vUser = document.getElementById("view-user");
 
-  if (!grid) return;
-
-  // ПЕРЕКЛЮЧЕНИЕ ИНТЕРФЕЙСА
-  if (currentUserRole === "business" || currentUserRole === "admin") {
-    userView?.classList.add("hidden");
-    bizView?.classList.remove("hidden");
-    bizSettingsIcon?.classList.remove("hidden");
-    updateBizProfileUI();
-  } else {
-    userView?.classList.remove("hidden");
-    bizView?.classList.add("hidden");
-    bizSettingsIcon?.classList.add("hidden");
+  // Проверка: если в HTML нет этих ID, функция выдаст ошибку в консоль и остановится
+  if (!vAdmin || !vBusiness || !vUser) {
+    console.error(
+      "Ошибка: В HTML не найдены контейнеры view-admin, view-business или view-user. Проверь index.html!"
+    );
+    return;
   }
 
-  // Отрисовка товаров
-  grid.innerHTML = "";
-  const myAds = ads.filter((ad) => ad.userId === myId);
+  // 2. Сначала ПРЯЧЕМ абсолютно всё, чтобы экраны не накладывались друг на друга
+  vAdmin.classList.add("hidden");
+  vBusiness.classList.add("hidden");
+  vUser.classList.add("hidden");
 
-  // Фильтруем по вкладкам (Активные / Архив)
-  const filtered = myAds.filter((ad) =>
-    profTab === "active" ? ad.status === "active" : ad.status === "sold"
-  );
+  // 3. ЛОГИКА ОТОБРАЖЕНИЯ ПО РОЛЯМ
 
-  // Обновляем счетчик товаров в шапке профиля
-  const statCount = document.getElementById("biz-stat-ads");
-  if (statCount) statCount.innerText = myAds.length;
+  // --- А: ЕСЛИ ЗАШЕЛ АДМИН ---
+  if (currentUserRole === "admin") {
+    vAdmin.classList.remove("hidden");
+    console.log("Отрисовка: Панель Администратора");
 
-  if (filtered.length === 0) {
-    grid.innerHTML = `<p style="text-align:center; color:gray; grid-column:1/3; margin-top:30px;">Нет товаров в этой категории</p>`;
-  } else {
-    filtered.forEach((ad) => grid.appendChild(createAdCard(ad, true)));
-  }
-}
+    // Включаем мониторинг бота (если функция есть)
+    if (typeof monitorBotStatus === "function") monitorBotStatus();
 
-// 2. Функция заполнения Инста-шапки
-function updateBizProfileUI() {
-  if (!myShopData) return;
-
-  const fields = {
-    "biz-name-display": myShopData.shopName || "Мой Магазин",
-    "biz-bio-display": myShopData.bio || "Описание не заполнено",
-    "biz-hours-display": myShopData.workHours || "09:00 - 21:00",
-    "biz-inst-display": myShopData.instagram
-      ? "@" + myShopData.instagram
-      : "Instagram не привязан",
-  };
-
-  for (let id in fields) {
-    const el = document.getElementById(id);
-    if (el) el.innerText = fields[id];
+    // Здесь можно вызвать отрисовку жалоб: renderAdminReports();
   }
 
-  // Логотип
-  const logoCircle = document.getElementById("biz-logo");
-  if (logoCircle) {
-    if (myShopData.logo) {
-      logoCircle.style.backgroundImage = `url('${myShopData.logo}')`;
-      logoCircle.innerText = "";
-    } else {
-      logoCircle.style.backgroundImage = "none";
-      logoCircle.innerText = myShopData.shopName ? myShopData.shopName[0] : "?";
+  // --- Б: ЕСЛИ ЗАШЕЛ МАГАЗИН (БИЗНЕС) ---
+  else if (currentUserRole === "business") {
+    vBusiness.classList.remove("hidden");
+    console.log("Отрисовка: Витрина Магазина (Storefront)");
+
+    // Заполняем баннер, логотип и название (через функцию, которую мы создали)
+    if (typeof updateStorefrontUI === "function") {
+      updateStorefrontUI();
+    }
+
+    // Рисуем товары магазина с кнопками быстрой правки цены (через функцию ниже)
+    if (typeof renderBizAds === "function") {
+      renderBizAds();
+    }
+  }
+
+  // --- В: ЕСЛИ ЗАШЕЛ ОБЫЧНЫЙ ЮЗЕР ---
+  else {
+    vUser.classList.remove("hidden");
+    console.log("Отрисовка: Кабинет Пользователя");
+
+    // Выводим имя пользователя
+    const uNameSimple = document.getElementById("u-name-simple");
+    if (uNameSimple) {
+      uNameSimple.innerText =
+        tg.initDataUnsafe?.user?.first_name || "Пользователь";
+    }
+
+    // Если у обычного юзера есть свои товары (старая сетка), рисуем их здесь
+    const userGrid = document.getElementById("my-ads-grid");
+    if (userGrid) {
+      userGrid.innerHTML = "";
+
+      // Фильтруем объявления текущего пользователя
+      const myAds = ads.filter((ad) => ad.userId === myId);
+
+      // Фильтруем по вкладкам: Активные или Архив (Sold)
+      const filtered = myAds.filter((ad) =>
+        profTab === "active" ? ad.status === "active" : ad.status === "sold"
+      );
+
+      if (filtered.length === 0) {
+        userGrid.innerHTML = `<p style="text-align:center; color:gray; grid-column:1/3; margin-top:20px;">У вас пока нет объявлений</p>`;
+      } else {
+        filtered.forEach((ad) => {
+          userGrid.appendChild(createAdCard(ad, true));
+        });
+      }
     }
   }
 }
 
-// 4. Сохранение профиля (с поддержкой загрузки логотипа)
-window.saveBizProfile = async function () {
+function updateStorefrontUI() {
+  if (!myShopData) return;
+
+  // Имя магазина
+  const nameEl = document.getElementById("biz-name-main");
+  if (nameEl) nameEl.innerText = myShopData.shopName || "Мой Магазин";
+
+  // Логотип
+  const logoEl = document.getElementById("biz-logo-main");
+  if (logoEl) {
+    if (myShopData.logo) {
+      logoEl.style.backgroundImage = `url('${myShopData.logo}')`;
+      logoEl.innerText = "";
+    } else {
+      logoEl.style.backgroundImage = "none";
+      logoEl.innerText = myShopData.shopName ? myShopData.shopName[0] : "?";
+    }
+  }
+
+  // Баннер (Обложка)
+  const bannerEl = document.getElementById("biz-banner");
+  if (bannerEl && myShopData.cover) {
+    bannerEl.style.backgroundImage = `url('${myShopData.cover}')`;
+  }
+
+  // Просмотры (заглушка или из базы)
+  const viewsEl = document.getElementById("biz-views-count");
+  if (viewsEl) viewsEl.innerText = myShopData.views || "0";
+}
+
+// --- 4. ОТРИСОВКА ТОВАРОВ БИЗНЕСА (С УПРАВЛЕНИЕМ) ---
+function renderBizAds() {
+  const grid = document.getElementById("biz-ads-grid");
+  if (!grid) return;
+  grid.innerHTML = "";
+
   const myId = tg.initDataUnsafe?.user?.id || 0;
 
-  // Добавляем получение названия магазина, если оно есть в модалке
+  // Фильтруем: только мои товары + статус (активные или архив)
+  const myAds = ads.filter((ad) => ad.userId === myId);
+  const filtered = myAds.filter((ad) =>
+    profTab === "active"
+      ? ad.status === "active" || ad.status === "hidden"
+      : ad.status === "sold"
+  );
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `<p style="grid-column:1/3; text-align:center; color:gray; padding:40px;">Нет товаров</p>`;
+    return;
+  }
+
+  filtered.forEach((ad) => {
+    const card = createAdCard(ad, true); // true передаем, чтобы внутри createAdCard знать, что это режим владельца
+
+    // ДОБАВЛЯЕМ ПАНЕЛЬ БЫСТРОГО УПРАВЛЕНИЯ прямо под карточку
+    const managePanel = document.createElement("div");
+    managePanel.className = "quick-manage-bar";
+    managePanel.innerHTML = `
+      <button class="btn-quick" onclick="event.stopPropagation(); quickEditPrice('${
+        ad.id
+      }', ${ad.price})">
+        ${ad.price} KGS <i class="fa-solid fa-pen"></i>
+      </button>
+      <button class="btn-quick" onclick="event.stopPropagation(); quickToggleStatus('${
+        ad.id
+      }', '${ad.status}')">
+        ${ad.status === "active" ? "👁️ Скрыть" : "👁️ Показать"}
+      </button>
+    `;
+    card.appendChild(managePanel);
+    grid.appendChild(card);
+  });
+}
+
+// --- 5. ФУНКЦИИ БЫСТРОГО ДЕЙСТВИЯ ---
+window.quickEditPrice = async function (adId, currentPrice) {
+  const newPrice = prompt("Введите новую цену (KGS):", currentPrice);
+  if (newPrice !== null && newPrice !== "" && !isNaN(newPrice)) {
+    try {
+      await db.ref("ads/" + adId).update({
+        price: parseInt(newPrice),
+        needs_sync_tg: true,
+      });
+      // Лента сама обновится через .on("value") в listenAds
+    } catch (e) {
+      alert("Ошибка при сохранении цены");
+    }
+  }
+};
+
+window.quickToggleStatus = async function (adId, currentStatus) {
+  const newStatus = currentStatus === "active" ? "hidden" : "active";
+  try {
+    await db.ref("ads/" + adId).update({ status: newStatus });
+  } catch (e) {
+    alert("Ошибка при смене статуса");
+  }
+};
+
+// 2. Функция заполнения Инста-шапки
+// --- НОВАЯ ФУНКЦИЯ ОБНОВЛЕНИЯ ВИТРИНЫ (STOREFRONT) ---
+function updateStorefrontUI() {
+  // Если данных о магазине нет, выходим
+  if (!myShopData) {
+    console.error("Ошибка: Данные myShopData не загружены.");
+    return;
+  }
+
+  // 1. ОБНОВЛЯЕМ НАЗВАНИЕ МАГАЗИНА
+  const nameEl = document.getElementById("biz-name-main");
+  if (nameEl) {
+    nameEl.innerText = myShopData.shopName || "Мой Магазин";
+  }
+
+  // 2. ОБНОВЛЯЕМ ЛОГОТИП (Лого в кружке/квадрате поверх баннера)
+  const logoEl = document.getElementById("biz-logo-main");
+  if (logoEl) {
+    if (myShopData.logo) {
+      // Если в базе есть ссылка на картинку-лого
+      logoEl.style.backgroundImage = `url('${myShopData.logo}')`;
+      logoEl.style.backgroundSize = "cover";
+      logoEl.style.backgroundPosition = "center";
+      logoEl.innerText = ""; // Скрываем первую букву
+    } else {
+      // Если логотипа нет — рисуем первую букву названия на сером фоне
+      logoEl.style.backgroundImage = "none";
+      logoEl.style.backgroundColor = "#2c2c2e";
+      logoEl.innerText = myShopData.shopName
+        ? myShopData.shopName[0].toUpperCase()
+        : "?";
+    }
+  }
+
+  // 3. ОБНОВЛЯЕМ БАННЕР (Большая обложка магазина сверху)
+  const bannerEl = document.getElementById("biz-banner");
+  if (bannerEl) {
+    if (myShopData.cover) {
+      // Если баннер загружен в базу
+      bannerEl.style.backgroundImage = `url('${myShopData.cover}')`;
+      bannerEl.style.backgroundSize = "cover";
+      bannerEl.style.backgroundPosition = "center";
+    } else {
+      // Стандартный фон баннера, если картинки нет
+      bannerEl.style.backgroundImage = "none";
+      bannerEl.style.backgroundColor = "#1c1c1e";
+    }
+  }
+
+  // 4. ОБНОВЛЯЕМ ТЕКСТОВЫЕ ПОЛЯ (Био, Часы, Инста)
+  // Это поля, которые видны в настройках или под шапкой
+  const bioEl = document.getElementById("biz-bio-display");
+  if (bioEl)
+    bioEl.innerText = myShopData.bio || "Описание магазина не заполнено";
+
+  const hoursEl = document.getElementById("biz-hours-display");
+  if (hoursEl) hoursEl.innerText = myShopData.workHours || "09:00 - 21:00";
+
+  const instEl = document.getElementById("biz-inst-display");
+  if (instEl) {
+    instEl.innerText = myShopData.instagram
+      ? "@" + myShopData.instagram
+      : "Instagram не привязан";
+  }
+
+  // 5. ОБНОВЛЯЕМ СТАТИСТИКУ (Просмотры в Dashboard)
+  const viewsEl = document.getElementById("biz-views-count");
+  if (viewsEl) {
+    // Если в базе нет поля views, пишем 0
+    viewsEl.innerText = myShopData.views || "0";
+  }
+
+  console.log("Интерфейс витрины обновлен для:", myShopData.shopName);
+}
+
+// 4. Сохранение профиля (с поддержкой загрузки логотипа)
+// --- ЕДИНАЯ ФУНКЦИЯ СОХРАНЕНИЯ ПРОФИЛЯ МАГАЗИНА ---
+window.saveBizProfile = async function () {
+  const myId = tg.initDataUnsafe?.user?.id || 0;
+  if (!myId) return;
+
+  // 1. Собираем данные из полей ввода в модалке (проверь, чтобы ID совпадали с HTML)
+  const newBio = document.getElementById("edit-biz-bio")?.value || "";
+  const newHours = document.getElementById("edit-biz-hours")?.value || "";
+  const newInst = document.getElementById("edit-biz-inst")?.value || "";
+
+  // Если у тебя в модалке есть поле для смены названия:
   const newName =
     document.getElementById("edit-biz-name")?.value || myShopData.shopName;
-  const newBio = document.getElementById("edit-biz-bio").value;
-  const newHours = document.getElementById("edit-biz-hours").value;
-  const newInst = document.getElementById("edit-biz-inst").value;
 
   try {
+    // 2. Отправляем обновление в Firebase
     await db.ref("users/" + myId).update({
-      shopName: newName, // Теперь сохраняем и имя
+      shopName: newName,
       bio: newBio,
       workHours: newHours,
       instagram: newInst,
     });
 
-    // Обновляем локальную переменную
+    // 3. Обновляем локальные данные, чтобы изменения применились сразу
     myShopData.shopName = newName;
     myShopData.bio = newBio;
     myShopData.workHours = newHours;
     myShopData.instagram = newInst;
 
-    closeEditBizModal();
+    // 4. Закрываем модалку и перерисовываем профиль
+    if (typeof closeEditBizModal === "function") closeEditBizModal();
 
-    // ПРИНУДИТЕЛЬНО вызываем обновление текста в шапке
-    updateBizProfileUI();
-    renderProfile();
+    // Вызываем обновление витрины, чтобы увидеть новое био/имя
+    updateStorefrontUI();
 
-    alert("Профиль магазина обновлен!");
+    alert("Профиль магазина успешно обновлен! ✨");
   } catch (e) {
-    alert("Ошибка сохранения: " + e.message);
+    console.error("Ошибка при сохранении профиля:", e);
+    alert("Не удалось сохранить: " + e.message);
   }
 };
 
@@ -1077,21 +1295,6 @@ function renderFavs() {
   }
 }
 
-function renderProfile() {
-  const grid = document.getElementById("my-ads-grid");
-  if (!grid) return;
-  grid.innerHTML = "";
-  const filtered = ads.filter(
-    (ad) =>
-      ad.userId === (tg.initDataUnsafe?.user?.id || 0) &&
-      (profTab === "active" ? ad.status === "active" : ad.status === "sold")
-  );
-  if (filtered.length === 0)
-    grid.innerHTML =
-      "<p style='text-align:center;color:gray;grid-column:1/3;margin-top:20px;'>Пусто</p>";
-  filtered.forEach((ad) => grid.appendChild(createAdCard(ad, true)));
-}
-
 function switchProfileTab(t) {
   profTab = t;
   document
@@ -1472,31 +1675,6 @@ window.closeSearch = function () {
   if (searchPage) searchPage.classList.add("hidden");
 };
 
-function renderBusinessDashboard() {
-  const container = document.getElementById("biz-my-ads");
-  if (!container) return;
-
-  const myId = tg.initDataUnsafe?.user?.id || 0;
-  document.getElementById("biz-name").innerText = myShopData
-    ? myShopData.shopName
-    : "Мой Магазин";
-
-  // Фильтруем: только мои товары
-  const myAds = ads.filter(
-    (ad) => ad.userId === myId && ad.status !== "deleted"
-  );
-
-  container.innerHTML = "";
-  if (myAds.length === 0) {
-    container.innerHTML = `<p style="grid-column: 1/3; color:gray; text-align:center;">У вас пока нет товаров</p>`;
-  } else {
-    myAds.forEach((ad) => {
-      const card = createAdCard(ad, true); // true означает режим профиля (с кнопками управления)
-      container.appendChild(card);
-    });
-  }
-}
-
 // Функция для открытия формы (обычный товар или комбо)
 let currentAddingType = "standard"; // Глобальная переменная
 
@@ -1557,3 +1735,17 @@ function monitorBotStatus() {
     }, 1000);
   });
 }
+
+window.quickEditPrice = async function (adId, currentPrice) {
+  const newPrice = prompt("Введите новую цену (KGS):", currentPrice);
+  if (newPrice !== null && newPrice !== "" && !isNaN(newPrice)) {
+    await db
+      .ref("ads/" + adId)
+      .update({ price: parseInt(newPrice), needs_sync_tg: true });
+  }
+};
+
+window.quickToggleStatus = async function (adId, currentStatus) {
+  const newStatus = currentStatus === "active" ? "hidden" : "active";
+  await db.ref("ads/" + adId).update({ status: newStatus });
+};

@@ -1199,3 +1199,105 @@ body {
   background: #ff3b30 !important;
   box-shadow: 0 0 10px #ff3b30;
 }
+
+/* --- STOREFRONT WB/OZON STYLE --- */
+.shop-header-container {
+  position: relative;
+  width: 100%;
+  height: 220px; /* Высота баннера + запас под лого */
+  background: #121212;
+}
+
+.shop-banner {
+  width: 100%;
+  height: 160px;
+  background-size: cover;
+  background-position: center;
+  border-bottom: 2px solid #1c1c1e;
+}
+
+.shop-logo-wrapper {
+  position: absolute;
+  bottom: 5px;
+  left: 20px;
+  display: flex;
+  align-items: flex-end;
+  gap: 15px;
+  z-index: 10;
+}
+
+.shop-logo-main {
+  width: 90px;
+  height: 90px;
+  background: #2c2c2e;
+  border: 4px solid #121212;
+  border-radius: 20px; /* Как у приложений Apple/Ozon */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--yellow-main);
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.shop-name-main {
+  font-size: 20px;
+  font-weight: 900;
+  color: #fff;
+  margin-bottom: 2px;
+}
+
+/* Кнопки Dashboard */
+.owner-dashboard {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 15px;
+  margin-top: 10px;
+}
+
+.dash-card {
+  background: #1c1c1e;
+  border: 1px solid #333;
+  border-radius: 16px;
+  padding: 15px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.dash-card i {
+  font-size: 20px;
+}
+.dash-card b {
+  font-size: 18px;
+  color: var(--yellow-main);
+}
+.dash-card span {
+  font-size: 11px;
+  color: var(--gray);
+  font-weight: bold;
+}
+
+/* Быстрое управление ценой на карточке */
+.quick-manage-bar {
+  display: flex;
+  gap: 5px;
+  padding: 8px 10px 10px;
+}
+
+.btn-quick {
+  flex: 1;
+  background: #2c2c2e;
+  border: 1px solid #444;
+  color: #fff;
+  padding: 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: bold;
+}
