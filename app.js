@@ -177,97 +177,113 @@ async function initUser() {
 
 // 1. Обновляем отрисовку профиля
 // --- ПОЛНАЯ ФУНКЦИЯ ПРОФИЛЯ (АДМИН + БИЗНЕС + ЮЗЕР) ---
+// --- ПОЛНАЯ И ЕДИНСТВЕННАЯ ФУНКЦИЯ ПРОФИЛЯ ---
 function renderProfile() {
   const myId = tg.initDataUnsafe?.user?.id || 0;
 
-  // 1. Находим контейнеры (вьюхи) в HTML
+  // 1. Находим все три контейнера
   const vAdmin = document.getElementById("view-admin");
   const vBusiness = document.getElementById("view-business");
   const vUser = document.getElementById("view-user");
 
-  // Проверка наличия элементов в HTML
+  // Если какого-то блока нет в HTML, пишем ошибку и выходим
   if (!vAdmin || !vBusiness || !vUser) {
     console.error(
-      "Ошибка: В HTML не найдены контейнеры view-admin, view-business или view-user."
+      "Критическая ошибка: Не найдены блоки view-admin/business/user в index.html"
     );
     return;
   }
 
-  // 2. Скрываем все экраны, чтобы они не накладывались
+  // 2. ОБЯЗАТЕЛЬНО: Скрываем все блоки перед отрисовкой
+  // Это гарантирует, что интерфейсы не наложатся друг на друга
   vAdmin.classList.add("hidden");
   vBusiness.classList.add("hidden");
   vUser.classList.add("hidden");
 
-  // 3. ЛОГИКА ОТОБРАЖЕНИЯ ПО РОЛЯМ
+  console.log("Текущая роль при отрисовке:", currentUserRole);
 
-  // --- А: ИНТЕРФЕЙС АДМИНИСТРАТОРА ---
+  // 3. ПРОВЕРКА РОЛИ И ПОКАЗ НУЖНОГО ЭКРАНА
+
+  // --- А: РЕЖИМ АДМИНИСТРАТОРА ---
   if (currentUserRole === "admin") {
-    vAdmin.classList.remove("hidden");
-    console.log("Отрисовка: Панель Администратора 👑");
+    vAdmin.classList.remove("hidden"); // Показываем только админку
 
-    // Вызываем расчет статистики (сколько постов, сколько юзеров и т.д.)
+    // Заполняем цифры в админ-панели
     renderAdminStats();
 
-    // Включаем мониторинг бота (сердцебиение)
+    // Запускаем мониторинг бота
     if (typeof monitorBotStatus === "function") {
       monitorBotStatus();
     }
-
-    // Если у тебя есть функция отрисовки жалоб, вызываем её здесь:
-    // if (typeof renderAdminReports === "function") renderAdminReports();
+    console.log("Отрисован: Экран Админа");
   }
 
-  // --- Б: ИНТЕРФЕЙС МАГАЗИНА (БИЗНЕС-АККАУНТ) ---
+  // --- Б: РЕЖИМ МАГАЗИНА (БИЗНЕС) ---
   else if (currentUserRole === "business") {
-    vBusiness.classList.remove("hidden");
-    console.log("Отрисовка: Витрина Магазина (Storefront) 🛡️");
+    vBusiness.classList.remove("hidden"); // Показываем только витрину
 
-    // Заполняем баннер, логотип и название магазина
+    // Рисуем баннер, логотип и название (WB Style)
     if (typeof updateStorefrontUI === "function") {
       updateStorefrontUI();
     }
 
-    // Рисуем товары магазина с кнопками быстрой правки цены и скрытия
+    // Выводим товары магазина с быстрыми кнопками (Изменить цену/Скрыть)
     if (typeof renderBizAds === "function") {
       renderBizAds();
     }
+    console.log("Отрисован: Экран Магазина");
   }
 
-  // --- В: ИНТЕРФЕЙС ОБЫЧНОГО ПОЛЬЗОВАТЕЛЯ (СТАРЫЙ ФОРМАТ) ---
+  // --- В: РЕЖИМ ОБЫЧНОГО ПОЛЬЗОВАТЕЛЯ (СТАРЫЙ ФОРМАТ) ---
   else {
-    vUser.classList.remove("hidden");
-    console.log("Отрисовка: Кабинет Пользователя 👤");
+    vUser.classList.remove("hidden"); // Показываем только обычный профиль
 
-    // Выводим имя пользователя в простом профиле
+    // Обновляем имя
     const uNameSimple = document.getElementById("u-name-simple");
     if (uNameSimple) {
       uNameSimple.innerText =
         tg.initDataUnsafe?.user?.first_name || "Пользователь";
     }
 
-    // Рисуем старую сетку объявлений с кнопкой "Управление"
+    // Отрисовка товаров пользователя (Старая логика с кнопкой "Управление")
     const userGrid = document.getElementById("my-ads-grid");
     if (userGrid) {
       userGrid.innerHTML = "";
 
-      // Фильтруем только те объявления, которые подал этот юзер
+      // Берем только товары этого юзера
       const myAds = ads.filter((ad) => ad.userId === myId);
 
-      // Фильтруем по вкладкам: Активные (status: active) или Архив (status: sold)
+      // Фильтр по вкладкам Активные / Архив
       const filtered = myAds.filter((ad) =>
         profTab === "active" ? ad.status === "active" : ad.status === "sold"
       );
 
       if (filtered.length === 0) {
-        userGrid.innerHTML = `<p style="text-align:center; color:gray; grid-column:1/3; margin-top:30px;">У вас пока нет объявлений в этом разделе</p>`;
+        userGrid.innerHTML = `<p style="text-align:center; color:gray; grid-column:1/3; margin-top:30px;">Пусто</p>`;
       } else {
         filtered.forEach((ad) => {
-          // Рисуем карточку. Вторая переменная 'true' говорит, что мы в профиле
+          // Вызываем createAdCard, она сама поймет (через роль), какую кнопку рисовать
           userGrid.appendChild(createAdCard(ad, true));
         });
       }
     }
+    console.log("Отрисован: Экран Юзера");
   }
+}
+
+// --- ФУНКЦИЯ ДЛЯ ЦИФР АДМИНА (Чтобы панель не была пустой) ---
+function renderAdminStats() {
+  const total = ads.length;
+  const active = ads.filter((a) => a.status === "active").length;
+  const sellers = new Set(ads.map((a) => a.userId)).size;
+
+  // Вставляем цифры (проверь эти ID в своем index.html)
+  if (document.getElementById("adm-total-ads"))
+    document.getElementById("adm-total-ads").innerText = total;
+  if (document.getElementById("adm-active-ads"))
+    document.getElementById("adm-active-ads").innerText = active;
+  if (document.getElementById("adm-active-users"))
+    document.getElementById("adm-active-users").innerText = sellers;
 }
 
 // --- ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ АДМИН-СТАТИСТИКИ ---
@@ -292,36 +308,6 @@ function renderAdminStats() {
   if (usersCountEl) usersCountEl.innerText = uniqueUsers;
 
   console.log("Статистика админа успешно обновлена");
-}
-
-function updateStorefrontUI() {
-  if (!myShopData) return;
-
-  // Имя магазина
-  const nameEl = document.getElementById("biz-name-main");
-  if (nameEl) nameEl.innerText = myShopData.shopName || "Мой Магазин";
-
-  // Логотип
-  const logoEl = document.getElementById("biz-logo-main");
-  if (logoEl) {
-    if (myShopData.logo) {
-      logoEl.style.backgroundImage = `url('${myShopData.logo}')`;
-      logoEl.innerText = "";
-    } else {
-      logoEl.style.backgroundImage = "none";
-      logoEl.innerText = myShopData.shopName ? myShopData.shopName[0] : "?";
-    }
-  }
-
-  // Баннер (Обложка)
-  const bannerEl = document.getElementById("biz-banner");
-  if (bannerEl && myShopData.cover) {
-    bannerEl.style.backgroundImage = `url('${myShopData.cover}')`;
-  }
-
-  // Просмотры (заглушка или из базы)
-  const viewsEl = document.getElementById("biz-views-count");
-  if (viewsEl) viewsEl.innerText = myShopData.views || "0";
 }
 
 // --- 4. ОТРИСОВКА ТОВАРОВ БИЗНЕСА (С УПРАВЛЕНИЕМ) ---
@@ -524,30 +510,6 @@ window.closeEditBizModal = function () {
 };
 
 // 4. Сохранение данных в Firebase
-window.saveBizProfile = async function () {
-  const myId = tg.initDataUnsafe?.user?.id || 0;
-  const newBio = document.getElementById("edit-biz-bio").value;
-  const newHours = document.getElementById("edit-biz-hours").value;
-  const newInst = document.getElementById("edit-biz-inst").value;
-
-  try {
-    await db.ref("users/" + myId).update({
-      bio: newBio,
-      workHours: newHours,
-      instagram: newInst,
-    });
-    // Обновляем локальные данные, чтобы не перезагружать страницу
-    myShopData.bio = newBio;
-    myShopData.workHours = newHours;
-    myShopData.instagram = newInst;
-
-    closeEditBizModal();
-    renderProfile();
-    alert("Профиль обновлен!");
-  } catch (e) {
-    alert("Ошибка сохранения: " + e.message);
-  }
-};
 
 // 2. Переключатель вкладок (Активные / Архив)
 window.switchProfileTab = function (t) {
@@ -811,92 +773,97 @@ function renderFeed() {
   }
 }
 
+// --- ПОЛНАЯ ФУНКЦИЯ ОТРИСОВКИ КАРТОЧКИ ТОВАРА ---
 function createAdCard(ad, isProfile = false) {
-  // 1. ОЧИСТКА ЦЕНЫ
+  // 1. ПОДГОТОВКА ДАННЫХ
   const displayPrice = String(ad.price).replace(/[^0-9]/g, "") || "0";
-
   const isFav = favs.includes(ad.id);
   const isSold = ad.status === "sold";
 
-  // 2. ЛОГИКА ТАЙМЕРА VIP (3 ДНЯ)
+  // 2. ЛОГИКА VIP (3 дня)
   const now = Math.floor(Date.now() / 1000);
   const approvedTime = Number(ad.approvedAt || ad.createdAt || 0);
   const threeDaysInSeconds = 259200;
-
   const isVip =
     ad.tariff === "vip" && !isSold && now - approvedTime < threeDaysInSeconds;
 
+  // 3. СОЗДАНИЕ КОНТЕЙНЕРА КАРТОЧКИ
   const card = document.createElement("div");
   card.className = `card ${isVip ? "card-vip" : ""} ${
     ad.status === "deleted" ? "card-deleted" : ""
   }`;
 
-  // Клик по карточке открывает просмотр товара
+  // Клик по карточке открывает детальный просмотр
   card.onclick = () => openProduct(ad);
 
-  // 3. ФОРМИРУЕМ БЛОК КНОПОК УПРАВЛЕНИЯ
+  // 4. ГЕНЕРАЦИЯ БЛОКА УПРАВЛЕНИЯ (Кнопки под товаром)
   let managementHtml = "";
 
-  // А: БЛОК АДМИНИСТРАТОРА (Виден тебе на любой карточке)
+  // А: БЛОК ДЛЯ АДМИНИСТРАТОРА (Виден тебе на любой карточке в приложении)
   if (currentUserRole === "admin") {
     managementHtml += `
-      <div style="margin-top:8px; padding-top:8px; border-top:1px dashed #444;">
-        <div style="font-size:10px; color:#ff3b30; margin-bottom:5px; font-family:monospace;">
-          USER_ID: <code>${ad.userId}</code>
+      <div style="margin-top:10px; padding-top:10px; border-top:1px dashed rgba(255,255,255,0.2);">
+        <div style="font-size:10px; color:#ff3b30; margin-bottom:5px; font-family:monospace; font-weight:bold;">
+          ID ПРОДАВЦА: <code>${ad.userId}</code>
         </div>
         <button onclick="event.stopPropagation(); adminDeleteAd('${ad.id}')" 
-                style="width:100%; background:#ff3b30; color:#fff; border:none; padding:6px; border-radius:6px; font-size:10px; font-weight:bold; cursor:pointer;">
+                style="width:100%; background:#ff3b30; color:#fff; border:none; padding:8px; border-radius:8px; font-size:10px; font-weight:bold; cursor:pointer; text-transform:uppercase;">
           УДАЛИТЬ (АДМИН)
         </button>
       </div>
     `;
   }
 
-  // Б: КНОПКА УПРАВЛЕНИЯ ДЛЯ ОБЫЧНОГО ЮЗЕРА (Только в его профиле)
-  // Мы проверяем, что это профиль, роль - юзер, и товар активен
-  if (isProfile && currentUserRole === "user" && ad.status === "active") {
+  // Б: БЛОК ДЛЯ ОБЫЧНОГО ПОЛЬЗОВАТЕЛЯ (Только в его личном профиле)
+  // Показываем желтую кнопку "Управление", только если роль - user и мы в профиле
+  else if (isProfile && currentUserRole === "user" && ad.status === "active") {
     managementHtml += `
       <button onclick="event.stopPropagation(); openManageModal('${ad.id}')" 
-              style="width:100%; background:var(--yellow-main); color:#000; border:none; padding:8px; border-radius:8px; font-size:11px; font-weight:bold; margin-top:8px;">
-        Управление
+              style="width:100%; background:var(--yellow-main); color:#000; border:none; padding:10px; border-radius:10px; font-size:11px; font-weight:900; margin-top:10px; cursor:pointer;">
+        УПРАВЛЕНИЕ
       </button>
     `;
   }
 
-  // 4. СБОРКА КАРТОЧКИ
+  // 5. СБОРКА ВНУТРЕННЕГО HTML КАРТОЧКИ
   card.innerHTML = `
+    <!-- Бейджи статусов -->
     ${isSold ? '<div class="sold-badge">ПРОДАНО</div>' : ""}
     ${isVip ? '<div class="vip-badge">VIP</div>' : ""}
     ${ad.isCombo ? '<div class="combo-badge">КОМБО 🔥</div>' : ""}
 
-    <!-- Кнопка избранного (только если не в профиле) -->
+    <!-- Сердечко (только в общей ленте) -->
     ${
       !isProfile
         ? `
-      <div class="fav-heart-btn ${isFav ? "active" : ""}" onclick="toggleFav('${
-            ad.id
-          }', event)">
+      <div class="fav-heart-btn ${isFav ? "active" : ""}" 
+           onclick="toggleFav('${ad.id}', event)">
         <i class="fa-solid fa-heart"></i>
       </div>`
         : ""
     }
 
+    <!-- Изображение товара -->
     <img src="${ad.img ? ad.img[0] : ""}" loading="lazy">
     
     <div style="padding:10px;">
+      <!-- Цена и Дата -->
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
         <div style="color:var(--yellow-main); font-weight:bold; font-size:15px;">${displayPrice} KGS</div>
         <div style="color:var(--gray); font-size:10px;">${formatRelativeDate(
           ad.approvedAt || ad.createdAt
         )}</div>
       </div>
-      <div style="font-size:12px; color:#ccc; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${
-        ad.title
-      }</div>
       
-      <!-- СЮДА ВСТАВЛЯЮТСЯ КНОПКИ АДМИНА ИЛИ ЮЗЕРА -->
+      <!-- Заголовок -->
+      <div style="font-size:12px; color:#ccc; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+        ${ad.title}
+      </div>
+      
+      <!-- Сюда вставится блок управления (Админ или Юзер) -->
       ${managementHtml}
-    </div>`;
+    </div>
+  `;
 
   return card;
 }
