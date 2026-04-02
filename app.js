@@ -870,16 +870,26 @@ function createAdCard(ad, isProfile = false) {
 
 // Вспомогательная функция для админа
 window.adminDeleteAd = async function (adId) {
-  if (!confirm("Внимание! Вы удаляете чужое объявление. Удалить?")) return;
-
+  if (
+    !confirm(
+      "Внимание! Вы удаляете чужое объявление. Отправить запрос боту на удаление?"
+    )
+  )
+    return;
   try {
-    await db.ref("ads/" + adId).update({
-      status: "deleted",
-      needs_sync_tg: true, // Бот удалит из канала
+    // Пишем запрос в специальную папку, которую бот проверяет
+    await db.ref("management_requests").push({
+      adId: adId,
+      action: "delete",
+      userId: tg.initDataUnsafe?.user?.id || 0,
+      processed: false,
+      timestamp: Date.now(),
     });
-    alert("Объявление удалено админом.");
+    alert(
+      "Запрос отправлен боту! Пост исчезнет из всех каналов и с сайта в течение 20 секунд."
+    );
   } catch (e) {
-    alert("Ошибка удаления: " + e.message);
+    alert("Ошибка отправки запроса: " + e.message);
   }
 };
 
@@ -1394,20 +1404,24 @@ function reportAd(adId, sellerId) {
 async function confirmAction(type) {
   if (!confirm("Подтвердить действие?")) return;
 
-  // 1. Сначала меняем статус самого объявления
-  let updateData = { status: type, needs_sync_tg: true }; // Бот увидит этот флаг!
-  await db.ref("ads/" + currentManageId).update(updateData);
+  try {
+    // Мы БОЛЬШЕ НЕ ОБНОВЛЯЕМ папку "ads" напрямую.
+    // Мы только создаем запрос в "management_requests".
+    await db.ref("management_requests").push({
+      adId: currentManageId,
+      action: type, // тут будет 'sold' или 'delete'
+      userId: tg.initDataUnsafe?.user?.id || 0,
+      processed: false,
+      timestamp: Date.now(),
+    });
 
-  // 2. Отправляем запрос на управление (для истории)
-  db.ref("management_requests").push({
-    adId: currentManageId,
-    action: type,
-    userId: tg.initDataUnsafe?.user?.id || 0,
-    processed: false,
-  });
-
-  alert("Выполнено!");
-  closeManageModal();
+    alert(
+      "Запрос на обработку отправлен! Бот обновит статус объявления через несколько секунд."
+    );
+    closeManageModal();
+  } catch (e) {
+    alert("Ошибка: " + e.message);
+  }
 }
 
 function resetAddForm() {
