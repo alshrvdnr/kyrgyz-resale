@@ -1073,7 +1073,7 @@ async function publishAndSend() {
   const title = document.getElementById("in-title").value;
   const priceInput = document.getElementById("in-price").value;
 
-  // --- 1. ПРЕДВАРИТЕЛЬНАЯ ПРОВЕРКА (ВАЛИДАЦИЯ) ---
+  // --- 1. ВАЛИДАЦИЯ ---
   const isPartner =
     currentUserRole === "business" || currentUserRole === "admin";
   const cleanTitle = title.trim();
@@ -1084,7 +1084,6 @@ async function publishAndSend() {
     return alert("Введите корректную цену!");
   if (numericPrice > 1000000) return alert("Цена слишком высокая!");
 
-  // Проверка анти-спама для обычных юзеров
   if (!isPartner && !editingId) {
     const lastPost = localStorage.getItem("last_post_time");
     if (lastPost && Date.now() - lastPost < 60000) {
@@ -1093,7 +1092,7 @@ async function publishAndSend() {
     }
   }
 
-  // --- 2. ВКЛЮЧАЕМ ОПТИМИСТИЧНЫЙ ЛОАДЕР ---
+  // --- 2. ПОДГОТОВКА ЛОАДЕРА ---
   const overlay = document.getElementById("upload-overlay");
   const lTitle = document.getElementById("loader-title");
   const lText = document.getElementById("loader-text");
@@ -1102,17 +1101,21 @@ async function publishAndSend() {
 
   if (overlay) {
     overlay.classList.remove("hidden");
-    lTitle.innerText = "Принято!";
+    lTitle.innerText = "ЗАГРУЗКА...";
     lVisual.classList.remove("error-shake");
     lVisual.classList.add("pulse-heart");
     lVisual.style.color = "var(--yellow-main)";
     lBtn.classList.add("hidden");
-    lText.innerText = "Ваши данные получены, загружаем фотографии в облако...";
+    lText.innerHTML =
+      "Начинаем публикацию...<br><b>НЕ ЗАКРЫВАЙТЕ ПРИЛОЖЕНИЕ!</b>";
   }
 
   try {
-    // --- 3. ЛОГИКА РЕДАКТИРОВАНИЯ ---
+    const myId = getSecureUserId();
+
+    // --- 3. РЕДАКТИРОВАНИЕ (если редактируем старое) ---
     if (editingId) {
+      lText.innerText = "Сохраняем изменения...";
       await db.ref("ads/" + editingId).update({
         title: cleanTitle,
         price: numericPrice,
@@ -1121,16 +1124,14 @@ async function publishAndSend() {
         desc: document.getElementById("in-desc").value,
         needs_sync_tg: true,
       });
-
       finishUpload("Изменения сохранены!");
       return;
     }
 
-    // --- 4. ПОДГОТОВКА ФАЙЛОВ И ДАННЫХ ---
+    // --- 4. ЗАГРУЗКА ФАЙЛОВ (Receipt, Verify, Photos) ---
     const catSelect = document.getElementById("in-cat");
     const citySelect = document.getElementById("in-city");
 
-    // Проверки перед загрузкой для обычных юзеров
     if (!isPartner) {
       if ((holidayMode || selectedTariff === "vip") && !receiptAttached)
         throw new Error("Прикрепите чек об оплате!");
@@ -1140,41 +1141,43 @@ async function publishAndSend() {
     if (selectedFiles.length === 0)
       throw new Error("Добавьте фотографии товара!");
 
-    // Загрузка чека
+    // Шаг А: Чек
     let receiptUrl = "";
     if (!isPartner && (holidayMode || selectedTariff === "vip")) {
+      lText.innerText = "Отправляем чек об оплате...";
       const receiptFile = document.getElementById("receipt-input").files[0];
       if (receiptFile) receiptUrl = await uploadFile(receiptFile);
     }
 
-    // Загрузка проверочного фото
+    // Шаг Б: Проверочное фото
     let verifyPhotoUrl = "";
     if (verifyPhotoFile) {
+      lText.innerText = "Отправляем проверочное фото...";
       verifyPhotoUrl = await uploadFile(verifyPhotoFile);
     }
 
-    // Загрузка основных фото
-    if (lText) lText.innerText = "Почти готово, сохраняем изображения...";
-    const imgs = await Promise.all(
-      selectedFiles.map((file) => uploadFile(file))
-    );
-    const validImgs = imgs.filter((url) => url !== null);
+    // Шаг В: Основные фото (по очереди для стабильности)
+    const validImgs = [];
+    for (let i = 0; i < selectedFiles.length; i++) {
+      lText.innerHTML = `Загрузка фото товара (${i + 1} из ${
+        selectedFiles.length
+      })...<br>Пожалуйста, подождите.`;
+      const url = await uploadFile(selectedFiles[i]);
+      if (url) validImgs.push(url);
+    }
 
     if (validImgs.length === 0)
-      throw new Error("Ошибка при загрузке изображений");
+      throw new Error("Не удалось загрузить изображения. Проверьте интернет.");
 
-    // --- 5. ФОРМИРОВАНИЕ ОБЪЕКТА ДЛЯ БАЗЫ ---
+    // --- 5. ЗАПИСЬ В БАЗУ ДАННЫХ ---
+    lText.innerText = "Финальная стадия: Публикация...";
+
     const newAd = {
       title: cleanTitle,
       price: numericPrice,
-
-      // КАТЕГОРИЯ: Берем ключ (flowers), а не текст
       cat: catSelect.value,
-
-      // ГОРОД: Ключ для бота (osh) + Название для людей (Ош)
       city_key: citySelect.value,
       city: citySelect.options[citySelect.selectedIndex].text,
-
       address: document.getElementById("in-address").value,
       phone: document.getElementById("in-wa").value,
       tgNick: document.getElementById("in-tg").value,
@@ -1193,25 +1196,22 @@ async function publishAndSend() {
       receipt_url: receiptUrl,
 
       status: isPartner ? "active" : "pending",
-      bot_notified: isPartner ? true : false,
+      bot_notified: false, // Всегда false, чтобы бот на Hetzner увидел новую заявку!
       isShop: isPartner,
-      shopName: isPartner
-        ? myShopData
-          ? myShopData.shopName
-          : "Администрация"
-        : "",
+      shopName: isPartner ? myShopData?.shopName || "Администрация" : "",
       verified: isPartner,
       tariff: selectedTariff,
       is_holiday: isPartner ? false : holidayMode,
 
-      userId: tg.initDataUnsafe?.user?.id || 0,
+      userId: myId,
       createdAt: Math.floor(Date.now() / 1000),
     };
 
-    // 6. ОТПРАВКА
+    // Отправляем в Firebase
     await db.ref("ads").push(newAd);
     localStorage.setItem("last_post_time", Date.now());
 
+    lTitle.innerText = "УСПЕШНО!";
     finishUpload(
       isPartner ? "Опубликовано мгновенно!" : "Отправлено на модерацию!"
     );
@@ -1221,13 +1221,13 @@ async function publishAndSend() {
       lVisual.classList.remove("pulse-heart");
       lVisual.classList.add("error-shake");
       lVisual.style.color = "#ff3b30";
-      lTitle.innerText = "Ой, ошибка!";
+      lTitle.innerText = "ОШИБКА";
       lText.innerText = e.message;
       lBtn.classList.remove("hidden");
     } else {
       alert("Ошибка: " + e.message);
     }
-    console.error(e);
+    console.error("Критическая ошибка при публикации:", e);
   }
 }
 
@@ -1402,22 +1402,19 @@ function reportAd(adId, sellerId) {
 
 // В app.js, там где вы отправляете обновления в базу
 async function confirmAction(type) {
-  if (!confirm("Подтвердить действие?")) return;
+  if (!confirm("Вы уверены?")) return;
 
+  // Вместо прямой записи в ads, мы ТОЛЬКО шлем запрос боту
   try {
-    // Мы БОЛЬШЕ НЕ ОБНОВЛЯЕМ папку "ads" напрямую.
-    // Мы только создаем запрос в "management_requests".
     await db.ref("management_requests").push({
       adId: currentManageId,
-      action: type, // тут будет 'sold' или 'delete'
-      userId: tg.initDataUnsafe?.user?.id || 0,
+      action: type, // 'sold' или 'delete'
+      userId: getUserId(),
       processed: false,
       timestamp: Date.now(),
     });
 
-    alert(
-      "Запрос на обработку отправлен! Бот обновит статус объявления через несколько секунд."
-    );
+    alert("Запрос отправлен! Бот обновит статус через 10-20 секунд.");
     closeManageModal();
   } catch (e) {
     alert("Ошибка: " + e.message);
@@ -1763,3 +1760,19 @@ window.quickToggleStatus = async function (adId, currentStatus) {
   const newStatus = currentStatus === "active" ? "hidden" : "active";
   await db.ref("ads/" + adId).update({ status: newStatus });
 };
+
+function getUserId() {
+  const tgUser = tg.initDataUnsafe?.user;
+
+  // Если ID есть и он не равен 0 — берем его
+  if (tgUser && tgUser.id && tgUser.id !== 0) return tgUser.id;
+
+  // Если ID нет (скрыт) или он равен 0, берем/создаем ID из памяти телефона
+  let guestId = localStorage.getItem("guest_uuid");
+  if (!guestId) {
+    // Создаем ID: префикс 'g_' + случайные буквы + время
+    guestId = "g_" + Math.random().toString(36).substr(2, 9) + Date.now();
+    localStorage.setItem("guest_uuid", guestId);
+  }
+  return guestId;
+}
