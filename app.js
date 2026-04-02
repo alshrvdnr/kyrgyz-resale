@@ -651,10 +651,12 @@ function listenAds() {
     "value",
     (snap) => {
       const data = snap.val();
+      // Превращаем объект из базы в массив для удобной работы
       ads = data
         ? Object.keys(data).map((key) => ({ id: key, ...data[key] }))
         : [];
 
+      // Отрисовываем ленту и профиль
       renderFeed();
       renderProfile();
 
@@ -662,7 +664,20 @@ function listenAds() {
       if (splash && !splash.classList.contains("hidden-splash")) {
         splash.classList.add("hidden-splash");
 
-        // --- ЛОГИКА ПЕРЕХОДА ПО ССЫЛКАМ ИЗ БОТА ---
+        // --- 1. ЛОГИКА ПАРАМЕТРОВ TELEGRAM (Deep Linking) ---
+        // Это сработает, если ссылка была t.me/bot/app?startapp=ID
+        const startParam = tg.initDataUnsafe?.start_param;
+        if (startParam) {
+          console.log("Обнаружена прямая ссылка на объявление:", startParam);
+          // Ищем объявление с таким ID в нашем массиве ads
+          const targetAd = ads.find((a) => a.id === startParam);
+          if (targetAd) {
+            // Если нашли — открываем его модальное окно
+            openProduct(targetAd);
+          }
+        }
+
+        // --- 2. ЛОГИКА ПЕРЕХОДА ПО ХЭШАМ (Из твоего старого кода) ---
         const hash = window.location.hash;
         console.log("Пришел хэш из бота:", hash);
 
@@ -676,6 +691,7 @@ function listenAds() {
     },
     (error) => {
       console.error("Ошибка Firebase:", error);
+      // Убираем сплеш даже при ошибке, чтобы юзер не застрял
       if (splash) splash.classList.add("hidden-splash");
     }
   );
@@ -896,17 +912,19 @@ window.adminDeleteAd = async function (adId) {
 // 6. МОДАЛКА И КОНТАКТЫ
 function openProduct(ad) {
   const modal = document.getElementById("product-modal");
-  const isSold = ad.status === "sold",
-    isFav = favs.includes(ad.id);
+  const isSold = ad.status === "sold";
+  const isFav = favs.includes(ad.id);
   const isVerified = ad.verified === true;
 
   // Проверка прав админа
   const isAdmin = currentUserRole === "admin";
 
+  // Логика формирования ссылок для связи
   let contactLink = ad.tgNick
     ? `https://t.me/${ad.tgNick.replace("@", "")}`
     : `https://wa.me/${ad.phone?.replace(/[^0-9]/g, "")}`;
 
+  // Генерация точек для карусели фотографий
   let dots = ad.img
     ? ad.img
         .map(
@@ -920,18 +938,27 @@ function openProduct(ad) {
 
   document.getElementById("pv-content").innerHTML = `
     <div class="modal-carousel-container">
+      <!-- Кнопка назад внутри модалки -->
       <i class="fa fa-arrow-left" onclick="closeProduct()" style="position:absolute; top:20px; left:20px; z-index:100; background:rgba(0,0,0,0.5); padding:10px; border-radius:50%;"></i>
+      
+      <!-- Кнопка избранного -->
       <i class="fa-solid fa-heart" onclick="toggleFav('${
         ad.id
       }')" style="position:absolute; top:20px; right:20px; z-index:100; font-size:24px; color:${
     isFav ? "var(--yellow-main)" : "#fff"
   }"></i>
-      <div class="product-gallery-slider" id="slider-${ad.id}">${
-    ad.img ? ad.img.map((src) => `<img src="${src}">`).join("") : ""
-  }</div>
+
+      <!-- Слайдер фотографий -->
+      <div class="product-gallery-slider" id="slider-${ad.id}">
+        ${ad.img ? ad.img.map((src) => `<img src="${src}">`).join("") : ""}
+      </div>
+      
+      <!-- Точки карусели -->
       <div class="carousel-dots">${dots}</div>
     </div>
+
     <div style="padding:20px;">
+      <!-- СЕКЦИЯ: ЦЕНА И ДАТА -->
       <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
         <div style="font-size:28px; font-weight:800; color:var(--yellow-main);">${
           ad.price
@@ -945,73 +972,96 @@ function openProduct(ad) {
           }</div>
         </div>
       </div>
-      <div style="margin-bottom:20px; font-size:16px;"><b>${
-        catMap[ad.cat] || "Товар"
-      }</b> — ${ad.title} ${isVerified ? "🔵" : ""}</div>
+
+      <!-- СЕКЦИЯ: НАЗВАНИЕ -->
+      <div style="margin-bottom:20px; font-size:18px; font-weight:700; color:#fff;">
+        <b>${catMap[ad.cat] || "Товар"}</b> — ${ad.title} ${
+    isVerified ? "🔵" : ""
+  }
+      </div>
+
+      <!-- СЕКЦИЯ: БЕЗОПАСНОСТЬ (Новый блок) -->
+      <div style="background: rgba(255, 59, 48, 0.1); border: 1px solid #ff3b30; border-radius: 15px; padding: 15px; margin-bottom: 20px; display: flex; gap: 12px; align-items: center;">
+        <i class="fa-solid fa-shield-halved" style="color: #ff3b30; font-size: 22px;"></i>
+        <div style="font-size: 13px; color: #eee; line-height: 1.4;">
+          <b>БЕЗОПАСНОСТЬ:</b> Никогда не отправляйте предоплату мошенникам! Старайтесь проверять товар через видеозвонок или при личной встрече.
+        </div>
+      </div>
       
+      <!-- СЕКЦИЯ: КНОПКА СВЯЗИ -->
       ${
         isSold
-          ? `<div style="background:#333; padding:15px; border-radius:12px; color:#ff3b30; text-align:center; font-weight:bold; margin-bottom:20px;">Продано</div>`
-          : `
-          <a href="${contactLink}" class="btn-premium-unity" style="text-decoration:none; margin-bottom:20px;">Написать продавцу</a>
+          ? `<div style="background:#333; padding:18px; border-radius:15px; color:#ff3b30; text-align:center; font-weight:800; margin-bottom:20px; text-transform:uppercase;">Продано</div>`
+          : `<a href="${contactLink}" class="btn-premium-unity" style="text-decoration:none; margin-bottom:20px;">Написать продавцу</a>`
+      }
 
-          <!-- ЛОГИКА ОТОБРАЖЕНИЯ СОСТАВА КОМБО -->
-          ${
-            ad.isCombo
-              ? `
-            <div class="combo-items-list">
-              <div style="font-weight:bold; color:var(--yellow-main); margin-bottom:10px;">В наборе:</div>
-              ${ad.comboItems
-                .split(",")
-                .map(
-                  (item) => `
-                <div class="combo-item-row">
-                  <i class="fa-solid fa-check"></i>
-                  <div>${item.trim()}</div>
-                </div>
-              `
-                )
-                .join("")}
-              ${
-                ad.comboBenefit
-                  ? `<div style="margin-top:10px; font-size:12px; color:#4cd964; font-weight:bold;">🔥 ${ad.comboBenefit}</div>`
-                  : ""
-              }
+      <!-- СЕКЦИЯ: СОСТАВ КОМБО (если есть) -->
+      ${
+        ad.isCombo
+          ? `
+        <div class="combo-items-list" style="margin-bottom: 20px;">
+          <div style="font-weight:bold; color:var(--yellow-main); margin-bottom:10px; font-size:14px;">В наборе:</div>
+          ${ad.comboItems
+            .split(",")
+            .map(
+              (item) => `
+            <div class="combo-item-row" style="display:flex; align-items:center; gap:8px; font-size:14px; color:#eee; margin-bottom:6px;">
+              <i class="fa-solid fa-circle-check" style="color:var(--yellow-main); font-size:12px;"></i>
+              <div>${item.trim()}</div>
             </div>
           `
+            )
+            .join("")}
+          ${
+            ad.comboBenefit
+              ? `<div style="margin-top:10px; font-size:12px; color:#4cd964; font-weight:bold;">🔥 Выгода: ${ad.comboBenefit}</div>`
               : ""
           }
-
-          <div style="background:#2c2c2e; padding:15px; border-radius:12px; margin:20px 0; white-space: pre-wrap; font-size:15px;">${
-            ad.desc || "Нет описания"
-          }</div>
-
-          <div style="background:#1c1c1e; padding:18px; border-radius:15px; border:1px solid #333; display:flex; flex-direction:column; gap:15px;">
-             <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-location-dot" style="color:#ff3b30; font-size:18px; width:20px; text-align:center;"></i><div>${
-               ad.city
-             }, ${ad.address || "—"}</div></div>
-             <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-phone" style="color:var(--yellow-main); font-size:16px; width:20px; text-align:center;"></i><div>${
-               ad.phone || "—"
-             }</div></div>
-             ${
-               ad.tgNick
-                 ? `<div style="display:flex; align-items:center; gap:12px;"><i class="fa-brands fa-telegram" style="color:#0088cc; font-size:20px; width:20px; text-align:center;"></i><div>${ad.tgNick}</div></div>`
-                 : ""
-             }
-          </div>
-          
-          <div onclick="reportAd('${ad.id}', '${
-              ad.userId
-            }')" style="background:rgba(255,204,0,0.1); color:var(--yellow-main); border:1px solid var(--yellow-main); padding:12px; border-radius:12px; text-align:center; font-size:14px; font-weight:bold; cursor:pointer; margin-top:25px;">Пожаловаться на мошенника</div>
+        </div>
       `
+          : ""
       }
+
+      <!-- СЕКЦИЯ: ОПИСАНИЕ -->
+      <div style="background:#2c2c2e; padding:15px; border-radius:12px; margin-bottom:20px; white-space: pre-wrap; font-size:15px; color:#ccc; line-height:1.5;">${
+        ad.desc || "Нет описания"
+      }</div>
+
+      <!-- СЕКЦИЯ: КОНТАКТЫ И АДРЕС -->
+      <div style="background:#1c1c1e; padding:18px; border-radius:15px; border:1px solid #333; display:flex; flex-direction:column; gap:15px;">
+         <div style="display:flex; align-items:center; gap:12px;">
+            <i class="fa-solid fa-location-dot" style="color:#ff3b30; font-size:18px; width:20px; text-align:center;"></i>
+            <div style="font-size:14px; color:#fff;">${ad.city}, ${
+    ad.address || "—"
+  }</div>
+         </div>
+         <div style="display:flex; align-items:center; gap:12px;">
+            <i class="fa-solid fa-phone" style="color:var(--yellow-main); font-size:16px; width:20px; text-align:center;"></i>
+            <div style="font-size:14px; color:#fff;">${
+              ad.phone || ad.whatsapp || "—"
+            }</div>
+         </div>
+         ${
+           ad.tgNick
+             ? `<div style="display:flex; align-items:center; gap:12px;">
+                  <i class="fa-brands fa-telegram" style="color:#0088cc; font-size:20px; width:20px; text-align:center;"></i>
+                  <div style="font-size:14px; color:#fff;">${ad.tgNick}</div>
+                </div>`
+             : ""
+         }
+      </div>
+      
+      <!-- Кнопка жалобы -->
+      <div onclick="reportAd('${ad.id}', '${
+    ad.userId
+  }')" style="background:rgba(255,204,0,0.05); color:var(--yellow-main); border:1px solid rgba(255,204,0,0.2); padding:12px; border-radius:12px; text-align:center; font-size:13px; font-weight:bold; cursor:pointer; margin-top:25px;">Пожаловаться на мошенника</div>
 
       <!-- СПЕЦИАЛЬНЫЙ БЛОК ДЛЯ АДМИНА -->
       ${
         isAdmin
           ? `
         <div style="margin-top:30px; padding:15px; background:rgba(255,59,48,0.1); border:1px solid #ff3b30; border-radius:15px;">
-          <div style="color:#ff3b30; font-weight:bold; margin-bottom:12px; font-size:14px; text-transform:uppercase; letter-spacing:1px;">Админ-панель</div>
+          <div style="color:#ff3b30; font-weight:bold; margin-bottom:12px; font-size:14px; text-transform:uppercase; letter-spacing:1px;">Админ-панель управления</div>
           <div style="font-size:12px; color:#fff; display:flex; flex-direction:column; gap:8px; font-family:monospace;">
             <div>🆔 ID Продавца: <span style="color:var(--yellow-main)">${
               ad.userId
@@ -1020,25 +1070,29 @@ function openProduct(ad) {
               (ad.approvedAt || ad.createdAt) * 1000
             ).toLocaleString()}</div>
             <div>📑 ID Поста: ${ad.id}</div>
-            <div>🎫 Тариф: ${ad.tariff}</div>
+            <div>🎫 Тариф: ${ad.tariff.toUpperCase()}</div>
           </div>
           <button onclick="adminDeleteAd('${
             ad.id
-          }')" style="width:100%; background:#ff3b30; color:#fff; border:none; padding:12px; border-radius:10px; margin-top:15px; font-weight:bold; cursor:pointer;">УДАЛИТЬ ПОСТ (АДМИН)</button>
+          }')" style="width:100%; background:#ff3b30; color:#fff; border:none; padding:14px; border-radius:12px; margin-top:15px; font-weight:bold; cursor:pointer; text-transform:uppercase;">УДАЛИТЬ ПОСТ (АДМИН)</button>
         </div>
       `
           : ""
       }
     </div>`;
 
+  // Инициализация скролла для точек карусели
   const slider = document.getElementById(`slider-${ad.id}`);
-  if (slider)
+  if (slider) {
     slider.onscroll = () => {
       let idx = Math.round(slider.scrollLeft / slider.offsetWidth);
       document
         .querySelectorAll(`[id^="dot-${ad.id}"]`)
         .forEach((d, i) => d.classList.toggle("active", i === idx));
     };
+  }
+
+  // Показываем модалку и кнопку "Назад" в Telegram
   modal.classList.remove("hidden");
   tg.BackButton.show();
   tg.BackButton.onClick(closeProduct);
