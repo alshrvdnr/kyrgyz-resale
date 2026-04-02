@@ -1340,3 +1340,10 @@ body {
   margin-top: 20px;
   text-transform: uppercase;
 }
+
+/* Разрешаем админу кликать по удаленным карточкам для управления */
+.is-admin .card-deleted {
+  pointer-events: auto !important;
+  opacity: 0.6;
+  border: 1px dashed #ff3b30;
+}

@@ -911,191 +911,230 @@ window.adminDeleteAd = async function (adId) {
 
 // 6. МОДАЛКА И КОНТАКТЫ
 function openProduct(ad) {
-  const modal = document.getElementById("product-modal");
-  const isSold = ad.status === "sold";
-  const isFav = favs.includes(ad.id);
-  const isVerified = ad.verified === true;
-
-  // Проверка прав админа
-  const isAdmin = currentUserRole === "admin";
-
-  // Логика формирования ссылок для связи
-  let contactLink = ad.tgNick
-    ? `https://t.me/${ad.tgNick.replace("@", "")}`
-    : `https://wa.me/${ad.phone?.replace(/[^0-9]/g, "")}`;
-
-  // Генерация точек для карусели фотографий
-  let dots = ad.img
-    ? ad.img
-        .map(
-          (_, i) =>
-            `<div class="dot ${i === 0 ? "active" : ""}" id="dot-${
-              ad.id
-            }-${i}"></div>`
-        )
-        .join("")
-    : "";
-
-  document.getElementById("pv-content").innerHTML = `
-    <div class="modal-carousel-container">
-      <!-- Кнопка назад внутри модалки -->
-      <i class="fa fa-arrow-left" onclick="closeProduct()" style="position:absolute; top:20px; left:20px; z-index:100; background:rgba(0,0,0,0.5); padding:10px; border-radius:50%;"></i>
-      
-      <!-- Кнопка избранного -->
-      <i class="fa-solid fa-heart" onclick="toggleFav('${
-        ad.id
-      }')" style="position:absolute; top:20px; right:20px; z-index:100; font-size:24px; color:${
-    isFav ? "var(--yellow-main)" : "#fff"
-  }"></i>
-
-      <!-- Слайдер фотографий -->
-      <div class="product-gallery-slider" id="slider-${ad.id}">
-        ${ad.img ? ad.img.map((src) => `<img src="${src}">`).join("") : ""}
-      </div>
-      
-      <!-- Точки карусели -->
-      <div class="carousel-dots">${dots}</div>
-    </div>
-
-    <div style="padding:20px;">
-      <!-- СЕКЦИЯ: ЦЕНА И ДАТА -->
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
-        <div style="font-size:28px; font-weight:800; color:var(--yellow-main);">${
-          ad.price
-        } KGS</div>
-        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:5px;">
-          <div style="color:var(--gray); font-size:11px;">${formatRelativeDate(
-            ad.approvedAt || ad.createdAt
-          )}</div>
-          <div style="font-size:11px; color:#4cd964; font-weight:bold; background:rgba(76,217,100,0.1); padding:4px 8px; border-radius:6px;">Поступление: ${
-            ad.receiveDate || "—"
-          }</div>
-        </div>
-      </div>
-
-      <!-- СЕКЦИЯ: НАЗВАНИЕ -->
-      <div style="margin-bottom:20px; font-size:18px; font-weight:700; color:#fff;">
-        <b>${catMap[ad.cat] || "Товар"}</b> — ${ad.title} ${
-    isVerified ? "🔵" : ""
+  // 1. ПЕРВИЧНАЯ ПРОВЕРКА
+  // Если данных нет, выходим, чтобы не вызвать ошибку
+  if (!ad) {
+    console.error("Ошибка: Данные объявления не получены");
+    return;
   }
-      </div>
 
-      <!-- СЕКЦИЯ: БЕЗОПАСНОСТЬ (Новый блок) -->
-      <div style="background: rgba(255, 59, 48, 0.1); border: 1px solid #ff3b30; border-radius: 15px; padding: 15px; margin-bottom: 20px; display: flex; gap: 12px; align-items: center;">
-        <i class="fa-solid fa-shield-halved" style="color: #ff3b30; font-size: 22px;"></i>
-        <div style="font-size: 13px; color: #eee; line-height: 1.4;">
-          <b>БЕЗОПАСНОСТЬ:</b> Никогда не отправляйте предоплату мошенникам! Старайтесь проверять товар через видеозвонок или при личной встрече.
-        </div>
-      </div>
-      
-      <!-- СЕКЦИЯ: КНОПКА СВЯЗИ -->
-      ${
-        isSold
-          ? `<div style="background:#333; padding:18px; border-radius:15px; color:#ff3b30; text-align:center; font-weight:800; margin-bottom:20px; text-transform:uppercase;">Продано</div>`
-          : `<a href="${contactLink}" class="btn-premium-unity" style="text-decoration:none; margin-bottom:20px;">Написать продавцу</a>`
-      }
+  const modal = document.getElementById("product-modal");
+  const pvContent = document.getElementById("pv-content");
 
-      <!-- СЕКЦИЯ: СОСТАВ КОМБО (если есть) -->
-      ${
-        ad.isCombo
-          ? `
-        <div class="combo-items-list" style="margin-bottom: 20px;">
-          <div style="font-weight:bold; color:var(--yellow-main); margin-bottom:10px; font-size:14px;">В наборе:</div>
-          ${ad.comboItems
-            .split(",")
-            .map(
-              (item) => `
-            <div class="combo-item-row" style="display:flex; align-items:center; gap:8px; font-size:14px; color:#eee; margin-bottom:6px;">
-              <i class="fa-solid fa-circle-check" style="color:var(--yellow-main); font-size:12px;"></i>
-              <div>${item.trim()}</div>
-            </div>
-          `
-            )
-            .join("")}
+  if (!modal || !pvContent) return;
+
+  try {
+    // 2. ПОДГОТОВКА ДАННЫХ (с защитой от пустых полей)
+    const isSold = ad.status === "sold";
+    const isFav = favs.includes(ad.id);
+    const isVerified = ad.verified === true;
+
+    // Проверка прав админа (по роли или по ID из конфига)
+    const isAdmin =
+      currentUserRole === "admin" || tg.initDataUnsafe?.user?.id == MY_ADMIN_ID;
+
+    // Безопасные переменные (подставляем заглушки, если данных нет в базе)
+    const price = ad.price || "0";
+    const title = ad.title || "Без названия";
+    const categoryName = catMap[ad.cat] || "Товар";
+    const description = ad.desc || "Описание не указано";
+    const city = ad.city || "Город не указан";
+    const address = ad.address || "—";
+    const phone = ad.phone || ad.whatsapp || "—";
+    const telegramNick = ad.tgNick || "";
+    const receiveDate = ad.receiveDate || "—";
+
+    // Защита от ошибки .toUpperCase() если поля tariff нет
+    const tariff = (ad.tariff || "standard").toUpperCase();
+
+    const displayDate =
+      typeof formatRelativeDate === "function"
+        ? formatRelativeDate(ad.approvedAt || ad.createdAt)
+        : "Недавно";
+
+    // Формируем ссылку для связи
+    let contactLink = telegramNick
+      ? `https://t.me/${telegramNick.replace("@", "")}`
+      : `https://wa.me/${phone.replace(/[^0-9]/g, "")}`;
+
+    // 3. ГЕНЕРАЦИЯ ТОЧЕК КАРУСЕЛИ
+    let dots = "";
+    if (ad.img && Array.isArray(ad.img)) {
+      dots = ad.img
+        .map(
+          (_, i) => `
+        <div class="dot ${i === 0 ? "active" : ""}" id="dot-${
+            ad.id
+          }-${i}"></div>
+      `
+        )
+        .join("");
+    }
+
+    // 4. СБОРКА HTML
+    pvContent.innerHTML = `
+      <div class="modal-carousel-container">
+        <!-- Кнопка закрытия -->
+        <i class="fa fa-arrow-left" onclick="closeProduct()" style="position:absolute; top:20px; left:20px; z-index:100; background:rgba(0,0,0,0.5); padding:10px; border-radius:50%; color:#fff; cursor:pointer;"></i>
+        
+        <!-- Кнопка Избранное -->
+        <i class="fa-solid fa-heart" onclick="toggleFav('${
+          ad.id
+        }')" style="position:absolute; top:20px; right:20px; z-index:100; font-size:24px; color:${
+      isFav ? "var(--yellow-main)" : "#fff"
+    }; cursor:pointer;"></i>
+
+        <!-- Слайдер картинок -->
+        <div class="product-gallery-slider" id="slider-${ad.id}">
           ${
-            ad.comboBenefit
-              ? `<div style="margin-top:10px; font-size:12px; color:#4cd964; font-weight:bold;">🔥 Выгода: ${ad.comboBenefit}</div>`
-              : ""
+            ad.img && Array.isArray(ad.img)
+              ? ad.img.map((src) => `<img src="${src}" alt="product">`).join("")
+              : '<div style="display:flex; align-items:center; justify-content:center; height:100%; color:gray;">Нет фото</div>'
           }
         </div>
-      `
-          : ""
-      }
-
-      <!-- СЕКЦИЯ: ОПИСАНИЕ -->
-      <div style="background:#2c2c2e; padding:15px; border-radius:12px; margin-bottom:20px; white-space: pre-wrap; font-size:15px; color:#ccc; line-height:1.5;">${
-        ad.desc || "Нет описания"
-      }</div>
-
-      <!-- СЕКЦИЯ: КОНТАКТЫ И АДРЕС -->
-      <div style="background:#1c1c1e; padding:18px; border-radius:15px; border:1px solid #333; display:flex; flex-direction:column; gap:15px;">
-         <div style="display:flex; align-items:center; gap:12px;">
-            <i class="fa-solid fa-location-dot" style="color:#ff3b30; font-size:18px; width:20px; text-align:center;"></i>
-            <div style="font-size:14px; color:#fff;">${ad.city}, ${
-    ad.address || "—"
-  }</div>
-         </div>
-         <div style="display:flex; align-items:center; gap:12px;">
-            <i class="fa-solid fa-phone" style="color:var(--yellow-main); font-size:16px; width:20px; text-align:center;"></i>
-            <div style="font-size:14px; color:#fff;">${
-              ad.phone || ad.whatsapp || "—"
-            }</div>
-         </div>
-         ${
-           ad.tgNick
-             ? `<div style="display:flex; align-items:center; gap:12px;">
-                  <i class="fa-brands fa-telegram" style="color:#0088cc; font-size:20px; width:20px; text-align:center;"></i>
-                  <div style="font-size:14px; color:#fff;">${ad.tgNick}</div>
-                </div>`
-             : ""
-         }
+        <div class="carousel-dots">${dots}</div>
       </div>
-      
-      <!-- Кнопка жалобы -->
-      <div onclick="reportAd('${ad.id}', '${
-    ad.userId
-  }')" style="background:rgba(255,204,0,0.05); color:var(--yellow-main); border:1px solid rgba(255,204,0,0.2); padding:12px; border-radius:12px; text-align:center; font-size:13px; font-weight:bold; cursor:pointer; margin-top:25px;">Пожаловаться на мошенника</div>
 
-      <!-- СПЕЦИАЛЬНЫЙ БЛОК ДЛЯ АДМИНА -->
-      ${
-        isAdmin
-          ? `
-        <div style="margin-top:30px; padding:15px; background:rgba(255,59,48,0.1); border:1px solid #ff3b30; border-radius:15px;">
-          <div style="color:#ff3b30; font-weight:bold; margin-bottom:12px; font-size:14px; text-transform:uppercase; letter-spacing:1px;">Админ-панель управления</div>
-          <div style="font-size:12px; color:#fff; display:flex; flex-direction:column; gap:8px; font-family:monospace;">
-            <div>🆔 ID Продавца: <span style="color:var(--yellow-main)">${
-              ad.userId
-            }</span></div>
-            <div>📅 Дата публ.: ${new Date(
-              (ad.approvedAt || ad.createdAt) * 1000
-            ).toLocaleString()}</div>
-            <div>📑 ID Поста: ${ad.id}</div>
-            <div>🎫 Тариф: ${ad.tariff.toUpperCase()}</div>
+      <div style="padding:20px;">
+        <!-- БЛОК ЦЕНЫ И ДАТЫ -->
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
+          <div style="font-size:28px; font-weight:800; color:var(--yellow-main);">${price} KGS</div>
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:5px;">
+            <div style="color:var(--gray); font-size:11px;">${displayDate}</div>
+            <div style="font-size:11px; color:#4cd964; font-weight:bold; background:rgba(76,217,100,0.1); padding:4px 8px; border-radius:6px;">
+               Поступление: ${receiveDate}
+            </div>
           </div>
-          <button onclick="adminDeleteAd('${
-            ad.id
-          }')" style="width:100%; background:#ff3b30; color:#fff; border:none; padding:14px; border-radius:12px; margin-top:15px; font-weight:bold; cursor:pointer; text-transform:uppercase;">УДАЛИТЬ ПОСТ (АДМИН)</button>
         </div>
-      `
-          : ""
-      }
-    </div>`;
 
-  // Инициализация скролла для точек карусели
-  const slider = document.getElementById(`slider-${ad.id}`);
-  if (slider) {
-    slider.onscroll = () => {
-      let idx = Math.round(slider.scrollLeft / slider.offsetWidth);
-      document
-        .querySelectorAll(`[id^="dot-${ad.id}"]`)
-        .forEach((d, i) => d.classList.toggle("active", i === idx));
-    };
+        <!-- НАЗВАНИЕ И КАТЕГОРИЯ -->
+        <div style="margin-bottom:20px; font-size:18px; font-weight:700; color:#fff;">
+          <b>${categoryName}</b> — ${title} ${isVerified ? "🔵" : ""}
+        </div>
+
+        <!-- БАННЕР БЕЗОПАСНОСТИ -->
+        <div style="background: rgba(255, 59, 48, 0.1); border: 1px solid #ff3b30; border-radius: 15px; padding: 15px; margin-bottom: 25px; display: flex; gap: 12px; align-items: center;">
+          <i class="fa-solid fa-shield-halved" style="color: #ff3b30; font-size: 22px;"></i>
+          <div style="font-size: 13px; color: #eee; line-height: 1.4;">
+            <b>БЕЗОПАСНОСТЬ:</b> Никогда не отправляйте предоплату! Старайтесь проверять товар через видеозвонок или при личной встрече.
+          </div>
+        </div>
+        
+        <!-- КНОПКА СВЯЗИ ИЛИ СТАТУС ПРОДАНО -->
+        ${
+          isSold
+            ? `<div style="background:#333; padding:18px; border-radius:15px; color:#ff3b30; text-align:center; font-weight:800; margin-bottom:20px; text-transform:uppercase;">Продано</div>`
+            : `<a href="${contactLink}" class="btn-premium-unity" style="text-decoration:none; margin-bottom:20px; display:block;">Написать продавцу</a>`
+        }
+
+        <!-- СОСТАВ КОМБО (если есть) -->
+        ${
+          ad.isCombo && ad.comboItems
+            ? `
+          <div class="combo-items-list" style="margin-bottom: 25px; background: rgba(255,204,0,0.05); padding: 15px; border-radius: 12px; border: 1px dashed var(--yellow-main);">
+            <div style="font-weight:bold; color:var(--yellow-main); margin-bottom:10px; font-size:14px;">В наборе:</div>
+            ${ad.comboItems
+              .split(",")
+              .map(
+                (item) => `
+              <div style="display:flex; align-items:center; gap:8px; font-size:14px; color:#eee; margin-bottom:6px;">
+                <i class="fa-solid fa-circle-check" style="color:var(--yellow-main); font-size:12px;"></i>
+                <div>${item.trim()}</div>
+              </div>
+            `
+              )
+              .join("")}
+            ${
+              ad.comboBenefit
+                ? `<div style="margin-top:10px; font-size:12px; color:#4cd964; font-weight:bold;">🔥 Выгода: ${ad.comboBenefit}</div>`
+                : ""
+            }
+          </div>
+        `
+            : ""
+        }
+
+        <!-- ОПИСАНИЕ -->
+        <div style="background:#2c2c2e; padding:15px; border-radius:12px; margin-bottom:25px; white-space: pre-wrap; font-size:15px; color:#ccc; line-height:1.5;">
+          ${description}
+        </div>
+
+        <!-- КОНТАКТНАЯ ИНФОРМАЦИЯ -->
+        <div style="background:#1c1c1e; padding:18px; border-radius:15px; border:1px solid #333; display:flex; flex-direction:column; gap:15px;">
+           <div style="display:flex; align-items:center; gap:12px;">
+              <i class="fa-solid fa-location-dot" style="color:#ff3b30; font-size:18px; width:20px; text-align:center;"></i>
+              <div style="font-size:14px; color:#fff;">${city}, ${address}</div>
+           </div>
+           <div style="display:flex; align-items:center; gap:12px;">
+              <i class="fa-solid fa-phone" style="color:var(--yellow-main); font-size:16px; width:20px; text-align:center;"></i>
+              <div style="font-size:14px; color:#fff;">${phone}</div>
+           </div>
+           ${
+             telegramNick
+               ? `
+             <div style="display:flex; align-items:center; gap:12px;">
+                <i class="fa-brands fa-telegram" style="color:#0088cc; font-size:20px; width:20px; text-align:center;"></i>
+                <div style="font-size:14px; color:#fff;">${telegramNick}</div>
+             </div>
+           `
+               : ""
+           }
+        </div>
+        
+        <!-- КНОПКА ЖАЛОБЫ -->
+        <div onclick="reportAd('${ad.id}', '${
+      ad.userId
+    }')" style="background:rgba(255,204,0,0.05); color:var(--yellow-main); border:1px solid rgba(255,204,0,0.2); padding:12px; border-radius:12px; text-align:center; font-size:13px; font-weight:bold; cursor:pointer; margin-top:25px;">
+          Пожаловаться на мошенника
+        </div>
+
+        <!-- СПЕЦИАЛЬНЫЙ БЛОК ДЛЯ АДМИНИСТРАТОРА -->
+        ${
+          isAdmin
+            ? `
+          <div style="margin-top:35px; padding:18px; background:rgba(255,59,48,0.1); border:1px solid #ff3b30; border-radius:15px;">
+            <div style="color:#ff3b30; font-weight:bold; margin-bottom:12px; font-size:14px; text-transform:uppercase; letter-spacing:1px;">Админ-панель управления</div>
+            <div style="font-size:12px; color:#fff; display:flex; flex-direction:column; gap:10px; font-family:monospace;">
+              <div>🆔 ID Продавца: <span style="color:var(--yellow-main)">${
+                ad.userId || "не указан"
+              }</span></div>
+              <div>📅 Дата публикации: ${new Date(
+                (ad.approvedAt || ad.createdAt || 0) * 1000
+              ).toLocaleString()}</div>
+              <div>📑 ID Объявления: ${ad.id}</div>
+              <div>🎫 Тарифный план: ${tariff}</div>
+            </div>
+            <button onclick="adminDeleteAd('${
+              ad.id
+            }')" style="width:100%; background:#ff3b30; color:#fff; border:none; padding:14px; border-radius:12px; margin-top:18px; font-weight:bold; cursor:pointer; text-transform:uppercase; font-size:12px;">УДАЛИТЬ ПОСТ (АДМИН)</button>
+          </div>
+        `
+            : ""
+        }
+      </div>
+    `;
+
+    // 5. ИНИЦИАЛИЗАЦИЯ СКРОЛЛА КАРУСЕЛИ
+    const slider = document.getElementById(`slider-${ad.id}`);
+    if (slider) {
+      slider.onscroll = () => {
+        let idx = Math.round(slider.scrollLeft / slider.offsetWidth);
+        document
+          .querySelectorAll(`[id^="dot-${ad.id}"]`)
+          .forEach((d, i) => d.classList.toggle("active", i === idx));
+      };
+    }
+
+    // 6. ПОКАЗ МОДАЛКИ
+    modal.classList.remove("hidden");
+    tg.BackButton.show();
+    tg.BackButton.onClick(closeProduct);
+  } catch (error) {
+    console.error("Критическая ошибка при отрисовке объявления:", error);
+    alert(
+      "Не удалось загрузить данные этого объявления. Пожалуйста, сообщите администратору."
+    );
   }
-
-  // Показываем модалку и кнопку "Назад" в Telegram
-  modal.classList.remove("hidden");
-  tg.BackButton.show();
-  tg.BackButton.onClick(closeProduct);
 }
 
 // 7. ПОДАЧА (STORAGE)
@@ -1127,7 +1166,7 @@ async function publishAndSend() {
   const title = document.getElementById("in-title").value;
   const priceInput = document.getElementById("in-price").value;
 
-  // --- 1. ВАЛИДАЦИЯ ---
+  // --- 1. ПРЕДВАРИТЕЛЬНАЯ ПРОВЕРКА (ВАЛИДАЦИЯ) ---
   const isPartner =
     currentUserRole === "business" || currentUserRole === "admin";
   const cleanTitle = title.trim();
@@ -1138,6 +1177,7 @@ async function publishAndSend() {
     return alert("Введите корректную цену!");
   if (numericPrice > 1000000) return alert("Цена слишком высокая!");
 
+  // Проверка анти-спама для обычных юзеров (1 пост в минуту)
   if (!isPartner && !editingId) {
     const lastPost = localStorage.getItem("last_post_time");
     if (lastPost && Date.now() - lastPost < 60000) {
@@ -1146,7 +1186,7 @@ async function publishAndSend() {
     }
   }
 
-  // --- 2. ПОДГОТОВКА ЛОАДЕРА ---
+  // --- 2. ВКЛЮЧАЕМ ИНФОРМАТИВНЫЙ ЛОАДЕР ---
   const overlay = document.getElementById("upload-overlay");
   const lTitle = document.getElementById("loader-title");
   const lText = document.getElementById("loader-text");
@@ -1161,127 +1201,147 @@ async function publishAndSend() {
     lVisual.style.color = "var(--yellow-main)";
     lBtn.classList.add("hidden");
     lText.innerHTML =
-      "Начинаем публикацию...<br><b>НЕ ЗАКРЫВАЙТЕ ПРИЛОЖЕНИЕ!</b>";
+      "Начинаем процесс публикации...<br><b>ПОЖАЛУЙСТА, НЕ ЗАКРЫВАЙТЕ ОКНО!</b>";
   }
 
   try {
-    const myId = getSecureUserId();
+    // ИСПРАВЛЕНО: Используем твою функцию getUserId()
+    const myId = getUserId();
 
-    // --- 3. РЕДАКТИРОВАНИЕ (если редактируем старое) ---
+    // --- 3. ЛОГИКА РЕДАКТИРОВАНИЯ (если обновляем старое) ---
     if (editingId) {
-      lText.innerText = "Сохраняем изменения...";
+      lText.innerText = "Сохраняем изменения текста...";
       await db.ref("ads/" + editingId).update({
         title: cleanTitle,
         price: numericPrice,
         address: document.getElementById("in-address").value,
         phone: document.getElementById("in-wa").value,
         desc: document.getElementById("in-desc").value,
-        needs_sync_tg: true,
+        needs_sync_tg: true, // Пометка для бота на Hetzner обновить пост в ТГ
       });
-      finishUpload("Изменения сохранены!");
+
+      finishUpload("Изменения успешно сохранены!");
       return;
     }
 
-    // --- 4. ЗАГРУЗКА ФАЙЛОВ (Receipt, Verify, Photos) ---
+    // --- 4. ПОДГОТОВКА ФАЙЛОВ И ДАННЫХ ---
     const catSelect = document.getElementById("in-cat");
     const citySelect = document.getElementById("in-city");
 
+    // Проверки перед загрузкой для обычных юзеров
     if (!isPartner) {
       if ((holidayMode || selectedTariff === "vip") && !receiptAttached)
-        throw new Error("Прикрепите чек об оплате!");
+        throw new Error("Необходимо прикрепить чек об оплате!");
       if (!verifyPhotoFile)
         throw new Error("Загрузите проверочное фото с кодом!");
     }
-    if (selectedFiles.length === 0)
-      throw new Error("Добавьте фотографии товара!");
 
-    // Шаг А: Чек
+    if (selectedFiles.length === 0)
+      throw new Error("Добавьте хотя бы одну фотографию товара!");
+
+    // ШАГ А: Загрузка чека (если нужно)
     let receiptUrl = "";
     if (!isPartner && (holidayMode || selectedTariff === "vip")) {
-      lText.innerText = "Отправляем чек об оплате...";
+      lText.innerText = "Загружаем чек об оплате...";
       const receiptFile = document.getElementById("receipt-input").files[0];
       if (receiptFile) receiptUrl = await uploadFile(receiptFile);
     }
 
-    // Шаг Б: Проверочное фото
+    // ШАГ Б: Загрузка проверочного фото
     let verifyPhotoUrl = "";
     if (verifyPhotoFile) {
-      lText.innerText = "Отправляем проверочное фото...";
+      lText.innerText = "Загружаем проверочное фото с кодом...";
       verifyPhotoUrl = await uploadFile(verifyPhotoFile);
     }
 
-    // Шаг В: Основные фото (по очереди для стабильности)
+    // ШАГ В: Загрузка основных фотографий товара (по очереди)
     const validImgs = [];
     for (let i = 0; i < selectedFiles.length; i++) {
       lText.innerHTML = `Загрузка фото товара (${i + 1} из ${
         selectedFiles.length
-      })...<br>Пожалуйста, подождите.`;
+      })...<br><b>Осталось еще немного.</b>`;
       const url = await uploadFile(selectedFiles[i]);
       if (url) validImgs.push(url);
     }
 
     if (validImgs.length === 0)
-      throw new Error("Не удалось загрузить изображения. Проверьте интернет.");
+      throw new Error("Ошибка при загрузке изображений. Проверьте соединение.");
 
-    // --- 5. ЗАПИСЬ В БАЗУ ДАННЫХ ---
-    lText.innerText = "Финальная стадия: Публикация...";
+    // --- 5. ФОРМИРОВАНИЕ ОБЪЕКТА ДЛЯ БАЗЫ ДАННЫХ ---
+    lText.innerText = "Финальный этап: Синхронизация с базой...";
 
     const newAd = {
       title: cleanTitle,
       price: numericPrice,
+
+      // КАТЕГОРИЯ И ГОРОД
       cat: catSelect.value,
       city_key: citySelect.value,
       city: citySelect.options[citySelect.selectedIndex].text,
+
+      // КОНТАКТЫ И ОПИСАНИЕ
       address: document.getElementById("in-address").value,
       phone: document.getElementById("in-wa").value,
       tgNick: document.getElementById("in-tg").value,
       desc: document.getElementById("in-desc").value,
       receiveDate: document.getElementById("in-receive-date").value,
 
+      // ЛОГИКА КОМБО-НАБОРОВ
       isCombo:
         typeof currentAddingType !== "undefined" &&
         currentAddingType === "combo",
       comboItems: document.getElementById("in-combo-items")?.value || "",
       comboBenefit: document.getElementById("in-combo-benefit")?.value || "",
 
+      // МЕДИА-ФАЙЛЫ
       img: validImgs,
       verify_photo: verifyPhotoUrl || "",
       verify_code: isPartner ? "PARTNER_BYPASS" : currentVerifyCode,
       receipt_url: receiptUrl,
 
+      // СИСТЕМНЫЕ ПОЛЯ
       status: isPartner ? "active" : "pending",
-      bot_notified: false, // Всегда false, чтобы бот на Hetzner увидел новую заявку!
+      bot_notified: false, // Чтобы бот на сервере прислал уведомление админу
       isShop: isPartner,
       shopName: isPartner ? myShopData?.shopName || "Администрация" : "",
       verified: isPartner,
       tariff: selectedTariff,
       is_holiday: isPartner ? false : holidayMode,
 
+      // АВТОР И ВРЕМЯ
       userId: myId,
       createdAt: Math.floor(Date.now() / 1000),
     };
 
-    // Отправляем в Firebase
+    // 6. ОТПРАВКА В FIREBASE
     await db.ref("ads").push(newAd);
+
+    // Запоминаем время последнего поста (для анти-спама)
     localStorage.setItem("last_post_time", Date.now());
 
-    lTitle.innerText = "УСПЕШНО!";
+    // ФИНАЛ: Красивое завершение
+    lTitle.innerText = "ГОТОВО!";
+    lVisual.style.color = "#4cd964"; // Зеленый цвет при успехе
+
     finishUpload(
-      isPartner ? "Опубликовано мгновенно!" : "Отправлено на модерацию!"
+      isPartner
+        ? "Ваше объявление опубликовано мгновенно! ✨"
+        : "Заявка отправлена модератору на проверку! ⏳"
     );
   } catch (e) {
-    // ОБРАБОТКА ОШИБОК
+    // ОБРАБОТКА ОШИБОК ЗАГРУЗКИ
+    console.error("Ошибка при выполнении publishAndSend:", e);
+
     if (overlay) {
       lVisual.classList.remove("pulse-heart");
       lVisual.classList.add("error-shake");
       lVisual.style.color = "#ff3b30";
-      lTitle.innerText = "ОШИБКА";
+      lTitle.innerText = "ПРОИЗОШЛА ОШИБКА";
       lText.innerText = e.message;
       lBtn.classList.remove("hidden");
     } else {
-      alert("Ошибка: " + e.message);
+      alert("Критическая ошибка: " + e.message);
     }
-    console.error("Критическая ошибка при публикации:", e);
   }
 }
 
