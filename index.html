@@ -90,17 +90,9 @@
             <div class="categories-container" id="cat-container">
               <div
                 class="cat-card active"
-                id="f-btn-all"
-                onclick="setFeedFilter('all', this)"
+                onclick="filterByCat('Все', this)"
               >
                 <i class="fa-solid fa-list"></i><span>Все</span>
-              </div>
-              <div
-                class="cat-card"
-                id="f-btn-resale"
-                onclick="setFeedFilter('resale', this)"
-              >
-                <i class="fa-solid fa-recycle"></i><span>Resale</span>
               </div>
               <div class="cat-card" onclick="filterByCat('flowers', this)">
                 <i class="fa-solid fa-leaf"></i><span>Цветы</span>
@@ -117,6 +109,13 @@
             </div>
           </div>
         </header>
+
+        <!-- Lalafo-style toggle buttons right above the listings -->
+        <div style="display:flex; padding: 15px 15px 0;">
+          <div id="f-btn-all" onclick="setFeedFilter('all', this)" style="flex:1; text-align:center; padding-bottom:10px; color:var(--yellow-main); border-bottom: 2px solid var(--yellow-main); font-weight:bold; cursor:pointer; font-size:16px;">Все</div>
+          <div id="f-btn-resale" onclick="setFeedFilter('resale', this)" style="flex:1; text-align:center; padding-bottom:10px; color:gray; border-bottom: 2px solid transparent; font-weight:bold; cursor:pointer; font-size:16px;">Ресейл</div>
+        </div>
+
         <!-- ИНДИКАТОР СТАТУСА БОТА (ТОЛЬКО ДЛЯ АДМИНА) -->
         <div id="admin-bot-status" class="hidden" style="margin: 10px 15px">
           <div class="status-content">

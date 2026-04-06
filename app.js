@@ -755,17 +755,33 @@ function applyHolidayUI() {
 
 // глобальный фильтр ленты
 window.currentFeedFilter = 'all';
-window.setFeedFilter = function(opt, el) {
+window.setFeedFilter = function(opt) {
   window.currentFeedFilter = opt;
 
-  document.querySelectorAll(".cat-card").forEach((i) => i.classList.remove("active"));
-  if (el) el.classList.add("active");
+  const btnAll = document.getElementById("f-btn-all");
+  const btnResale = document.getElementById("f-btn-resale");
+  if(btnAll && btnResale) {
+    if (opt === "all") {
+       btnAll.style.color = "var(--yellow-main)";
+       btnAll.style.borderBottom = "2px solid var(--yellow-main)";
+       btnResale.style.color = "gray";
+       btnResale.style.borderBottom = "2px solid transparent";
+    } else {
+       btnResale.style.color = "var(--yellow-main)";
+       btnResale.style.borderBottom = "2px solid var(--yellow-main)";
+       btnAll.style.color = "gray";
+       btnAll.style.borderBottom = "2px solid transparent";
+    }
+  }
 
   // При переключении на глобальный фильтр сбрасываем категорию
   if (opt === 'all' || opt === 'resale') {
      window.curCat = 'Все';
      const titleEl = document.getElementById("dynamic-feed-title");
      if (titleEl) titleEl.innerText = opt === 'all' ? "Свежие предложения" : "Ресейл предложения";
+     
+     // Снимаем выделение со всех категорий в карусели
+     document.querySelectorAll(".cat-card").forEach((i) => i.classList.remove("active"));
   }
   
   renderFeed();
@@ -1797,14 +1813,10 @@ window.filterByCat = function (c, el) {
     // Если элемент не передан, ищем его по тексту
     const cards = document.querySelectorAll(".cat-card");
     cards.forEach((card) => {
-      // Исключаем кнопки "Все" и "Resale" из поиска категорий
+      // Исключаем кнопки "Все" из поиска категорий если они внутри
       if (card.id === "f-btn-all" || card.id === "f-btn-resale") return;
       if (card.innerText.includes(catMap[c] || c)) card.classList.add("active");
     });
-    
-    // При выборе конкретной категории принудительно переключаемся на "Все" (чтобы искать товары и магазинов)
-    // если только мы не находимся явно в фильтре Ресейл (чтобы можно было искать БУ цветы).
-    // По желанию клиента оставим текущий currentFeedFilter как есть.
   }
 
   // Меняем заголовок над лентой
@@ -2086,35 +2098,46 @@ window.renderShopsLine = async function() {
   shops.forEach(shop => {
     let logoUrl = "?";
     let isTextLogo = true;
-    if (shop.shopData && shop.shopData.logo) {
-       logoUrl = shop.shopData.logo;
+    
+    // Fallback logic to grab logo from root if missing in shopData
+    const sData = shop.shopData || {};
+    const fallbackLogo = sData.logo || shop.logo;
+
+    if (fallbackLogo) {
+       logoUrl = fallbackLogo;
        isTextLogo = false;
     } else {
-       logoUrl = shop.first_name ? shop.first_name.charAt(0).toUpperCase() : "?";
+       logoUrl = (sData.shopName || shop.shopName || shop.first_name || "M").charAt(0).toUpperCase();
     }
     
-    const shopName = shop.shopData?.shopName || shop.first_name || "Магазин";
+    const shopName = sData.shopName || shop.shopName || shop.first_name || "Магазин";
     
     const div = document.createElement("div");
-    div.style = "display:flex; flex-direction:column; align-items:center; cursor:pointer; width: 75px;";
+    // New design: White square card with logo taking top space, title below
+    div.style = "display:flex; flex-direction:column; background: #fff; border-radius: 12px; padding: 6px; cursor:pointer; width: 90px; position:relative; box-shadow: 0 2px 5px rgba(0,0,0,0.1);";
     div.className = "flex-shrink-0";
     div.onclick = () => openPublicShop(shop.id);
-
     if (isTextLogo) {
       div.innerHTML = `
-        <div style="width:70px; height:70px; background:var(--premium-grad); color:#000; font-weight:bold; font-size:28px; border-radius:15px; display:flex; align-items:center; justify-content:center; margin-bottom:5px;">
+        <div style="width:100%; height:60px; background:var(--premium-grad); color:#000; font-weight:bold; font-size:24px; border-radius:8px; display:flex; align-items:center; justify-content:center; margin-bottom:5px;">
           ${logoUrl}
         </div>
-        <span style="font-size:12px; color:#fff; font-weight:bold; text-align:center; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">${shopName}</span>
-        <span style="font-size:10px; color:var(--yellow-main);"><i class="fa-solid fa-circle-check"></i></span>
+        <div style="display:flex; align-items:center;">
+          <span style="font-size:11px; color:#000; font-weight:bold; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">${shopName}</span>
+          <i class="fa-solid fa-circle-check" style="color:#007aff; font-size:10px; margin-left:3px;"></i>
+        </div>
+        <span style="font-size:9px; color:gray; margin-top:2px; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">Partner</span>
       `;
     } else {
       div.innerHTML = `
-        <div style="width:70px; height:70px; border-radius:15px; margin-bottom:5px; overflow:hidden;">
+        <div style="width:100%; height:60px; border-radius:8px; margin-bottom:5px; overflow:hidden; background:#f0f0f0;">
           <img src="${logoUrl}" style="width:100%; height:100%; object-fit:cover;">
         </div>
-        <span style="font-size:12px; color:#fff; font-weight:bold; text-align:center; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">${shopName}</span>
-        <span style="font-size:10px; color:var(--yellow-main);"><i class="fa-solid fa-circle-check"></i></span>
+        <div style="display:flex; align-items:center;">
+          <span style="font-size:11px; color:#000; font-weight:bold; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">${shopName}</span>
+          <i class="fa-solid fa-circle-check" style="color:#007aff; font-size:10px; margin-left:3px;"></i>
+        </div>
+        <span style="font-size:9px; color:gray; margin-top:2px; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">Partner</span>
       `;
     }
     container.appendChild(div);
