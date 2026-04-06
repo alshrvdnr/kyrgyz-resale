@@ -560,7 +560,7 @@ window.showPage = function (p) {
   // ЕСЛИ ЭТО ДОБАВИТЬ ТОВАР И ЮЗЕР = БИЗНЕС
   let finalPage = p;
   if (p === "add") {
-    const isBiz = (currentUser?.role === "business" || currentUser?.role === "admin");
+    const isBiz = (currentUserRole === "business" || currentUserRole === "admin");
     const bizFields = document.getElementById("biz-only-fields");
     const titleText = document.getElementById("add-title-text");
     
@@ -1915,10 +1915,10 @@ window.openAddForm = function (type) {
 
   if (type === "combo") {
     titleText.innerText = "Создать КОМБО";
-    comboBlock.classList.remove("hidden");
+    if (comboBlock) comboBlock.classList.remove("hidden");
   } else {
-    titleText.innerText = "Новый товар";
-    comboBlock.classList.add("hidden");
+    // We let showPage determine the text "Новый товар" vs "Новый товар магазина"
+    if (comboBlock) comboBlock.classList.add("hidden");
   }
 };
 
