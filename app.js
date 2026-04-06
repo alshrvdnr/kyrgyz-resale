@@ -563,13 +563,23 @@ window.showPage = function (p) {
     const isBiz = (currentUserRole === "business" || currentUserRole === "admin");
     const bizFields = document.getElementById("biz-only-fields");
     const titleText = document.getElementById("add-title-text");
+    const tariffBlock = document.getElementById("tariff-block");
+    const verificationBlock = document.getElementById("verification-block");
+    const vipBlock = document.getElementById("vip-block");
     
     if (isBiz) {
        if (bizFields) bizFields.classList.remove("hidden");
        if (titleText) titleText.innerText = "Новый товар магазина";
+       if (tariffBlock) tariffBlock.classList.add("hidden");
+       if (verificationBlock) verificationBlock.classList.add("hidden");
+       if (vipBlock) vipBlock.classList.add("hidden");
     } else {
        if (bizFields) bizFields.classList.add("hidden");
        if (titleText) titleText.innerText = "Новое объявление";
+       if (tariffBlock) tariffBlock.classList.remove("hidden");
+       if (verificationBlock) verificationBlock.classList.remove("hidden");
+       // we do not remove hidden from vipBlock entirely, selectTariff logic handles it, but user starts with 'standard'.
+       if (window.selectedTariff !== 'vip' && vipBlock) vipBlock.classList.add("hidden");
     }
   }
 
