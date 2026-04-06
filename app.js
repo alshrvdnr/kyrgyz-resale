@@ -129,8 +129,34 @@ document.addEventListener("DOMContentLoaded", () => {
   const sIn = document.getElementById("main-search");
   if (sIn)
     sIn.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") startSearch(e.target.value);
+      if (e.key === "Enter") {
+        startSearch(e.target.value);
+        sIn.blur(); // Скрываем клавиатуру после поиска
+      }
     });
+
+  // Глобальный фикс для скрытия клавиатуры (нет кнопки Готово на мобилках)
+  // 1. По клику вне поля
+  document.addEventListener('touchstart', (e) => {
+    const activeEl = document.activeElement;
+    if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+      if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+        activeEl.blur(); 
+      }
+    }
+  });
+
+  // 2. По нажатию Enter/Go/Готово (если кнопка все же есть)
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const activeEl = document.activeElement;
+      // Для TextArea оставляем перенос строки (Enter),
+      // а для обычных INPUT - скрываем клавиатуру.
+      if (activeEl && activeEl.tagName === 'INPUT') {
+        activeEl.blur(); 
+      }
+    }
+  });
 });
 
 function handleVerifyPhotoSelect(input) {
