@@ -123,73 +123,22 @@
         <main class="listings-grid" id="home-grid"></main>
       </section>
 
-      <section id="page-shops" class="page hidden">
-        <div style="padding: 20px">
-          <!-- Красивая карточка-приглашение -->
-          <div
-            style="
-              background: linear-gradient(135deg, #1c1c1e 0%, #121212 100%);
-              border: 1px solid #333;
-              border-radius: 20px;
-              padding: 30px;
-              text-align: center;
-              margin-top: 50px;
-            "
-          >
-            <div
-              style="
-                width: 80px;
-                height: 80px;
-                background: rgba(255, 204, 0, 0.1);
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin: 0 auto 20px;
-                color: var(--yellow-main);
-                font-size: 32px;
-              "
-            >
-              <i class="fa-solid fa-rocket"></i>
-            </div>
-            <h2 style="color: #fff; margin-bottom: 10px; font-size: 22px">
-              Ваш магазин будет здесь!
-            </h2>
-            <p
-              style="
-                color: #8e8e93;
-                font-size: 14px;
-                line-height: 1.5;
-                margin-bottom: 25px;
-              "
-            >
-              Мы собираем лучшие цветочные лавки и кондитерские в одном месте.
-              Станьте первым партнером Gifts KG!
-            </p>
-
-            <div style="display: flex; flex-direction: column; gap: 12px">
-              <button
-                class="btn-premium-unity"
-                onclick="tg.openTelegramLink('https://t.me/D1NCHO')"
-              >
-                Оставить заявку
-              </button>
-              <button
-                style="
-                  background: none;
-                  border: 1px solid #444;
-                  color: #fff;
-                  padding: 12px;
-                  border-radius: 12px;
-                  font-weight: bold;
-                "
-                onclick="showPage('home')"
-              >
-                Вернуться в ленту
-              </button>
-            </div>
+      <section id="page-shops" class="page hidden" style="padding-top:15px; padding-bottom:80px;">
+        <!-- Заголовок Explore Shops -->
+        <h2 style="margin: 0 15px 15px; font-size: 20px; font-weight: bold;">Explore Shops</h2>
+        
+        <!-- Верхняя часть: горизонтальный скролл магазинов -->
+        <div class="shops-preview-wrapper" style="overflow-x: auto; padding: 0 15px 15px;">
+          <div id="verified-shops-list" style="display: flex; gap: 15px; min-width: max-content;">
+            <!-- Javascript will render shops here via renderShopsLine() -->
           </div>
         </div>
+
+        <!-- Нижняя часть: лента товаров магазинов -->
+        <h2 style="margin: 10px 15px 15px; font-size: 20px; font-weight: bold;">All Products</h2>
+        <main class="listings-grid" id="shops-grid" style="padding: 0 10px;">
+          <!-- Javascript will render shop-only products here in random order -->
+        </main>
       </section>
 
       <!-- ОКНО РЕЗУЛЬТАТОВ ПОИСКА -->

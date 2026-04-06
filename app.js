@@ -613,10 +613,16 @@ window.showPage = function (p) {
     }
   }
 
-  // Страница Офиса Магазина (Dashboard)
+  // Если открыли страницу админки бизнеса
   if (p === "business-admin") {
     if (typeof renderBusinessDashboard === "function")
       renderBusinessDashboard();
+  }
+
+  // Если открыли новую вкладку магазинов
+  if (p === "shops") {
+    if (typeof renderShopsLine === "function") renderShopsLine();
+    if (typeof renderShopsFeed === "function") renderShopsFeed();
   }
 
   // 7. СКРОЛЛ ВВЕРХ
@@ -670,11 +676,13 @@ function listenAds() {
         ? Object.keys(data).map((key) => ({ id: key, ...data[key] }))
         : [];
 
-      // Отрисовываем ленту и профиль
+      // Отрисовываем ленты
       renderFeed();
       renderProfile();
-
-      // Когда данные загружены, убираем заставку
+      if (document.getElementById("page-shops") && !document.getElementById("page-shops").classList.contains("hidden")) {
+         renderShopsLine();
+         renderShopsFeed();
+      }
       if (splash && !splash.classList.contains("hidden-splash")) {
         splash.classList.add("hidden-splash");
 
@@ -772,9 +780,10 @@ function renderFeed() {
 
   // 1. ФИЛЬТРАЦИЯ ОБЪЯВЛЕНИЙ
   let filtered = ads.filter((ad) => {
-    // 0. ФИЛЬТР ПО РЕСЕЙЛУ
+    // 0. ФИЛЬТР ПО РЕСЕЙЛУ И МАГАЗИНАМ
     if (window.currentFeedFilter === "resale") {
       if (!ad.isResale) return false;
+      if (ad.isShop) return false; // Без магазинов
     } else {
       if (ad.isResale) return false; // В "Всё для вас" скрываем ресейл
     }
@@ -782,7 +791,6 @@ function renderFeed() {
     const catMatch = curCat === "Все" || ad.cat === curCat;
 
     // Б. Проверка города (самое важное!)
-    // cityNames[curCity] берет "Бишкек" из словаря, если curCity равен "bishkek"
     const cityMatch = ad.city_key === curCity || ad.city === cityNames[curCity];
 
     // В. Проверка статуса
@@ -794,40 +802,63 @@ function renderFeed() {
     return catMatch && cityMatch && statusMatch;
   });
 
-  // 2. СОРТИРОВКА: VIP (на 3 дня) выше, новые сверху
-  filtered.sort((a, b) => {
-    const now = Math.floor(Date.now() / 1000);
-    const threeDays = 259200;
+  // 2. СОРТИРОВКА
+  const now = Math.floor(Date.now() / 1000);
+  const threeDays = 259200;
 
-    // А. Проданные всегда в самом низу
-    const aSold = a.status === "sold" ? 1 : 0;
-    const bSold = b.status === "sold" ? 1 : 0;
-    if (aSold !== bSold) return aSold - bSold;
+  let vips = [];
+  let regulars = [];
+  let shops = [];
+  let sold = [];
 
-    // Б. Проверка VIP с учетом времени (только если прошло меньше 3 дней)
-    const aIsVip =
-      a.tariff === "vip" && now - (a.approvedAt || a.createdAt) < threeDays
-        ? 1
-        : 0;
-    const bIsVip =
-      b.tariff === "vip" && now - (b.approvedAt || b.createdAt) < threeDays
-        ? 1
-        : 0;
+  // Разделяем на группы
+  filtered.forEach(ad => {
+    if (ad.status === "sold") {
+      sold.push(ad);
+      return;
+    }
+    
+    // Проверка VIP
+    const adTime = Number(ad.approvedAt || ad.createdAt || 0);
+    const isVip = ad.tariff === "vip" && (now - adTime < threeDays);
 
-    if (aIsVip !== bIsVip) return bIsVip - aIsVip; // Активные VIP ставим выше
-
-    // В. Внутри своих групп сортируем по ВРЕМЕНИ (самые свежие — сверху)
-    const aTime = Number(a.approvedAt || a.createdAt || 0);
-    const bTime = Number(b.approvedAt || b.createdAt || 0);
-
-    return bTime - aTime;
+    if (isVip) {
+      vips.push(ad);
+    } else if (ad.isShop) {
+      shops.push(ad);
+    } else {
+      regulars.push(ad);
+    }
   });
 
+  // VIP и Regular сортируем по времени
+  const sortByTime = (a, b) => Number(b.approvedAt || b.createdAt || 0) - Number(a.approvedAt || a.createdAt || 0);
+  vips.sort(sortByTime);
+  regulars.sort(sortByTime);
+
+  // Магазины просто перемешиваем случайным образом
+  for (let i = shops.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shops[i], shops[j]] = [shops[j], shops[i]];
+  }
+
+  // Внедряем перемешанные магазины в ленту обычных товаров
+  // Если у нас нет обычных товаров, просто объединяем
+  let interleaved = [...regulars];
+  shops.forEach(shopAd => {
+     // Случайный индекс для вставки: от 0 до текущей длины массива interleaved
+     const dropIndex = Math.floor(Math.random() * (interleaved.length + 1));
+     interleaved.splice(dropIndex, 0, shopAd);
+  });
+
+  // Итоговый массив: VIP -> Смешанные -> Проданные
+  const finalArray = [...vips, ...interleaved, ...sold];
+
   // 3. ОТРИСОВКА КАРТОЧЕК
-  if (filtered.length === 0) {
+  if (finalArray.length === 0) {
     grid.innerHTML = `<p style="text-align:center; color:gray; grid-column: 1/3; margin-top:50px;">В этом городе пока нет объявлений</p>`;
   } else {
-    filtered.forEach((ad) => grid.appendChild(createAdCard(ad)));
+    finalArray.forEach((ad) => grid.appendChild(createAdCard(ad)));
   }
 }
 
@@ -2012,5 +2043,97 @@ window.openPublicShop = async function(shopId) {
 window.openPublicInst = function() {
   if (window.currentPublicInst) {
     window.location.href = `https://instagram.com/${window.currentPublicInst}`;
+  }
+};
+// --- ГОРИЗОНТАЛЬНАЯ ЛИНИЯ ПАРТНЕРОВ (Магазины) ---
+window.renderShopsLine = async function() {
+  const container = document.getElementById("verified-shops-list");
+  if (!container) return;
+
+  // Запрашиваем юзеров из Firebase один раз
+  const snap = await db.ref("users").once("value");
+  const usersData = snap.val();
+  if (!usersData) return;
+
+  // Ищем бизнес-юзеров
+  const shops = Object.keys(usersData)
+    .map(k => ({id: k, ...usersData[k]}))
+    .filter(u => u.role === "business" || u.role === "admin");
+  
+  container.innerHTML = "";
+  
+  // Кнопка для подачи заявки
+  const addBtnHTML = `
+    <div onclick="tg.openTelegramLink('https://t.me/D1NCHO')" style="display:flex; flex-direction:column; align-items:center; cursor:pointer;" class="flex-shrink-0">
+      <div style="width:70px; height:70px; background:rgba(255,204,0,0.1); border-radius:15px; display:flex; align-items:center; justify-content:center; margin-bottom:5px; border: 1px dashed var(--yellow-main)">
+        <i class="fa-solid fa-plus" style="color:var(--yellow-main); font-size:24px;"></i>
+      </div>
+      <span style="font-size:12px; color:gray; font-weight:bold;">Стать<br>партнером</span>
+    </div>
+  `;
+  container.innerHTML += addBtnHTML;
+
+  shops.forEach(shop => {
+    let logoUrl = "?";
+    let isTextLogo = true;
+    if (shop.shopData && shop.shopData.logo) {
+       logoUrl = shop.shopData.logo;
+       isTextLogo = false;
+    } else {
+       logoUrl = shop.first_name ? shop.first_name.charAt(0).toUpperCase() : "?";
+    }
+    
+    const shopName = shop.shopData?.shopName || shop.first_name || "Магазин";
+    
+    const div = document.createElement("div");
+    div.style = "display:flex; flex-direction:column; align-items:center; cursor:pointer; width: 75px;";
+    div.className = "flex-shrink-0";
+    div.onclick = () => openPublicShop(shop.id);
+
+    if (isTextLogo) {
+      div.innerHTML = `
+        <div style="width:70px; height:70px; background:var(--premium-grad); color:#000; font-weight:bold; font-size:28px; border-radius:15px; display:flex; align-items:center; justify-content:center; margin-bottom:5px;">
+          ${logoUrl}
+        </div>
+        <span style="font-size:12px; color:#fff; font-weight:bold; text-align:center; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">${shopName}</span>
+        <span style="font-size:10px; color:var(--yellow-main);"><i class="fa-solid fa-circle-check"></i></span>
+      `;
+    } else {
+      div.innerHTML = `
+        <div style="width:70px; height:70px; border-radius:15px; margin-bottom:5px; overflow:hidden;">
+          <img src="${logoUrl}" style="width:100%; height:100%; object-fit:cover;">
+        </div>
+        <span style="font-size:12px; color:#fff; font-weight:bold; text-align:center; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">${shopName}</span>
+        <span style="font-size:10px; color:var(--yellow-main);"><i class="fa-solid fa-circle-check"></i></span>
+      `;
+    }
+    container.appendChild(div);
+  });
+};
+
+// --- ЛЕНТА ТОВАРОВ ИСКЛЮЧИТЕЛЬНО ОТ МАГАЗИНОВ ---
+window.renderShopsFeed = function() {
+  const grid = document.getElementById("shops-grid");
+  if (!grid) return;
+  grid.innerHTML = "";
+
+  const shopAds = ads.filter(ad => 
+    ad.isShop === true && 
+    !ad.isResale && 
+    ad.status !== "deleted" && 
+    ad.status !== "pending" && 
+    ad.status !== "rejected"
+  );
+
+  // Перемешиваем товары в случайном порядке
+  for (let i = shopAds.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shopAds[i], shopAds[j]] = [shopAds[j], shopAds[i]];
+  }
+
+  if (shopAds.length === 0) {
+    grid.innerHTML = `<p style="text-align:center; color:gray; grid-column: 1/3; margin-top:50px;">Нет товаров</p>`;
+  } else {
+    shopAds.forEach(ad => grid.appendChild(createAdCard(ad)));
   }
 };
