@@ -582,7 +582,7 @@
             <label>Дата получения товара</label
             ><input type="date" id="in-receive-date" class="main-input" />
           </div>
-          <div class="f-group">
+          <div class="f-group" id="address-group">
             <label>Адрес / Местоположение</label
             ><input
               type="text"
@@ -1016,13 +1016,23 @@
             </div>
             <div class="premium-input-group">
               <label>Instagram (без @)</label>
-              <input
-                type="text"
-                id="edit-biz-inst"
-                class="premium-input"
-                placeholder="my_shop"
-              />
+              <input type="text" id="edit-biz-inst" class="premium-input" placeholder="my_shop" />
             </div>
+          </div>
+
+          <div class="premium-grid-2">
+            <div class="premium-input-group">
+              <label>Телефон / WhatsApp</label>
+              <input type="tel" id="edit-biz-phone" class="premium-input" placeholder="0555XXXXXX" />
+            </div>
+            <div class="premium-input-group">
+              <label>Telegram (@nick)</label>
+              <input type="text" id="edit-biz-tg" class="premium-input" placeholder="@nickname" />
+            </div>
+          </div>
+          <div class="premium-input-group">
+            <label>Адрес / Местоположение витрины</label>
+            <input type="text" id="edit-biz-address" class="premium-input" placeholder="г. Бишкек, ЦУМ" />
           </div>
 
           <button

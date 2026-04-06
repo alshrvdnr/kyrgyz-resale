@@ -485,12 +485,19 @@ window.saveBizProfile = async function () {
   const newHours = document.getElementById("edit-biz-hours")?.value || "";
   const newInst = document.getElementById("edit-biz-inst")?.value || "";
 
+  const newPhone = document.getElementById("edit-biz-phone")?.value || "";
+  const newTg = document.getElementById("edit-biz-tg")?.value || "";
+  const newAddr = document.getElementById("edit-biz-address")?.value || "";
+
   try {
     await db.ref("users/" + myId).update({
       shopName: newName,
       bio: newBio,
       workHours: newHours,
       instagram: newInst,
+      phone: newPhone,
+      tgNick: newTg,
+      address: newAddr,
     });
 
     if (!myShopData) myShopData = {};
@@ -498,6 +505,9 @@ window.saveBizProfile = async function () {
     myShopData.bio = newBio;
     myShopData.workHours = newHours;
     myShopData.instagram = newInst;
+    myShopData.phone = newPhone;
+    myShopData.tgNick = newTg;
+    myShopData.address = newAddr;
 
     if (typeof closeEditBizModal === "function") closeEditBizModal();
     updateStorefrontUI();
@@ -520,6 +530,15 @@ window.openEditBizModal = function () {
 
   const instInput = document.getElementById("edit-biz-inst");
   if (instInput) instInput.value = myShopData.instagram || "";
+  
+  const phoneInput = document.getElementById("edit-biz-phone");
+  if (phoneInput) phoneInput.value = myShopData.phone || "";
+  
+  const tgInput = document.getElementById("edit-biz-tg");
+  if (tgInput) tgInput.value = myShopData.tgNick || "";
+  
+  const addrInput = document.getElementById("edit-biz-address");
+  if (addrInput) addrInput.value = myShopData.address || "";
 
   document.getElementById("edit-biz-modal").classList.remove("hidden");
 };
@@ -560,12 +579,17 @@ window.showPage = function (p) {
   // ЕСЛИ ЭТО ДОБАВИТЬ ТОВАР И ЮЗЕР = БИЗНЕС
   let finalPage = p;
   if (p === "add") {
-    const isBiz = (currentUserRole === "business" || currentUserRole === "admin");
+    const isBiz = (currentUserRole === "business"); // Only business gets the special form
     const bizFields = document.getElementById("biz-only-fields");
     const titleText = document.getElementById("add-title-text");
     const tariffBlock = document.getElementById("tariff-block");
     const verificationBlock = document.getElementById("verification-block");
     const vipBlock = document.getElementById("vip-block");
+    
+    // Default user contact groups
+    const addressGroup = document.getElementById("address-group");
+    const tgGroup = document.getElementById("tg-group");
+    const phoneGroup = document.getElementById("phone-group");
     
     if (isBiz) {
        if (bizFields) bizFields.classList.remove("hidden");
@@ -573,6 +597,9 @@ window.showPage = function (p) {
        if (tariffBlock) tariffBlock.classList.add("hidden");
        if (verificationBlock) verificationBlock.classList.add("hidden");
        if (vipBlock) vipBlock.classList.add("hidden");
+       if (addressGroup) addressGroup.classList.add("hidden");
+       if (tgGroup) tgGroup.classList.add("hidden");
+       if (phoneGroup) phoneGroup.classList.add("hidden");
     } else {
        if (bizFields) bizFields.classList.add("hidden");
        if (titleText) titleText.innerText = "Новое объявление";
@@ -580,6 +607,9 @@ window.showPage = function (p) {
        if (verificationBlock) verificationBlock.classList.remove("hidden");
        // we do not remove hidden from vipBlock entirely, selectTariff logic handles it, but user starts with 'standard'.
        if (window.selectedTariff !== 'vip' && vipBlock) vipBlock.classList.add("hidden");
+       if (addressGroup) addressGroup.classList.remove("hidden");
+       if (tgGroup) tgGroup.classList.remove("hidden");
+       if (phoneGroup) phoneGroup.classList.remove("hidden");
     }
   }
 
@@ -1388,9 +1418,9 @@ async function publishAndSend() {
       city: citySelect.options[citySelect.selectedIndex].text,
 
       // КОНТАКТЫ И ОПИСАНИЕ
-      address: document.getElementById("in-address").value,
-      phone: document.getElementById("in-wa").value,
-      tgNick: document.getElementById("in-tg").value,
+      address: isPartner ? (myShopData?.address || document.getElementById("in-address").value) : document.getElementById("in-address").value,
+      phone: isPartner ? (myShopData?.phone || document.getElementById("in-wa").value) : document.getElementById("in-wa").value,
+      tgNick: isPartner ? (myShopData?.tgNick || document.getElementById("in-tg").value) : document.getElementById("in-tg").value,
       desc: document.getElementById("in-desc").value,
       receiveDate: document.getElementById("in-receive-date").value,
 
