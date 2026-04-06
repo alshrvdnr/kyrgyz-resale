@@ -454,6 +454,8 @@ window.handleBizMedia = async function(input, type) {
     
     // Обновляем нужный параметр
     const updatePayload = {};
+    if (!myShopData) myShopData = {};
+
     if (type === 'cover') {
       updatePayload.cover = url;
       myShopData.cover = url;
@@ -493,6 +495,7 @@ window.saveBizProfile = async function () {
       instagram: newInst,
     });
 
+    if (!myShopData) myShopData = {};
     myShopData.shopName = newName;
     myShopData.bio = newBio;
     myShopData.workHours = newHours;
@@ -752,23 +755,19 @@ function applyHolidayUI() {
 
 // глобальный фильтр ленты
 window.currentFeedFilter = 'all';
-window.setFeedFilter = function(opt) {
+window.setFeedFilter = function(opt, el) {
   window.currentFeedFilter = opt;
-  const btnAll = document.getElementById("f-btn-all");
-  const btnResale = document.getElementById("f-btn-resale");
-  if(btnAll && btnResale) {
-    if (opt === "all") {
-       btnAll.style.color = "var(--yellow-main)";
-       btnAll.style.borderBottom = "2px solid var(--yellow-main)";
-       btnResale.style.color = "gray";
-       btnResale.style.borderBottom = "2px solid transparent";
-    } else {
-       btnResale.style.color = "var(--yellow-main)";
-       btnResale.style.borderBottom = "2px solid var(--yellow-main)";
-       btnAll.style.color = "gray";
-       btnAll.style.borderBottom = "2px solid transparent";
-    }
+
+  document.querySelectorAll(".cat-card").forEach((i) => i.classList.remove("active"));
+  if (el) el.classList.add("active");
+
+  // При переключении на глобальный фильтр сбрасываем категорию
+  if (opt === 'all' || opt === 'resale') {
+     window.curCat = 'Все';
+     const titleEl = document.getElementById("dynamic-feed-title");
+     if (titleEl) titleEl.innerText = opt === 'all' ? "Свежие предложения" : "Ресейл предложения";
   }
+  
   renderFeed();
 };
 
@@ -1798,8 +1797,14 @@ window.filterByCat = function (c, el) {
     // Если элемент не передан, ищем его по тексту
     const cards = document.querySelectorAll(".cat-card");
     cards.forEach((card) => {
+      // Исключаем кнопки "Все" и "Resale" из поиска категорий
+      if (card.id === "f-btn-all" || card.id === "f-btn-resale") return;
       if (card.innerText.includes(catMap[c] || c)) card.classList.add("active");
     });
+    
+    // При выборе конкретной категории принудительно переключаемся на "Все" (чтобы искать товары и магазинов)
+    // если только мы не находимся явно в фильтре Ресейл (чтобы можно было искать БУ цветы).
+    // По желанию клиента оставим текущий currentFeedFilter как есть.
   }
 
   // Меняем заголовок над лентой
@@ -1983,30 +1988,35 @@ window.openPublicShop = async function(shopId) {
   
   // Установка обложки
   const banner = document.getElementById("public-shop-banner");
-  if (sData.cover) {
-    banner.style.backgroundImage = `url('${sData.cover}')`;
+  const fallbackCover = sData.cover || shopUser.cover;
+  if (fallbackCover) {
+    banner.style.backgroundImage = `url('${fallbackCover}')`;
   } else {
     banner.style.backgroundImage = `url('https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=1000')`;
   }
 
   // Установка логотипа
   const logo = document.getElementById("public-shop-logo");
-  if (sData.logo) {
-    logo.innerHTML = `<img src="${sData.logo}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+  const fallbackLogo = sData.logo || shopUser.logo;
+  if (fallbackLogo) {
+    logo.innerHTML = `<img src="${fallbackLogo}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
     logo.style.background = "transparent";
   } else {
-    logo.innerHTML = `<span style="font-size:24px; font-weight:bold; color:#000;">${(sData.shopName || shopUser.first_name || "M").charAt(0).toUpperCase()}</span>`;
+    const shopChar = (sData.shopName || shopUser.shopName || shopUser.first_name || "M").charAt(0).toUpperCase();
+    logo.innerHTML = `<span style="font-size:24px; font-weight:bold; color:#000;">${shopChar}</span>`;
     logo.style.background = "var(--premium-grad)";
   }
 
   // Текстовые данные
-  document.getElementById("public-shop-name").innerText = sData.shopName || shopUser.first_name || "Магазин";
-  document.getElementById("public-shop-bio").innerText = sData.bio || "Описание магазина отсутствует.";
-  document.getElementById("public-shop-hours").innerText = sData.hours || "Не указаны";
-  document.getElementById("public-shop-inst").innerText = sData.inst ? "@" + sData.inst : "Не указан";
+  document.getElementById("public-shop-name").innerText = sData.shopName || shopUser.shopName || shopUser.first_name || "Магазин";
+  document.getElementById("public-shop-bio").innerText = sData.bio || shopUser.bio || "Описание магазина отсутствует.";
+  document.getElementById("public-shop-hours").innerText = sData.hours || shopUser.workHours || "Не указаны";
+  
+  const instagram = sData.inst || shopUser.instagram || "";
+  document.getElementById("public-shop-inst").innerText = instagram ? "@" + instagram : "Не указан";
   
   // Сохраняем instagram для клика
-  window.currentPublicInst = sData.inst;
+  window.currentPublicInst = instagram;
 
   // 3. Фильтруем товары этого магазина
   const shopAds = ads.filter(a => a.userId === shopId && a.status === "active");
