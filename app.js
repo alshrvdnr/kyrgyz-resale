@@ -555,8 +555,25 @@ window.showPage = function (p) {
   // Мы больше не форсируем переход на business-admin для бизнеса/админа
   // При нажатии + Товар, они должны переходить напрямую к форме
 
+  
   // 3. Показываем нужную страницу
-  const targetPage = document.getElementById(`page-${p}`);
+  // ЕСЛИ ЭТО ДОБАВИТЬ ТОВАР И ЮЗЕР = БИЗНЕС
+  let finalPage = p;
+  if (p === "add") {
+    const isBiz = (currentUser?.role === "business" || currentUser?.role === "admin");
+    const bizFields = document.getElementById("biz-only-fields");
+    const titleText = document.getElementById("add-title-text");
+    
+    if (isBiz) {
+       if (bizFields) bizFields.classList.remove("hidden");
+       if (titleText) titleText.innerText = "Новый товар магазина";
+    } else {
+       if (bizFields) bizFields.classList.add("hidden");
+       if (titleText) titleText.innerText = "Новое объявление";
+    }
+  }
+
+  const targetPage = document.getElementById(`page-${finalPage}`);
   if (targetPage) {
     targetPage.classList.remove("hidden");
   } else {
@@ -1131,6 +1148,16 @@ function openProduct(ad) {
         : ""
       }
 
+        <!-- ДАННЫЕ МАГАЗИНА (ПЕСЛИ ЕСТЬ) -->
+        ${(ad.shelfLife || ad.season || ad.productionTime) ? `
+          <div style="background:#222224; padding:15px; border-radius:12px; margin-bottom:20px; border:1px solid #333;">
+             <div style="font-weight:bold; color:var(--yellow-main); margin-bottom:10px; font-size:14px;"><i class="fa-solid fa-list-check"></i> Характеристики:</div>
+             ${ad.shelfLife ? `<div style="font-size:13px; color:#ccc; margin-bottom:5px;"><b>Срок хранения:</b> ${ad.shelfLife}</div>` : ''}
+             ${ad.season ? `<div style="font-size:13px; color:#ccc; margin-bottom:5px;"><b>Сезон:</b> ${ad.season}</div>` : ''}
+             ${ad.productionTime ? `<div style="font-size:13px; color:#ccc; margin-bottom:5px;"><b>Изготовление:</b> ${ad.productionTime}</div>` : ''}
+          </div>
+        ` : ""}
+
         <!-- ОПИСАНИЕ -->
         <div style="background:#2c2c2e; padding:15px; border-radius:12px; margin-bottom:25px; white-space: pre-wrap; font-size:15px; color:#ccc; line-height:1.5;">
           ${description}
@@ -1358,9 +1385,7 @@ async function publishAndSend() {
       receiveDate: document.getElementById("in-receive-date").value,
 
       // ЛОГИКА КОМБО-НАБОРОВ
-      isCombo:
-        typeof currentAddingType !== "undefined" &&
-        currentAddingType === "combo",
+      isCombo: (typeof currentAddingType !== "undefined" && currentAddingType === "combo") || (document.getElementById("in-is-combo")?.checked || false),
       comboItems: document.getElementById("in-combo-items")?.value || "",
       comboBenefit: document.getElementById("in-combo-benefit")?.value || "",
 
@@ -1378,6 +1403,11 @@ async function publishAndSend() {
       verified: isPartner,
       tariff: selectedTariff,
       is_holiday: isPartner ? false : holidayMode,
+      
+      // БИЗНЕС ПОЛЯ
+      shelfLife: document.getElementById("in-biz-shelf") ? document.getElementById("in-biz-shelf").value : "",
+      season: document.getElementById("in-biz-season") ? document.getElementById("in-biz-season").value : "",
+      productionTime: document.getElementById("in-biz-production") ? document.getElementById("in-biz-production").value : "",
 
       // АВТОР И ВРЕМЯ
       userId: myId,
@@ -2017,24 +2047,11 @@ window.openPublicShop = async function (shopId) {
   // 3. Фильтруем товары этого магазина
   const shopAds = ads.filter(a => a.userId === shopId && a.status === "active");
 
-  const kombos = shopAds.filter(a => a.isCombo);
-  const regular = shopAds.filter(a => !a.isCombo);
-
-  // Отрисовка комбо-наборов
-  const kGrid = document.getElementById("public-shop-kombos");
-  kGrid.innerHTML = "";
-  if (kombos.length > 0) {
-    kGrid.parentElement.style.display = "block";
-    kombos.forEach(ad => kGrid.appendChild(createAdCard(ad)));
-  } else {
-    kGrid.parentElement.style.display = "none";
-  }
-
-  // Отрисовка обычных товаров
+  // Отрисовка всех товаров магазина
   const rGrid = document.getElementById("public-shop-grid");
   rGrid.innerHTML = "";
-  if (regular.length > 0) {
-    regular.forEach(ad => rGrid.appendChild(createAdCard(ad)));
+  if (shopAds.length > 0) {
+    shopAds.forEach(ad => rGrid.appendChild(createAdCard(ad)));
   } else {
     rGrid.innerHTML = "<p style='color:gray; width:100%; text-align:center; grid-column:1/3;'>Товаров пока нет</p>";
   }
@@ -2203,5 +2220,17 @@ window.renderShopsFeed = function () {
     grid.innerHTML = `<p style="text-align:center; color:gray; grid-column: 1/3; margin-top:50px;">Нет товаров</p>`;
   } else {
     shopAds.forEach(ad => grid.appendChild(createAdCard(ad)));
+  }
+};
+
+
+window.toggleComboFields = function(isChecked) {
+  const cFields = document.getElementById("combo-fields");
+  if (cFields) {
+    if (isChecked) {
+      cFields.classList.remove("hidden");
+    } else {
+      cFields.classList.add("hidden");
+    }
   }
 };

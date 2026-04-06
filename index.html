@@ -521,6 +521,43 @@
               placeholder="Например: 1500"
             />
           </div>
+
+          <!-- УНИКАЛЬНЫЕ ПОЛЯ ДЛЯ МАГАЗИНОВ -->
+          <div id="biz-only-fields" class="hidden" style="background:#222224; padding:15px; border-radius:15px; margin-bottom:15px; border:1px solid #333;">
+            <div style="font-weight:bold; color:var(--yellow-main); margin-bottom:15px; font-size:14px;">
+              <i class="fa-solid fa-store"></i> Данные магазина
+            </div>
+            
+            <div class="f-group" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:15px;">
+              <label style="margin:0; font-weight:bold;">Это набор / комбо?</label>
+              <label class="switch">
+                <input type="checkbox" id="in-is-combo" onchange="toggleComboFields(this.checked)">
+                <span class="slider round"></span>
+              </label>
+            </div>
+
+            <div class="f-group">
+              <label>Срок годности / Хранение</label>
+              <input type="text" id="in-biz-shelf" class="main-input" placeholder="Например: 14 дней в холоде" />
+            </div>
+
+            <div class="f-group">
+              <label>Сезонность</label>
+              <select id="in-biz-season" class="main-input">
+                <option value="Всесезонный">Всесезонный</option>
+                <option value="Летний">Летний</option>
+                <option value="Зимний">Зимний</option>
+                <option value="Весенний">Весенний</option>
+                <option value="Осенний">Осенний</option>
+              </select>
+            </div>
+
+            <div class="f-group" style="margin-bottom:0;">
+              <label>Время изготовления / Сборка заказа</label>
+              <input type="text" id="in-biz-production" class="main-input" placeholder="Например: Отправка в день заказа" />
+            </div>
+          </div>
+
           <div id="combo-fields" class="hidden">
             <div class="f-group">
               <label>Что входит в набор? (через запятую)</label>
@@ -810,13 +847,7 @@
                 <i class="fa-solid fa-plus"></i>
                 <span>Добавить Товар</span>
               </div>
-              <div
-                class="biz-action-btn combo-btn"
-                onclick="openAddForm('combo')"
-              >
-                <i class="fa-solid fa-layer-group"></i>
-                <span>Набор / Комбо</span>
-              </div>
+
             </div>
           </div>
 
@@ -1090,13 +1121,7 @@
 
         <div style="padding: 10px 15px; padding-bottom: 80px">
           <h3 style="font-size: 18px; margin-bottom: 10px">Товары магазина</h3>
-          <div
-            id="public-shop-kombos"
-            class="listings-grid"
-            style="grid-template-columns: 1fr; margin-bottom: 15px"
-          >
-            <!-- комбо наборы магазина -->
-          </div>
+
           <div
             id="public-shop-grid"
             class="listings-grid"
