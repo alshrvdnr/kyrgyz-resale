@@ -141,7 +141,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const activeEl = document.activeElement;
     if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
       if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-        activeEl.blur(); 
+        activeEl.blur();
       }
     }
   });
@@ -153,7 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Для TextArea оставляем перенос строки (Enter),
       // а для обычных INPUT - скрываем клавиатуру.
       if (activeEl && activeEl.tagName === 'INPUT') {
-        activeEl.blur(); 
+        activeEl.blur();
       }
     }
   });
@@ -339,13 +339,11 @@ function renderBizAds() {
     const managePanel = document.createElement("div");
     managePanel.className = "quick-manage-bar";
     managePanel.innerHTML = `
-      <button class="btn-quick" onclick="event.stopPropagation(); quickEditPrice('${
-        ad.id
+      <button class="btn-quick" onclick="event.stopPropagation(); quickEditPrice('${ad.id
       }', ${ad.price})">
         ${ad.price} KGS <i class="fa-solid fa-pen"></i>
       </button>
-      <button class="btn-quick" onclick="event.stopPropagation(); quickToggleStatus('${
-        ad.id
+      <button class="btn-quick" onclick="event.stopPropagation(); quickToggleStatus('${ad.id
       }', '${ad.status}')">
         ${ad.status === "active" ? "👁️ Скрыть" : "👁️ Показать"}
       </button>
@@ -439,19 +437,19 @@ function updateStorefrontUI() {
 }
 
 // Загрузка фото обложки или лого (Сразу в Firebase)
-window.handleBizMedia = async function(input, type) {
+window.handleBizMedia = async function (input, type) {
   if (!input.files || !input.files[0]) return;
   const file = input.files[0];
   const loader = document.getElementById("media-upload-loader");
-  
+
   if (loader) loader.classList.remove("hidden");
-  
+
   try {
     const url = await uploadFile(file);
     if (!url) throw new Error("Не удалось загрузить файл");
 
     const myId = tg.initDataUnsafe?.user?.id || getUserId();
-    
+
     // Обновляем нужный параметр
     const updatePayload = {};
     if (!myShopData) myShopData = {};
@@ -465,11 +463,11 @@ window.handleBizMedia = async function(input, type) {
     }
 
     await db.ref("users/" + myId).update(updatePayload);
-    
+
     // Мгновенно обновляем UI
     updateStorefrontUI();
-    
-  } catch(e) {
+
+  } catch (e) {
     alert("Ошибка загрузки: " + e.message);
   } finally {
     if (loader) loader.classList.add("hidden");
@@ -503,7 +501,7 @@ window.saveBizProfile = async function () {
 
     if (typeof closeEditBizModal === "function") closeEditBizModal();
     updateStorefrontUI();
-    
+
   } catch (e) {
     console.error("Ошибка при сохранении профиля:", e);
     alert("Не удалось сохранить: " + e.message);
@@ -513,16 +511,16 @@ window.saveBizProfile = async function () {
 window.openEditBizModal = function () {
   const nameInput = document.getElementById("edit-biz-name");
   if (nameInput) nameInput.value = myShopData.shopName || "";
-  
+
   const bioInput = document.getElementById("edit-biz-bio");
   if (bioInput) bioInput.value = myShopData.bio || "";
-  
+
   const hoursInput = document.getElementById("edit-biz-hours");
   if (hoursInput) hoursInput.value = myShopData.workHours || "";
-  
+
   const instInput = document.getElementById("edit-biz-inst");
   if (instInput) instInput.value = myShopData.instagram || "";
-  
+
   document.getElementById("edit-biz-modal").classList.remove("hidden");
 };
 
@@ -683,8 +681,8 @@ function listenAds() {
       renderFeed();
       renderProfile();
       if (document.getElementById("page-shops") && !document.getElementById("page-shops").classList.contains("hidden")) {
-         renderShopsLine();
-         renderShopsFeed();
+        renderShopsLine();
+        renderShopsFeed();
       }
       if (splash && !splash.classList.contains("hidden-splash")) {
         splash.classList.add("hidden-splash");
@@ -755,35 +753,35 @@ function applyHolidayUI() {
 
 // глобальный фильтр ленты
 window.currentFeedFilter = 'all';
-window.setFeedFilter = function(opt) {
+window.setFeedFilter = function (opt) {
   window.currentFeedFilter = opt;
 
   const btnAll = document.getElementById("f-btn-all");
   const btnResale = document.getElementById("f-btn-resale");
-  if(btnAll && btnResale) {
+  if (btnAll && btnResale) {
     if (opt === "all") {
-       btnAll.style.color = "var(--yellow-main)";
-       btnAll.style.borderBottom = "2px solid var(--yellow-main)";
-       btnResale.style.color = "gray";
-       btnResale.style.borderBottom = "2px solid transparent";
+      btnAll.style.color = "var(--yellow-main)";
+      btnAll.style.borderBottom = "2px solid var(--yellow-main)";
+      btnResale.style.color = "gray";
+      btnResale.style.borderBottom = "2px solid transparent";
     } else {
-       btnResale.style.color = "var(--yellow-main)";
-       btnResale.style.borderBottom = "2px solid var(--yellow-main)";
-       btnAll.style.color = "gray";
-       btnAll.style.borderBottom = "2px solid transparent";
+      btnResale.style.color = "var(--yellow-main)";
+      btnResale.style.borderBottom = "2px solid var(--yellow-main)";
+      btnAll.style.color = "gray";
+      btnAll.style.borderBottom = "2px solid transparent";
     }
   }
 
   // При переключении на глобальный фильтр сбрасываем категорию
   if (opt === 'all' || opt === 'resale') {
-     window.curCat = 'Все';
-     const titleEl = document.getElementById("dynamic-feed-title");
-     if (titleEl) titleEl.innerText = opt === 'all' ? "Свежие предложения" : "Ресейл предложения";
-     
-     // Снимаем выделение со всех категорий в карусели
-     document.querySelectorAll(".cat-card").forEach((i) => i.classList.remove("active"));
+    window.curCat = 'Все';
+    const titleEl = document.getElementById("dynamic-feed-title");
+    if (titleEl) titleEl.innerText = opt === 'all' ? "Свежие предложения" : "Ресейл предложения";
+
+    // Снимаем выделение со всех категорий в карусели
+    document.querySelectorAll(".cat-card").forEach((i) => i.classList.remove("active"));
   }
-  
+
   renderFeed();
 };
 
@@ -832,7 +830,7 @@ function renderFeed() {
       sold.push(ad);
       return;
     }
-    
+
     // Проверка VIP
     const adTime = Number(ad.approvedAt || ad.createdAt || 0);
     const isVip = ad.tariff === "vip" && (now - adTime < threeDays);
@@ -853,17 +851,17 @@ function renderFeed() {
 
   // Магазины просто перемешиваем случайным образом
   for (let i = shops.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shops[i], shops[j]] = [shops[j], shops[i]];
+    const j = Math.floor(Math.random() * (i + 1));
+    [shops[i], shops[j]] = [shops[j], shops[i]];
   }
 
   // Внедряем перемешанные магазины в ленту обычных товаров
   // Если у нас нет обычных товаров, просто объединяем
   let interleaved = [...regulars];
   shops.forEach(shopAd => {
-     // Случайный индекс для вставки: от 0 до текущей длины массива interleaved
-     const dropIndex = Math.floor(Math.random() * (interleaved.length + 1));
-     interleaved.splice(dropIndex, 0, shopAd);
+    // Случайный индекс для вставки: от 0 до текущей длины массива interleaved
+    const dropIndex = Math.floor(Math.random() * (interleaved.length + 1));
+    interleaved.splice(dropIndex, 0, shopAd);
   });
 
   // Итоговый массив: VIP -> Смешанные -> Проданные
@@ -893,9 +891,8 @@ function createAdCard(ad, isProfile = false) {
 
   // 3. СОЗДАНИЕ КОНТЕЙНЕРА КАРТОЧКИ
   const card = document.createElement("div");
-  card.className = `card ${isVip ? "card-vip" : ""} ${
-    ad.status === "deleted" ? "card-deleted" : ""
-  }`;
+  card.className = `card ${isVip ? "card-vip" : ""} ${ad.status === "deleted" ? "card-deleted" : ""
+    }`;
 
   // Клик по карточке открывает детальный просмотр
   card.onclick = () => openProduct(ad);
@@ -937,14 +934,13 @@ function createAdCard(ad, isProfile = false) {
     ${ad.isCombo ? '<div class="combo-badge">КОМБО 🔥</div>' : ""}
 
     <!-- Сердечко (только в общей ленте) -->
-    ${
-      !isProfile
-        ? `
+    ${!isProfile
+      ? `
       <div class="fav-heart-btn ${isFav ? "active" : ""}" 
            onclick="toggleFav('${ad.id}', event)">
         <i class="fa-solid fa-heart"></i>
       </div>`
-        : ""
+      : ""
     }
 
     <!-- Изображение товара -->
@@ -955,8 +951,8 @@ function createAdCard(ad, isProfile = false) {
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
         <div style="color:var(--yellow-main); font-weight:bold; font-size:15px;">${displayPrice} KGS</div>
         <div style="color:var(--gray); font-size:10px;">${formatRelativeDate(
-          ad.approvedAt || ad.createdAt
-        )}</div>
+      ad.approvedAt || ad.createdAt
+    )}</div>
       </div>
       
       <!-- Заголовок -->
@@ -1051,9 +1047,8 @@ function openProduct(ad) {
       dots = ad.img
         .map(
           (_, i) => `
-        <div class="dot ${i === 0 ? "active" : ""}" id="dot-${
-            ad.id
-          }-${i}"></div>
+        <div class="dot ${i === 0 ? "active" : ""}" id="dot-${ad.id
+            }-${i}"></div>
       `
         )
         .join("");
@@ -1066,19 +1061,16 @@ function openProduct(ad) {
         <i class="fa fa-arrow-left" onclick="closeProduct()" style="position:absolute; top:20px; left:20px; z-index:100; background:rgba(0,0,0,0.5); padding:10px; border-radius:50%; color:#fff; cursor:pointer;"></i>
         
         <!-- Кнопка Избранное -->
-        <i class="fa-solid fa-heart" onclick="toggleFav('${
-          ad.id
-        }')" style="position:absolute; top:20px; right:20px; z-index:100; font-size:24px; color:${
-      isFav ? "var(--yellow-main)" : "#fff"
-    }; cursor:pointer;"></i>
+        <i class="fa-solid fa-heart" onclick="toggleFav('${ad.id
+      }')" style="position:absolute; top:20px; right:20px; z-index:100; font-size:24px; color:${isFav ? "var(--yellow-main)" : "#fff"
+      }; cursor:pointer;"></i>
 
         <!-- Слайдер картинок -->
         <div class="product-gallery-slider" id="slider-${ad.id}">
-          ${
-            ad.img && Array.isArray(ad.img)
-              ? ad.img.map((src) => `<img src="${src}" alt="product">`).join("")
-              : '<div style="display:flex; align-items:center; justify-content:center; height:100%; color:gray;">Нет фото</div>'
-          }
+          ${ad.img && Array.isArray(ad.img)
+        ? ad.img.map((src) => `<img src="${src}" alt="product">`).join("")
+        : '<div style="display:flex; align-items:center; justify-content:center; height:100%; color:gray;">Нет фото</div>'
+      }
         </div>
         <div class="carousel-dots">${dots}</div>
       </div>
@@ -1109,38 +1101,35 @@ function openProduct(ad) {
         </div>
         
         <!-- КНОПКА СВЯЗИ ИЛИ СТАТУС ПРОДАНО -->
-        ${
-          isSold
-            ? `<div style="background:#333; padding:18px; border-radius:15px; color:#ff3b30; text-align:center; font-weight:800; margin-bottom:20px; text-transform:uppercase;">Продано</div>`
-            : `<a href="${contactLink}" class="btn-premium-unity" style="text-decoration:none; margin-bottom:20px; display:block;">Написать продавцу</a>`
-        }
+        ${isSold
+        ? `<div style="background:#333; padding:18px; border-radius:15px; color:#ff3b30; text-align:center; font-weight:800; margin-bottom:20px; text-transform:uppercase;">Продано</div>`
+        : `<a href="${contactLink}" class="btn-premium-unity" style="text-decoration:none; margin-bottom:20px; display:block;">Написать продавцу</a>`
+      }
 
         <!-- СОСТАВ КОМБО (если есть) -->
-        ${
-          ad.isCombo && ad.comboItems
-            ? `
+        ${ad.isCombo && ad.comboItems
+        ? `
           <div class="combo-items-list" style="margin-bottom: 25px; background: rgba(255,204,0,0.05); padding: 15px; border-radius: 12px; border: 1px dashed var(--yellow-main);">
             <div style="font-weight:bold; color:var(--yellow-main); margin-bottom:10px; font-size:14px;">В наборе:</div>
             ${ad.comboItems
-              .split(",")
-              .map(
-                (item) => `
+          .split(",")
+          .map(
+            (item) => `
               <div style="display:flex; align-items:center; gap:8px; font-size:14px; color:#eee; margin-bottom:6px;">
                 <i class="fa-solid fa-circle-check" style="color:var(--yellow-main); font-size:12px;"></i>
                 <div>${item.trim()}</div>
               </div>
             `
-              )
-              .join("")}
-            ${
-              ad.comboBenefit
-                ? `<div style="margin-top:10px; font-size:12px; color:#4cd964; font-weight:bold;">🔥 Выгода: ${ad.comboBenefit}</div>`
-                : ""
-            }
+          )
+          .join("")}
+            ${ad.comboBenefit
+          ? `<div style="margin-top:10px; font-size:12px; color:#4cd964; font-weight:bold;">🔥 Выгода: ${ad.comboBenefit}</div>`
+          : ""
+        }
           </div>
         `
-            : ""
-        }
+        : ""
+      }
 
         <!-- ОПИСАНИЕ -->
         <div style="background:#2c2c2e; padding:15px; border-radius:12px; margin-bottom:25px; white-space: pre-wrap; font-size:15px; color:#ccc; line-height:1.5;">
@@ -1157,48 +1146,43 @@ function openProduct(ad) {
               <i class="fa-solid fa-phone" style="color:var(--yellow-main); font-size:16px; width:20px; text-align:center;"></i>
               <div style="font-size:14px; color:#fff;">${phone}</div>
            </div>
-           ${
-             telegramNick
-               ? `
+           ${telegramNick
+        ? `
              <div style="display:flex; align-items:center; gap:12px;">
                 <i class="fa-brands fa-telegram" style="color:#0088cc; font-size:20px; width:20px; text-align:center;"></i>
                 <div style="font-size:14px; color:#fff;">${telegramNick}</div>
              </div>
            `
-               : ""
-           }
+        : ""
+      }
         </div>
         
         <!-- КНОПКА ЖАЛОБЫ -->
-        <div onclick="reportAd('${ad.id}', '${
-      ad.userId
-    }')" style="background:rgba(255,204,0,0.05); color:var(--yellow-main); border:1px solid rgba(255,204,0,0.2); padding:12px; border-radius:12px; text-align:center; font-size:13px; font-weight:bold; cursor:pointer; margin-top:25px;">
+        <div onclick="reportAd('${ad.id}', '${ad.userId
+      }')" style="background:rgba(255,204,0,0.05); color:var(--yellow-main); border:1px solid rgba(255,204,0,0.2); padding:12px; border-radius:12px; text-align:center; font-size:13px; font-weight:bold; cursor:pointer; margin-top:25px;">
           Пожаловаться на мошенника
         </div>
 
         <!-- СПЕЦИАЛЬНЫЙ БЛОК ДЛЯ АДМИНИСТРАТОРА -->
-        ${
-          isAdmin
-            ? `
+        ${isAdmin
+        ? `
           <div style="margin-top:35px; padding:18px; background:rgba(255,59,48,0.1); border:1px solid #ff3b30; border-radius:15px;">
             <div style="color:#ff3b30; font-weight:bold; margin-bottom:12px; font-size:14px; text-transform:uppercase; letter-spacing:1px;">Админ-панель управления</div>
             <div style="font-size:12px; color:#fff; display:flex; flex-direction:column; gap:10px; font-family:monospace;">
-              <div>🆔 ID Продавца: <span style="color:var(--yellow-main)">${
-                ad.userId || "не указан"
-              }</span></div>
+              <div>🆔 ID Продавца: <span style="color:var(--yellow-main)">${ad.userId || "не указан"
+        }</span></div>
               <div>📅 Дата публикации: ${new Date(
-                (ad.approvedAt || ad.createdAt || 0) * 1000
-              ).toLocaleString()}</div>
+          (ad.approvedAt || ad.createdAt || 0) * 1000
+        ).toLocaleString()}</div>
               <div>📑 ID Объявления: ${ad.id}</div>
               <div>🎫 Тарифный план: ${tariff}</div>
             </div>
-            <button onclick="adminDeleteAd('${
-              ad.id
-            }')" style="width:100%; background:#ff3b30; color:#fff; border:none; padding:14px; border-radius:12px; margin-top:18px; font-weight:bold; cursor:pointer; text-transform:uppercase; font-size:12px;">УДАЛИТЬ ПОСТ (АДМИН)</button>
+            <button onclick="adminDeleteAd('${ad.id
+        }')" style="width:100%; background:#ff3b30; color:#fff; border:none; padding:14px; border-radius:12px; margin-top:18px; font-weight:bold; cursor:pointer; text-transform:uppercase; font-size:12px;">УДАЛИТЬ ПОСТ (АДМИН)</button>
           </div>
         `
-            : ""
-        }
+        : ""
+      }
       </div>
     `;
 
@@ -1345,9 +1329,8 @@ async function publishAndSend() {
     // ШАГ В: Загрузка основных фотографий товара (по очереди)
     const validImgs = [];
     for (let i = 0; i < selectedFiles.length; i++) {
-      lText.innerHTML = `Загрузка фото товара (${i + 1} из ${
-        selectedFiles.length
-      })...<br><b>Осталось еще немного.</b>`;
+      lText.innerHTML = `Загрузка фото товара (${i + 1} из ${selectedFiles.length
+        })...<br><b>Осталось еще немного.</b>`;
       const url = await uploadFile(selectedFiles[i]);
       if (url) validImgs.push(url);
     }
@@ -1982,14 +1965,14 @@ function getUserId() {
 }
 
 // --- ОТКРЫТИЕ ПУБЛИЧНОЙ ВИТРИНЫ МАГАЗИНА ---
-window.openPublicShop = async function(shopId) {
+window.openPublicShop = async function (shopId) {
   // 1. Показываем страницу
   showPage("public-shop");
 
   // 2. Получаем данные магазина из Firebase
   const snap = await db.ref("users/" + shopId).once("value");
   const shopUser = snap.val();
-  
+
   if (!shopUser) {
     alert("Магазин не найден");
     showPage("home");
@@ -1997,7 +1980,7 @@ window.openPublicShop = async function(shopId) {
   }
 
   const sData = shopUser.shopData || {};
-  
+
   // Установка обложки
   const banner = document.getElementById("public-shop-banner");
   const fallbackCover = sData.cover || shopUser.cover;
@@ -2011,28 +1994,29 @@ window.openPublicShop = async function(shopId) {
   const logo = document.getElementById("public-shop-logo");
   const fallbackLogo = sData.logo || shopUser.logo;
   if (fallbackLogo) {
-    logo.innerHTML = `<img src="${fallbackLogo}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+    logo.innerHTML = `<img src="${fallbackLogo}" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">`;
     logo.style.background = "transparent";
   } else {
     const shopChar = (sData.shopName || shopUser.shopName || shopUser.first_name || "M").charAt(0).toUpperCase();
     logo.innerHTML = `<span style="font-size:24px; font-weight:bold; color:#000;">${shopChar}</span>`;
     logo.style.background = "var(--premium-grad)";
+    logo.style.borderRadius = "12px";
   }
 
   // Текстовые данные
   document.getElementById("public-shop-name").innerText = sData.shopName || shopUser.shopName || shopUser.first_name || "Магазин";
   document.getElementById("public-shop-bio").innerText = sData.bio || shopUser.bio || "Описание магазина отсутствует.";
   document.getElementById("public-shop-hours").innerText = sData.hours || shopUser.workHours || "Не указаны";
-  
+
   const instagram = sData.inst || shopUser.instagram || "";
   document.getElementById("public-shop-inst").innerText = instagram ? "@" + instagram : "Не указан";
-  
+
   // Сохраняем instagram для клика
   window.currentPublicInst = instagram;
 
   // 3. Фильтруем товары этого магазина
   const shopAds = ads.filter(a => a.userId === shopId && a.status === "active");
-  
+
   const kombos = shopAds.filter(a => a.isCombo);
   const regular = shopAds.filter(a => !a.isCombo);
 
@@ -2062,13 +2046,13 @@ window.openPublicShop = async function(shopId) {
   recommendations.forEach(ad => recGrid.appendChild(createAdCard(ad)));
 };
 
-window.openPublicInst = function() {
+window.openPublicInst = function () {
   if (window.currentPublicInst) {
     window.location.href = `https://instagram.com/${window.currentPublicInst}`;
   }
 };
 // --- ГОРИЗОНТАЛЬНАЯ ЛИНИЯ ПАРТНЕРОВ (Магазины) ---
-window.renderShopsLine = async function() {
+window.renderShopsLine = async function () {
   const container = document.getElementById("verified-shops-list");
   if (!container) return;
 
@@ -2079,39 +2063,52 @@ window.renderShopsLine = async function() {
 
   // Ищем бизнес-юзеров
   const shops = Object.keys(usersData)
-    .map(k => ({id: k, ...usersData[k]}))
+    .map(k => ({ id: k, ...usersData[k] }))
     .filter(u => u.role === "business" || u.role === "admin");
-  
+
   container.innerHTML = "";
-  
+
   // Кнопка для подачи заявки
   const addBtnHTML = `
     <div onclick="tg.openTelegramLink('https://t.me/D1NCHO')" style="display:flex; flex-direction:column; align-items:center; cursor:pointer; width: 105px; transition: transform 0.2s ease;" class="flex-shrink-0">
       <div style="width:105px; height:75px; background:rgba(255,204,0,0.1); border-radius:12px; display:flex; align-items:center; justify-content:center; margin-bottom:5px; border: 1px dashed var(--yellow-main)">
         <i class="fa-solid fa-plus" style="color:var(--yellow-main); font-size:24px;"></i>
       </div>
-      <span style="font-size:12px; color:gray; font-weight:bold;">Стать порнером</span>
+      <span style="font-size:12px; color:gray; font-weight:bold;">Стать партнером</span>
     </div>
   `;
   container.innerHTML += addBtnHTML;
 
+  // Главная лента: Очищаем горизонтальный список историй для заполнения магазинами
+  const storiesContainer = document.getElementById("shop-stories");
+  if (storiesContainer) {
+    storiesContainer.innerHTML = `
+      <div class="story-item partner-invite" onclick="tg.openTelegramLink('https://t.me/D1NCHO')">
+        <div class="story-circle-add">
+          <span style="font-size: 30px; font-weight: 200; color: var(--yellow-main); margin-bottom: 3px;">+</span>
+        </div>
+        <span>Стать партнером</span>
+      </div>
+    `;
+  }
+
   shops.forEach(shop => {
     let logoUrl = "?";
     let isTextLogo = true;
-    
+
     // Fallback logic to grab logo from root if missing in shopData
     const sData = shop.shopData || {};
     const fallbackLogo = sData.logo || shop.logo;
 
     if (fallbackLogo) {
-       logoUrl = fallbackLogo;
-       isTextLogo = false;
+      logoUrl = fallbackLogo;
+      isTextLogo = false;
     } else {
-       logoUrl = (sData.shopName || shop.shopName || shop.first_name || "M").charAt(0).toUpperCase();
+      logoUrl = (sData.shopName || shop.shopName || shop.first_name || "M").charAt(0).toUpperCase();
     }
-    
+
     const shopName = sData.shopName || shop.shopName || shop.first_name || "Магазин";
-    
+
     const div = document.createElement("div");
     // New design: Dark rounded card with logo taking top space, title below, and hover/active animations
     div.style = "display:flex; flex-direction:column; background: #222224; border-radius: 12px; padding: 6px; cursor:pointer; width: 105px; position:relative; box-shadow: 0 4px 6px rgba(0,0,0,0.4); transition: transform 0.2s ease;";
@@ -2150,20 +2147,44 @@ window.renderShopsLine = async function() {
       `;
     }
     container.appendChild(div);
+
+    // Добавляем этот же магазин в виде "Истории" в верхнюю ленту (shop-stories)
+    if (storiesContainer) {
+       const storyItem = document.createElement("div");
+       storyItem.className = "story-item";
+       storyItem.onclick = () => openPublicShop(shop.id);
+       
+       if (isTextLogo) {
+         storyItem.innerHTML = `
+           <div class="story-circle-empty" style="background:var(--premium-grad); display:flex; align-items:center; justify-content:center; color:#000; font-weight:bold; font-size:24px; border:none;">
+             ${logoUrl}
+           </div>
+           <span style="display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; font-size:11px;">${shopName}</span>
+         `;
+       } else {
+         storyItem.innerHTML = `
+           <div class="story-circle-empty" style="padding:2px; background:var(--premium-grad); border:none; display:flex; align-items:center; justify-content:center;">
+             <img src="${logoUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
+           </div>
+           <span style="display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; font-size:11px;">${shopName}</span>
+         `;
+       }
+       storiesContainer.appendChild(storyItem);
+    }
   });
 };
 
 // --- ЛЕНТА ТОВАРОВ ИСКЛЮЧИТЕЛЬНО ОТ МАГАЗИНОВ ---
-window.renderShopsFeed = function() {
+window.renderShopsFeed = function () {
   const grid = document.getElementById("shops-grid");
   if (!grid) return;
   grid.innerHTML = "";
 
-  const shopAds = ads.filter(ad => 
-    ad.isShop === true && 
-    !ad.isResale && 
-    ad.status !== "deleted" && 
-    ad.status !== "pending" && 
+  const shopAds = ads.filter(ad =>
+    ad.isShop === true &&
+    !ad.isResale &&
+    ad.status !== "deleted" &&
+    ad.status !== "pending" &&
     ad.status !== "rejected"
   );
 
