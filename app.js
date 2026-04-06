@@ -309,87 +309,6 @@ function renderAdminStats() {
     document.getElementById("adm-active-ads").innerText = active;
   if (document.getElementById("adm-active-users"))
     document.getElementById("adm-active-users").innerText = sellers;
-
-  // Отрисовываем админскую ленту
-  const adminGrid = document.getElementById("admin-ads-grid");
-  if (adminGrid) {
-    adminGrid.innerHTML = "";
-    if (ads.length === 0) {
-      adminGrid.innerHTML = `<p style="text-align:center; color:gray; grid-column: 1/3; margin-top:20px;">Ожидающих и активных нет</p>`;
-    } else {
-      // Сортируем: pending (на проверке) первыми, потом остальные по новизне
-      const sortedAds = [...ads].sort((a,b) => {
-        if(a.status === 'pending' && b.status !== 'pending') return -1;
-        if(a.status !== 'pending' && b.status === 'pending') return 1;
-        return (b.approvedAt || b.createdAt || 0) - (a.approvedAt || a.createdAt || 0);
-      });
-      sortedAds.forEach((ad) => {
-        adminGrid.appendChild(createAdCard(ad, true));
-      });
-    }
-  }
-}
-
-// --- ГОРИЗОНТАЛЬНАЯ ЛИНИЯ ПАРТНЕРОВ (Магазины) ---
-async function renderShopsLine() {
-  const container = document.getElementById("verified-shops-list");
-  if (!container) return;
-
-  // Запрашиваем юзеров из Firebase один раз
-  const snap = await db.ref("users").once("value");
-  const usersData = snap.val();
-  if (!usersData) return;
-
-  // Ищем бизнес-юзеров
-  const shops = Object.keys(usersData).map(k => ({id: k, ...usersData[k]})).filter(u => u.role === "business" || u.role === "admin");
-  
-  container.innerHTML = "";
-  
-  // Кнопка для подачи заявки
-  const addBtnHTML = `
-    <div onclick="tg.openTelegramLink('https://t.me/D1NCHO')" style="display:flex; flex-direction:column; align-items:center; cursor:pointer;" class="flex-shrink-0">
-      <div style="width:60px; height:60px; background:rgba(255,204,0,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:5px; border: 1px dashed var(--yellow-main)">
-        <i class="fa-solid fa-plus" style="color:var(--yellow-main); font-size:24px;"></i>
-      </div>
-      <span style="font-size:10px; color:gray;">Стать<br>партнером</span>
-    </div>
-  `;
-  container.innerHTML += addBtnHTML;
-
-  shops.forEach(shop => {
-    let logoUrl = "?";
-    let isTextLogo = true;
-    if (shop.shopData && shop.shopData.logo) {
-       logoUrl = shop.shopData.logo;
-       isTextLogo = false;
-    } else {
-       logoUrl = shop.first_name ? shop.first_name.charAt(0).toUpperCase() : "?";
-    }
-    
-    const shopName = shop.shopData?.shopName || shop.first_name || "Магазин";
-    
-    const div = document.createElement("div");
-    div.style = "display:flex; flex-direction:column; align-items:center; cursor:pointer; width: 65px;";
-    div.className = "flex-shrink-0";
-    div.onclick = () => openPublicShop(shop.id);
-
-    if (isTextLogo) {
-      div.innerHTML = `
-        <div style="width:60px; height:60px; background:var(--premium-grad); color:#000; font-weight:bold; font-size:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:5px;">
-          ${logoUrl}
-        </div>
-        <span style="font-size:10px; color:#fff; text-align:center; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">${shopName}</span>
-      `;
-    } else {
-      div.innerHTML = `
-        <div style="width:60px; height:60px; border-radius:50%; margin-bottom:5px; overflow:hidden;">
-          <img src="${logoUrl}" style="width:100%; height:100%; object-fit:cover;">
-        </div>
-        <span style="font-size:10px; color:#fff; text-align:center; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">${shopName}</span>
-      `;
-    }
-    container.appendChild(div);
-  });
 }
 
 // --- 4. ОТРИСОВКА ТОВАРОВ БИЗНЕСА МАГАЗИНА (С ТЕКУЩИМ УПРАВЛЕНИЕМ ДЛЯ АМДИНОВ/ВЛАДЕЛЬЦЕВ) ---
@@ -754,7 +673,6 @@ function listenAds() {
       // Отрисовываем ленту и профиль
       renderFeed();
       renderProfile();
-      renderShopsLine(); // Отрисовка магазинов
 
       // Когда данные загружены, убираем заставку
       if (splash && !splash.classList.contains("hidden-splash")) {
@@ -831,8 +749,17 @@ window.setFeedFilter = function(opt) {
   const btnAll = document.getElementById("f-btn-all");
   const btnResale = document.getElementById("f-btn-resale");
   if(btnAll && btnResale) {
-    btnAll.classList.toggle("active", opt === "all");
-    btnResale.classList.toggle("active", opt === "resale");
+    if (opt === "all") {
+       btnAll.style.color = "var(--yellow-main)";
+       btnAll.style.borderBottom = "2px solid var(--yellow-main)";
+       btnResale.style.color = "gray";
+       btnResale.style.borderBottom = "2px solid transparent";
+    } else {
+       btnResale.style.color = "var(--yellow-main)";
+       btnResale.style.borderBottom = "2px solid var(--yellow-main)";
+       btnAll.style.color = "gray";
+       btnAll.style.borderBottom = "2px solid transparent";
+    }
   }
   renderFeed();
 };
@@ -1416,7 +1343,6 @@ async function publishAndSend() {
 
       // СИСТЕМНЫЕ ПОЛЯ
       status: isPartner ? "active" : "pending",
-      isResale: document.getElementById("in-resale")?.checked || false,
       bot_notified: false, // Чтобы бот на сервере прислал уведомление админу
       isShop: isPartner,
       shopName: isPartner ? myShopData?.shopName || "Администрация" : "",

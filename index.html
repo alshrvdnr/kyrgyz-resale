@@ -85,18 +85,9 @@
             </div>
           </div>
 
-          <!-- Фильтры: Все / Ресейл -->
-          <div class="feed-filters" style="display:flex; gap:10px; padding: 0 15px 10px; margin-top:5px;">
-            <div class="cat-card active" id="f-btn-all" onclick="setFeedFilter('all')" style="flex:1; justify-content:center; text-align:center;">Всё для вас</div>
-            <div class="cat-card" id="f-btn-resale" onclick="setFeedFilter('resale')" style="flex:1; justify-content:center; text-align:center;">Б/У · Ресейл</div>
-          </div>
-
           <!-- Категории (остаются под поиском) -->
           <div class="categories-wrapper">
             <div class="categories-container">
-              <div class="cat-card active" onclick="filterByCat('Все', this)">
-                <i class="fa-solid fa-border-all"></i><span>Категории</span>
-              </div>
               <div class="cat-card" onclick="filterByCat('flowers', this)">
                 <i class="fa-solid fa-leaf"></i><span>Цветы</span>
               </div>
@@ -112,17 +103,12 @@
             </div>
           </div>
 
-          <!-- Горизонтальная секция популярных магазинов -->
-          <h2 style="margin: 15px 15px 5px; font-size: 16px;">Магазины и Партнеры</h2>
-          <div class="shops-wrapper" style="overflow-x: auto; padding: 0 15px 15px; margin-bottom: 5px;">
-            <div id="verified-shops-list" style="display: flex; gap: 12px; min-width: max-content;">
-              <!-- Javascript will render shops here -->
-            </div>
+          <!-- Lalafo-style toggle buttons right above the listings -->
+          <div style="display:flex; padding: 15px 15px 0;">
+            <div id="f-btn-all" onclick="setFeedFilter('all')" style="flex:1; text-align:center; padding-bottom:10px; color:var(--yellow-main); border-bottom: 2px solid var(--yellow-main); font-weight:bold; cursor:pointer; font-size:16px;">Все</div>
+            <div id="f-btn-resale" onclick="setFeedFilter('resale')" style="flex:1; text-align:center; padding-bottom:10px; color:gray; border-bottom: 2px solid transparent; font-weight:bold; cursor:pointer; font-size:16px;">Ресейл</div>
           </div>
 
-          <h2 id="dynamic-feed-title" style="margin: 0px 15px; font-size: 18px">
-            Свежие предложения
-          </h2>
         </header>
         <!-- ИНДИКАТОР СТАТУСА БОТА (ТОЛЬКО ДЛЯ АДМИНА) -->
         <div id="admin-bot-status" class="hidden" style="margin:10px 15px">
@@ -538,13 +524,6 @@
             <div id="verify-preview" class="hidden"></div>
           </div>
           
-          <div class="f-group" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between;">
-            <label style="margin:0; font-size: 15px; width:100%; display:flex; align-items:center; justify-content:space-between;">
-              <span><i class="fa-solid fa-recycle" style="color:var(--yellow-main); margin-right:5px;"></i> Это Ресейл (Б/У товар)</span>
-              <input type="checkbox" id="in-resale" style="width: 20px; height: 20px;" />
-            </label>
-          </div>
-
           <div class="f-group" id="cat-group">
             <label>Категория</label
             ><select id="in-cat" class="main-input">
@@ -803,11 +782,6 @@
               style="color: gray; font-size: 14px; margin-top: 10px"
             >
               Жалоб пока нет.
-            </div>
-
-            <h3 style="font-size: 16px; margin-top: 20px;">Актуальные объявления</h3>
-            <div id="admin-ads-grid" class="listings-grid" style="padding-top:10px;">
-              <!-- Лента админа -->
             </div>
           </div>
         </div>
