@@ -2086,11 +2086,11 @@ window.renderShopsLine = async function() {
   
   // Кнопка для подачи заявки
   const addBtnHTML = `
-    <div onclick="tg.openTelegramLink('https://t.me/D1NCHO')" style="display:flex; flex-direction:column; align-items:center; cursor:pointer;" class="flex-shrink-0">
-      <div style="width:70px; height:70px; background:rgba(255,204,0,0.1); border-radius:15px; display:flex; align-items:center; justify-content:center; margin-bottom:5px; border: 1px dashed var(--yellow-main)">
+    <div onclick="tg.openTelegramLink('https://t.me/D1NCHO')" style="display:flex; flex-direction:column; align-items:center; cursor:pointer; width: 105px; transition: transform 0.2s ease;" class="flex-shrink-0">
+      <div style="width:105px; height:75px; background:rgba(255,204,0,0.1); border-radius:12px; display:flex; align-items:center; justify-content:center; margin-bottom:5px; border: 1px dashed var(--yellow-main)">
         <i class="fa-solid fa-plus" style="color:var(--yellow-main); font-size:24px;"></i>
       </div>
-      <span style="font-size:12px; color:gray; font-weight:bold;">Стать<br>партнером</span>
+      <span style="font-size:12px; color:gray; font-weight:bold;">Стать порнером</span>
     </div>
   `;
   container.innerHTML += addBtnHTML;
@@ -2113,31 +2113,40 @@ window.renderShopsLine = async function() {
     const shopName = sData.shopName || shop.shopName || shop.first_name || "Магазин";
     
     const div = document.createElement("div");
-    // New design: White square card with logo taking top space, title below
-    div.style = "display:flex; flex-direction:column; background: #fff; border-radius: 12px; padding: 6px; cursor:pointer; width: 90px; position:relative; box-shadow: 0 2px 5px rgba(0,0,0,0.1);";
+    // New design: Dark rounded card with logo taking top space, title below, and hover/active animations
+    div.style = "display:flex; flex-direction:column; background: #222224; border-radius: 12px; padding: 6px; cursor:pointer; width: 105px; position:relative; box-shadow: 0 4px 6px rgba(0,0,0,0.4); transition: transform 0.2s ease;";
     div.className = "flex-shrink-0";
-    div.onclick = () => openPublicShop(shop.id);
+    div.onmousedown = () => div.style.transform = 'scale(0.95)';
+    div.onmouseup = () => div.style.transform = 'scale(1)';
+    div.onmouseleave = () => div.style.transform = 'scale(1)';
+    div.ontouchstart = () => div.style.transform = 'scale(0.95)';
+    div.ontouchend = () => div.style.transform = 'scale(1)';
+    div.onclick = () => {
+      div.style.transform = 'scale(1)';
+      openPublicShop(shop.id);
+    };
+
     if (isTextLogo) {
       div.innerHTML = `
-        <div style="width:100%; height:60px; background:var(--premium-grad); color:#000; font-weight:bold; font-size:24px; border-radius:8px; display:flex; align-items:center; justify-content:center; margin-bottom:5px;">
+        <div style="width:100%; height:75px; background:var(--premium-grad); color:#000; font-weight:bold; font-size:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; margin-bottom:6px;">
           ${logoUrl}
         </div>
         <div style="display:flex; align-items:center;">
-          <span style="font-size:11px; color:#000; font-weight:bold; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">${shopName}</span>
-          <i class="fa-solid fa-circle-check" style="color:#007aff; font-size:10px; margin-left:3px;"></i>
+          <span style="font-size:12px; color:#fff; font-weight:bold; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">${shopName}</span>
+          <i class="fa-solid fa-circle-check" style="color:#007aff; font-size:11px; margin-left:4px;"></i>
         </div>
-        <span style="font-size:9px; color:gray; margin-top:2px; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">Partner</span>
+        <span style="font-size:10px; color:gray; margin-top:3px; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">Partner</span>
       `;
     } else {
       div.innerHTML = `
-        <div style="width:100%; height:60px; border-radius:8px; margin-bottom:5px; overflow:hidden; background:#f0f0f0;">
+        <div style="width:100%; height:75px; border-radius:8px; margin-bottom:6px; overflow:hidden; background:#1c1c1e;">
           <img src="${logoUrl}" style="width:100%; height:100%; object-fit:cover;">
         </div>
         <div style="display:flex; align-items:center;">
-          <span style="font-size:11px; color:#000; font-weight:bold; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">${shopName}</span>
-          <i class="fa-solid fa-circle-check" style="color:#007aff; font-size:10px; margin-left:3px;"></i>
+          <span style="font-size:12px; color:#fff; font-weight:bold; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">${shopName}</span>
+          <i class="fa-solid fa-circle-check" style="color:#007aff; font-size:11px; margin-left:4px;"></i>
         </div>
-        <span style="font-size:9px; color:gray; margin-top:2px; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">Partner</span>
+        <span style="font-size:10px; color:gray; margin-top:3px; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">Partner</span>
       `;
     }
     container.appendChild(div);
