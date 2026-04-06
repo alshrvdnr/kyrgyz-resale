@@ -85,11 +85,17 @@
             </div>
           </div>
 
+          <!-- Фильтры: Все / Ресейл -->
+          <div class="feed-filters" style="display:flex; gap:10px; padding: 0 15px 10px; margin-top:5px;">
+            <div class="cat-card active" id="f-btn-all" onclick="setFeedFilter('all')" style="flex:1; justify-content:center; text-align:center;">Всё для вас</div>
+            <div class="cat-card" id="f-btn-resale" onclick="setFeedFilter('resale')" style="flex:1; justify-content:center; text-align:center;">Б/У · Ресейл</div>
+          </div>
+
           <!-- Категории (остаются под поиском) -->
           <div class="categories-wrapper">
             <div class="categories-container">
               <div class="cat-card active" onclick="filterByCat('Все', this)">
-                <i class="fa-solid fa-border-all"></i><span>Все</span>
+                <i class="fa-solid fa-border-all"></i><span>Категории</span>
               </div>
               <div class="cat-card" onclick="filterByCat('flowers', this)">
                 <i class="fa-solid fa-leaf"></i><span>Цветы</span>
@@ -106,12 +112,20 @@
             </div>
           </div>
 
-          <h2 id="dynamic-feed-title" style="margin: 12px 0 0; font-size: 18px">
+          <!-- Горизонтальная секция популярных магазинов -->
+          <h2 style="margin: 15px 15px 5px; font-size: 16px;">Магазины и Партнеры</h2>
+          <div class="shops-wrapper" style="overflow-x: auto; padding: 0 15px 15px; margin-bottom: 5px;">
+            <div id="verified-shops-list" style="display: flex; gap: 12px; min-width: max-content;">
+              <!-- Javascript will render shops here -->
+            </div>
+          </div>
+
+          <h2 id="dynamic-feed-title" style="margin: 0px 15px; font-size: 18px">
             Свежие предложения
           </h2>
         </header>
         <!-- ИНДИКАТОР СТАТУСА БОТА (ТОЛЬКО ДЛЯ АДМИНА) -->
-        <div id="admin-bot-status" class="hidden">
+        <div id="admin-bot-status" class="hidden" style="margin:10px 15px">
           <div class="status-content">
             <div id="status-dot"></div>
             <div class="status-info">
@@ -523,6 +537,14 @@
             <!-- Сюда будет выводиться статус "Фото добавлено" -->
             <div id="verify-preview" class="hidden"></div>
           </div>
+          
+          <div class="f-group" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between;">
+            <label style="margin:0; font-size: 15px; width:100%; display:flex; align-items:center; justify-content:space-between;">
+              <span><i class="fa-solid fa-recycle" style="color:var(--yellow-main); margin-right:5px;"></i> Это Ресейл (Б/У товар)</span>
+              <input type="checkbox" id="in-resale" style="width: 20px; height: 20px;" />
+            </label>
+          </div>
+
           <div class="f-group" id="cat-group">
             <label>Категория</label
             ><select id="in-cat" class="main-input">
@@ -782,6 +804,11 @@
             >
               Жалоб пока нет.
             </div>
+
+            <h3 style="font-size: 16px; margin-top: 20px;">Актуальные объявления</h3>
+            <div id="admin-ads-grid" class="listings-grid" style="padding-top:10px;">
+              <!-- Лента админа -->
+            </div>
           </div>
         </div>
 
@@ -975,6 +1002,58 @@
       >
         <div id="pv-content"></div>
       </div>
+
+      <!-- BRAND NEW: СТРАНИЦА ПРОСМОТРА МАГАЗИНА ДЛЯ ОБЫЧНЫХ КЛИЕНТОВ -->
+      <section id="page-public-shop" class="page hidden" style="position: relative; z-index: 45;">
+        <!-- Header / Back button -->
+        <header style="padding: 15px; position:absolute; top:0; left:0; width:100%; z-index:50;">
+          <i class="fa fa-arrow-left" onclick="showPage('home')" style="font-size: 24px; cursor: pointer; color: #fff; background: rgba(0,0,0,0.5); padding:8px 10px; border-radius:50%;"></i>
+        </header>
+
+        <div class="biz-premium-header" style="margin-top:0;">
+          <!-- Большая обложка -->
+          <div id="public-shop-banner" class="biz-banner-image" style="height:220px;">
+            <div class="biz-banner-overlay"></div>
+          </div>
+          
+          <div class="biz-profile-card">
+            <div class="biz-logo-container">
+              <div id="public-shop-logo" class="biz-logo">?</div>
+              <div class="biz-verified-badge"><i class="fa-solid fa-circle-check"></i> Магазин</div>
+            </div>
+            <div class="biz-info-container">
+              <h2 id="public-shop-name" class="biz-name">Магазин</h2>
+              <div class="biz-category">Партнер Gifts KG</div>
+              <p id="public-shop-bio" class="biz-bio">...</p>
+              <div class="biz-meta">
+                <div class="biz-meta-item">
+                  <i class="fa-solid fa-clock" style="color:var(--yellow-main)"></i>
+                  <span id="public-shop-hours">09:00 - 20:00</span>
+                </div>
+                <div class="biz-meta-item" onclick="openPublicInst()">
+                  <i class="fa-brands fa-instagram" style="color:#E1306C"></i>
+                  <span id="public-shop-inst">Не указан</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="padding: 10px 15px; padding-bottom: 80px;">
+          <h3 style="font-size: 18px; margin-bottom: 10px;">Товары магазина</h3>
+          <div id="public-shop-kombos" class="listings-grid" style="grid-template-columns: 1fr; margin-bottom: 15px;">
+            <!-- комбо наборы магазина -->
+          </div>
+          <div id="public-shop-grid" class="listings-grid" style="margin-bottom: 30px;">
+            <!-- Товары магазина -->
+          </div>
+
+          <h3 style="font-size: 18px; margin-bottom: 10px; border-top: 1px solid #333; padding-top:20px;">Рекомендации</h3>
+          <div id="public-recommendations-grid" class="listings-grid" style="margin-bottom: 20px;">
+            <!-- Случайные товары -->
+          </div>
+        </div>
+      </section>
 
       <nav class="bottom-nav">
         <button class="nav-item active" onclick="showPage('home')" id="n-home">

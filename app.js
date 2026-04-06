@@ -297,46 +297,102 @@ function renderProfile() {
   }
 }
 
-// --- ФУНКЦИЯ ДЛЯ ЦИФР АДМИНА (Чтобы панель не была пустой) ---
+// --- ФУНКЦИЯ ДЛЯ ЦИФР АДМИНА И ЛЕНТЫ ---
 function renderAdminStats() {
   const total = ads.length;
   const active = ads.filter((a) => a.status === "active").length;
   const sellers = new Set(ads.map((a) => a.userId)).size;
 
-  // Вставляем цифры (проверь эти ID в своем index.html)
   if (document.getElementById("adm-total-ads"))
     document.getElementById("adm-total-ads").innerText = total;
   if (document.getElementById("adm-active-ads"))
     document.getElementById("adm-active-ads").innerText = active;
   if (document.getElementById("adm-active-users"))
     document.getElementById("adm-active-users").innerText = sellers;
+
+  // Отрисовываем админскую ленту
+  const adminGrid = document.getElementById("admin-ads-grid");
+  if (adminGrid) {
+    adminGrid.innerHTML = "";
+    if (ads.length === 0) {
+      adminGrid.innerHTML = `<p style="text-align:center; color:gray; grid-column: 1/3; margin-top:20px;">Ожидающих и активных нет</p>`;
+    } else {
+      // Сортируем: pending (на проверке) первыми, потом остальные по новизне
+      const sortedAds = [...ads].sort((a,b) => {
+        if(a.status === 'pending' && b.status !== 'pending') return -1;
+        if(a.status !== 'pending' && b.status === 'pending') return 1;
+        return (b.approvedAt || b.createdAt || 0) - (a.approvedAt || a.createdAt || 0);
+      });
+      sortedAds.forEach((ad) => {
+        adminGrid.appendChild(createAdCard(ad, true));
+      });
+    }
+  }
 }
 
-// --- ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ АДМИН-СТАТИСТИКИ ---
-function renderAdminStats() {
-  // 1. Считаем общее количество объявлений
-  const totalAds = ads.length;
-  // 2. Считаем активные
-  const activeAds = ads.filter((a) => a.status === "active").length;
-  // 3. Считаем жалобы (если есть массив reports)
-  // const totalReports = reports ? reports.length : 0;
+// --- ГОРИЗОНТАЛЬНАЯ ЛИНИЯ ПАРТНЕРОВ (Магазины) ---
+async function renderShopsLine() {
+  const container = document.getElementById("verified-shops-list");
+  if (!container) return;
 
-  // Выводим цифры в HTML (проверь, чтобы эти ID были в твоем блоке view-admin)
-  const adsCountEl = document.getElementById("adm-total-ads");
-  if (adsCountEl) adsCountEl.innerText = totalAds;
+  // Запрашиваем юзеров из Firebase один раз
+  const snap = await db.ref("users").once("value");
+  const usersData = snap.val();
+  if (!usersData) return;
 
-  const activeCountEl = document.getElementById("adm-active-ads");
-  if (activeCountEl) activeCountEl.innerText = activeAds;
+  // Ищем бизнес-юзеров
+  const shops = Object.keys(usersData).map(k => ({id: k, ...usersData[k]})).filter(u => u.role === "business" || u.role === "admin");
+  
+  container.innerHTML = "";
+  
+  // Кнопка для подачи заявки
+  const addBtnHTML = `
+    <div onclick="tg.openTelegramLink('https://t.me/D1NCHO')" style="display:flex; flex-direction:column; align-items:center; cursor:pointer;" class="flex-shrink-0">
+      <div style="width:60px; height:60px; background:rgba(255,204,0,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:5px; border: 1px dashed var(--yellow-main)">
+        <i class="fa-solid fa-plus" style="color:var(--yellow-main); font-size:24px;"></i>
+      </div>
+      <span style="font-size:10px; color:gray;">Стать<br>партнером</span>
+    </div>
+  `;
+  container.innerHTML += addBtnHTML;
 
-  // Можно добавить количество уникальных юзеров
-  const uniqueUsers = new Set(ads.map((a) => a.userId)).size;
-  const usersCountEl = document.getElementById("adm-active-users");
-  if (usersCountEl) usersCountEl.innerText = uniqueUsers;
+  shops.forEach(shop => {
+    let logoUrl = "?";
+    let isTextLogo = true;
+    if (shop.shopData && shop.shopData.logo) {
+       logoUrl = shop.shopData.logo;
+       isTextLogo = false;
+    } else {
+       logoUrl = shop.first_name ? shop.first_name.charAt(0).toUpperCase() : "?";
+    }
+    
+    const shopName = shop.shopData?.shopName || shop.first_name || "Магазин";
+    
+    const div = document.createElement("div");
+    div.style = "display:flex; flex-direction:column; align-items:center; cursor:pointer; width: 65px;";
+    div.className = "flex-shrink-0";
+    div.onclick = () => openPublicShop(shop.id);
 
-  console.log("Статистика админа успешно обновлена");
+    if (isTextLogo) {
+      div.innerHTML = `
+        <div style="width:60px; height:60px; background:var(--premium-grad); color:#000; font-weight:bold; font-size:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:5px;">
+          ${logoUrl}
+        </div>
+        <span style="font-size:10px; color:#fff; text-align:center; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">${shopName}</span>
+      `;
+    } else {
+      div.innerHTML = `
+        <div style="width:60px; height:60px; border-radius:50%; margin-bottom:5px; overflow:hidden;">
+          <img src="${logoUrl}" style="width:100%; height:100%; object-fit:cover;">
+        </div>
+        <span style="font-size:10px; color:#fff; text-align:center; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">${shopName}</span>
+      `;
+    }
+    container.appendChild(div);
+  });
 }
 
-// --- 4. ОТРИСОВКА ТОВАРОВ БИЗНЕСА (С УПРАВЛЕНИЕМ) ---
+// --- 4. ОТРИСОВКА ТОВАРОВ БИЗНЕСА МАГАЗИНА (С ТЕКУЩИМ УПРАВЛЕНИЕМ ДЛЯ АМДИНОВ/ВЛАДЕЛЬЦЕВ) ---
 function renderBizAds() {
   const grid = document.getElementById("biz-ads-grid");
   if (!grid) return;
@@ -576,12 +632,8 @@ window.showPage = function (p) {
   document.querySelectorAll(".page").forEach((s) => s.classList.add("hidden"));
 
   // 2. ЛОГИКА ПЕРЕАДРЕСАЦИИ ДЛЯ КНОПКИ "ПОДАТЬ" (Центральный плюс)
-  if (p === "add") {
-    if (currentUserRole === "business" || currentUserRole === "admin") {
-      // Если это бизнес или админ — принудительно меняем страницу на Офис
-      p = "business-admin";
-    }
-  }
+  // Мы больше не форсируем переход на business-admin для бизнеса/админа
+  // При нажатии + Товар, они должны переходить напрямую к форме
 
   // 3. Показываем нужную страницу
   const targetPage = document.getElementById(`page-${p}`);
@@ -702,6 +754,7 @@ function listenAds() {
       // Отрисовываем ленту и профиль
       renderFeed();
       renderProfile();
+      renderShopsLine(); // Отрисовка магазинов
 
       // Когда данные загружены, убираем заставку
       if (splash && !splash.classList.contains("hidden-splash")) {
@@ -771,6 +824,19 @@ function applyHolidayUI() {
   }
 }
 
+// глобальный фильтр ленты
+window.currentFeedFilter = 'all';
+window.setFeedFilter = function(opt) {
+  window.currentFeedFilter = opt;
+  const btnAll = document.getElementById("f-btn-all");
+  const btnResale = document.getElementById("f-btn-resale");
+  if(btnAll && btnResale) {
+    btnAll.classList.toggle("active", opt === "all");
+    btnResale.classList.toggle("active", opt === "resale");
+  }
+  renderFeed();
+};
+
 // 5. ЛЕНТА И КАРТОЧКИ
 function renderFeed() {
   const grid = document.getElementById("home-grid");
@@ -779,6 +845,12 @@ function renderFeed() {
 
   // 1. ФИЛЬТРАЦИЯ ОБЪЯВЛЕНИЙ
   let filtered = ads.filter((ad) => {
+    // 0. ФИЛЬТР ПО РЕСЕЙЛУ
+    if (window.currentFeedFilter === "resale") {
+      if (!ad.isResale) return false;
+    } else {
+      if (ad.isResale) return false; // В "Всё для вас" скрываем ресейл
+    }
     // А. Проверка категории
     const catMatch = curCat === "Все" || ad.cat === curCat;
 
@@ -1344,6 +1416,7 @@ async function publishAndSend() {
 
       // СИСТЕМНЫЕ ПОЛЯ
       status: isPartner ? "active" : "pending",
+      isResale: document.getElementById("in-resale")?.checked || false,
       bot_notified: false, // Чтобы бот на сервере прислал уведомление админу
       isShop: isPartner,
       shopName: isPartner ? myShopData?.shopName || "Администрация" : "",
@@ -1933,3 +2006,85 @@ function getUserId() {
   }
   return guestId;
 }
+
+// --- ОТКРЫТИЕ ПУБЛИЧНОЙ ВИТРИНЫ МАГАЗИНА ---
+window.openPublicShop = async function(shopId) {
+  // 1. Показываем страницу
+  showPage("public-shop");
+
+  // 2. Получаем данные магазина из Firebase
+  const snap = await db.ref("users/" + shopId).once("value");
+  const shopUser = snap.val();
+  
+  if (!shopUser) {
+    alert("Магазин не найден");
+    showPage("home");
+    return;
+  }
+
+  const sData = shopUser.shopData || {};
+  
+  // Установка обложки
+  const banner = document.getElementById("public-shop-banner");
+  if (sData.cover) {
+    banner.style.backgroundImage = `url('${sData.cover}')`;
+  } else {
+    banner.style.backgroundImage = `url('https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=1000')`;
+  }
+
+  // Установка логотипа
+  const logo = document.getElementById("public-shop-logo");
+  if (sData.logo) {
+    logo.innerHTML = `<img src="${sData.logo}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+    logo.style.background = "transparent";
+  } else {
+    logo.innerHTML = `<span style="font-size:24px; font-weight:bold; color:#000;">${(sData.shopName || shopUser.first_name || "M").charAt(0).toUpperCase()}</span>`;
+    logo.style.background = "var(--premium-grad)";
+  }
+
+  // Текстовые данные
+  document.getElementById("public-shop-name").innerText = sData.shopName || shopUser.first_name || "Магазин";
+  document.getElementById("public-shop-bio").innerText = sData.bio || "Описание магазина отсутствует.";
+  document.getElementById("public-shop-hours").innerText = sData.hours || "Не указаны";
+  document.getElementById("public-shop-inst").innerText = sData.inst ? "@" + sData.inst : "Не указан";
+  
+  // Сохраняем instagram для клика
+  window.currentPublicInst = sData.inst;
+
+  // 3. Фильтруем товары этого магазина
+  const shopAds = ads.filter(a => a.userId === shopId && a.status === "active");
+  
+  const kombos = shopAds.filter(a => a.isCombo);
+  const regular = shopAds.filter(a => !a.isCombo);
+
+  // Отрисовка комбо-наборов
+  const kGrid = document.getElementById("public-shop-kombos");
+  kGrid.innerHTML = "";
+  if (kombos.length > 0) {
+    kGrid.parentElement.style.display = "block";
+    kombos.forEach(ad => kGrid.appendChild(createAdCard(ad)));
+  } else {
+    kGrid.parentElement.style.display = "none";
+  }
+
+  // Отрисовка обычных товаров
+  const rGrid = document.getElementById("public-shop-grid");
+  rGrid.innerHTML = "";
+  if (regular.length > 0) {
+    regular.forEach(ad => rGrid.appendChild(createAdCard(ad)));
+  } else {
+    rGrid.innerHTML = "<p style='color:gray; width:100%; text-align:center; grid-column:1/3;'>Товаров пока нет</p>";
+  }
+
+  // Отрисовка рекомендаций (другие магазины/товары)
+  const recGrid = document.getElementById("public-recommendations-grid");
+  recGrid.innerHTML = "";
+  const recommendations = ads.filter(a => a.userId !== shopId && a.status === "active").slice(0, 4); // Берем 4 случайных
+  recommendations.forEach(ad => recGrid.appendChild(createAdCard(ad)));
+};
+
+window.openPublicInst = function() {
+  if (window.currentPublicInst) {
+    window.location.href = `https://instagram.com/${window.currentPublicInst}`;
+  }
+};
