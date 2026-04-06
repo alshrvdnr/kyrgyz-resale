@@ -2068,28 +2068,10 @@ window.renderShopsLine = async function () {
 
   container.innerHTML = "";
 
-  // Кнопка для подачи заявки
-  const addBtnHTML = `
-    <div onclick="tg.openTelegramLink('https://t.me/D1NCHO')" style="display:flex; flex-direction:column; align-items:center; cursor:pointer; width: 105px; transition: transform 0.2s ease;" class="flex-shrink-0">
-      <div style="width:105px; height:75px; background:rgba(255,204,0,0.1); border-radius:12px; display:flex; align-items:center; justify-content:center; margin-bottom:5px; border: 1px dashed var(--yellow-main)">
-        <i class="fa-solid fa-plus" style="color:var(--yellow-main); font-size:24px;"></i>
-      </div>
-      <span style="font-size:12px; color:gray; font-weight:bold;">Стать партнером</span>
-    </div>
-  `;
-  container.innerHTML += addBtnHTML;
 
-  // Главная лента: Очищаем горизонтальный список историй для заполнения магазинами
   const storiesContainer = document.getElementById("shop-stories");
   if (storiesContainer) {
-    storiesContainer.innerHTML = `
-      <div class="story-item partner-invite" onclick="tg.openTelegramLink('https://t.me/D1NCHO')">
-        <div class="story-circle-add">
-          <span style="font-size: 30px; font-weight: 200; color: var(--yellow-main); margin-bottom: 3px;">+</span>
-        </div>
-        <span>Стать партнером</span>
-      </div>
-    `;
+    storiesContainer.innerHTML = "";
   }
 
   shops.forEach(shop => {
@@ -2172,6 +2154,29 @@ window.renderShopsLine = async function () {
        storiesContainer.appendChild(storyItem);
     }
   });
+
+  // Добавляем кнопки "Стать партнером" в самый конец списков
+  const addBtnHTML = `
+    <div onclick="tg.openTelegramLink('https://t.me/D1NCHO')" style="display:flex; flex-direction:column; align-items:center; cursor:pointer; width: 105px; transition: transform 0.2s ease;" class="flex-shrink-0">
+      <div style="width:105px; height:75px; background:rgba(255,204,0,0.1); border-radius:12px; display:flex; align-items:center; justify-content:center; margin-bottom:5px; border: 1px dashed var(--yellow-main)">
+        <i class="fa-solid fa-plus" style="color:var(--yellow-main); font-size:24px;"></i>
+      </div>
+      <span style="font-size:12px; color:gray; font-weight:bold;">Стать партнером</span>
+    </div>
+  `;
+  container.insertAdjacentHTML("beforeend", addBtnHTML);
+
+  if (storiesContainer) {
+    const partnerInviteStoryHTML = `
+      <div class="story-item partner-invite" onclick="tg.openTelegramLink('https://t.me/D1NCHO')">
+        <div class="story-circle-add">
+          <span style="font-size: 30px; font-weight: 200; color: var(--yellow-main); margin-bottom: 3px;">+</span>
+        </div>
+        <span>Стать партнером</span>
+      </div>
+    `;
+    storiesContainer.insertAdjacentHTML("beforeend", partnerInviteStoryHTML);
+  }
 };
 
 // --- ЛЕНТА ТОВАРОВ ИСКЛЮЧИТЕЛЬНО ОТ МАГАЗИНОВ ---
