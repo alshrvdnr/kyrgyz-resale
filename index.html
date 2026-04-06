@@ -787,74 +787,64 @@
 
         <!-- 2. ИНТЕРФЕЙС МАГАЗИНА (STOREFRONT) -->
         <div id="view-business" class="hidden">
-          <div class="shop-header-container">
+          <!-- СЛОЖНЫЙ ГРАДИЕНТНЫЙ БЛОК ШАПКИ С BLUR -->
+          <div class="biz-premium-header">
             <!-- Большая обложка -->
             <div
               id="biz-banner"
-              class="shop-banner"
-              style="
-                background-image: url('https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=1000');
-              "
-            ></div>
-
-            <div class="shop-logo-wrapper">
-              <!-- Логотип -->
-              <div id="biz-logo-main" class="shop-logo-main">?</div>
-              <div class="shop-title-box">
-                <div id="biz-name-main" class="shop-name-main">Загрузка...</div>
-                <div style="font-size: 11px; color: #4cd964; font-weight: bold">
-                  <i class="fa-solid fa-circle-check"></i> ВЕРИФИЦИРОВАН
+              class="biz-banner-image"
+              style="background-image: url('https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=1000');"
+            >
+              <div class="biz-banner-overlay"></div>
+            </div>
+            
+            <div class="biz-profile-card">
+              <div class="biz-logo-container">
+                <div id="biz-logo-main" class="biz-logo">?</div>
+                <div class="biz-verified-badge"><i class="fa-solid fa-circle-check"></i> PRO</div>
+              </div>
+              <div class="biz-info-container">
+                <h2 id="biz-name-main" class="biz-name">Название магазина</h2>
+                <div class="biz-category" id="biz-category-main">Партнер Gifts KG</div>
+                <p id="biz-bio-display" class="biz-bio">Описание магазина пока не задано. Здесь будет красивый текст о вас.</p>
+                <div class="biz-meta">
+                  <div class="biz-meta-item">
+                    <i class="fa-solid fa-clock" style="color:var(--yellow-main)"></i>
+                    <span id="biz-hours-display">09:00 - 20:00</span>
+                  </div>
+                  <div class="biz-meta-item">
+                    <i class="fa-brands fa-instagram" style="color:#E1306C"></i>
+                    <span id="biz-inst-display">Не указан</span>
+                  </div>
                 </div>
               </div>
+              <button class="biz-edit-btn" onclick="openEditBizModal()">
+                <i class="fa-solid fa-pen"></i> Редактировать
+              </button>
             </div>
           </div>
 
-          <!-- Кнопки управления магазином -->
-          <div class="owner-dashboard">
-            <div class="dash-card" onclick="openAddForm('standard')">
-              <i class="fa-solid fa-plus" style="color: var(--yellow-main)"></i>
-              <span>Товар</span>
+          <!-- СТАТИСТИКА И ДЕЙСТВИЯ -->
+          <div class="biz-action-board">
+            <div class="biz-stat-card">
+              <div class="biz-stat-value" id="biz-views-count">0</div>
+              <div class="biz-stat-label">Просмотры витрины</div>
             </div>
-            <div class="dash-card" onclick="openAddForm('combo')">
-              <i class="fa-solid fa-layer-group" style="color: #ff3b30"></i>
-              <span>КОМБО 🔥</span>
-            </div>
-            <div class="dash-card" style="grid-column: span 2">
-              <div
-                style="
-                  display: flex;
-                  justify-content: space-between;
-                  align-items: center;
-                "
-              >
-                <div style="text-align: left">
-                  <b id="biz-views-count">0</b>
-                  <span style="font-size: 10px; color: gray; display: block"
-                    >ПРОСМОТРОВ МАГАЗИНА</span
-                  >
-                </div>
-                <button class="biz-edit-btn" onclick="openEditBizModal()">
-                  Настройки профиля
-                </button>
-              </div>
+            <div class="biz-action-cards">
+               <div class="biz-action-btn" onclick="openAddForm('standard')">
+                 <i class="fa-solid fa-plus"></i>
+                 <span>Добавить Товар</span>
+               </div>
+               <div class="biz-action-btn combo-btn" onclick="openAddForm('combo')">
+                 <i class="fa-solid fa-layer-group"></i>
+                 <span>Набор / Комбо</span>
+               </div>
             </div>
           </div>
 
-          <div class="profile-tabs">
-            <div
-              class="p-tab active"
-              id="tab-active"
-              onclick="switchProfileTab('active')"
-            >
-              Витрина
-            </div>
-            <div
-              class="p-tab"
-              id="tab-archive"
-              onclick="switchProfileTab('archive')"
-            >
-              Архив
-            </div>
+          <div class="profile-tabs" style="margin-top: 10px;">
+            <div class="p-tab active" id="tab-active" onclick="switchProfileTab('active')">Витрина ✨</div>
+            <div class="p-tab" id="tab-archive" onclick="switchProfileTab('archive')">Архив</div>
           </div>
           <main class="listings-grid" id="biz-ads-grid"></main>
         </div>
@@ -919,69 +909,54 @@
         </div>
       </section>
 
-      <!-- МОДАЛКА РЕДАКТИРОВАНИЯ БИЗНЕСА (Положи в конец body) -->
-      <!-- Найди в index.html id="edit-biz-modal" и замени его содержимое -->
-      <div id="edit-biz-modal" class="hidden modal-overlay">
-        <div class="modal-box" style="max-width: 90%; width: 340px">
-          <h3 style="margin-bottom: 20px">Настройки магазина</h3>
-
-          <!-- Поле для ЛОГОТИПА -->
-          <div class="f-group" style="text-align: left">
-            <label>Логотип магазина</label>
-            <input
-              type="file"
-              id="edit-biz-logo-input"
-              class="main-input"
-              accept="image/*"
-            />
+      <!-- МОДАЛКА РЕДАКТИРОВАНИЯ БИЗНЕСА -->
+      <div id="edit-biz-modal" class="hidden modal-overlay frosted-overlay">
+        <div class="modal-box premium-modal-box">
+          <div class="modal-header">
+            <h3>Магазин</h3>
+            <i class="fa fa-times close-icon" onclick="closeEditBizModal()"></i>
           </div>
 
-          <div class="f-group" style="text-align: left">
-            <label>Описание (Bio)</label>
-            <textarea
-              id="edit-biz-bio"
-              class="main-input"
-              rows="2"
-              placeholder="Доставка, свежие цветы..."
-            ></textarea>
+          <!-- Обложка и Лого -->
+          <div class="premium-upload-area">
+            <div class="upload-cover-box" onclick="document.getElementById('edit-biz-cover-input').click()">
+               <i class="fa-solid fa-image"></i> Изменить Фон
+               <input type="file" id="edit-biz-cover-input" hidden accept="image/*" onchange="handleBizMedia(this, 'cover')">
+            </div>
+            <div class="upload-logo-box" onclick="document.getElementById('edit-biz-logo-input').click()">
+               <i class="fa-solid fa-camera"></i> Логотип
+               <input type="file" id="edit-biz-logo-input" hidden accept="image/*" onchange="handleBizMedia(this, 'logo')">
+            </div>
+          </div>
+          <!-- Лоадер для фото -->
+          <div id="media-upload-loader" class="hidden" style="text-align:center; color:var(--yellow-main); font-size:12px; margin-bottom:15px; background: rgba(255,204,0,0.1); padding: 8px; border-radius: 8px;">
+            <i class="fa-solid fa-spinner fa-spin"></i> Загрузка изображения...
           </div>
 
-          <div class="f-group" style="text-align: left">
-            <label>График работы</label>
-            <input
-              type="text"
-              id="edit-biz-hours"
-              class="main-input"
-              placeholder="Пн-Вс, 09:00 - 20:00"
-            />
+          <div class="premium-input-group">
+            <label>Название магазина</label>
+            <input type="text" id="edit-biz-name" class="premium-input" placeholder="Введите название">
           </div>
 
-          <div class="f-group" style="text-align: left">
-            <label>Instagram (ник без @)</label>
-            <input
-              type="text"
-              id="edit-biz-inst"
-              class="main-input"
-              placeholder="my_shop"
-            />
+          <div class="premium-input-group">
+            <label>О компании (Bio)</label>
+            <textarea id="edit-biz-bio" class="premium-input" rows="2" placeholder="Расскажите о вас: цветы, доставка..."></textarea>
           </div>
 
-          <div style="display: flex; gap: 10px; margin-top: 20px">
-            <button
-              class="modal-action-btn"
-              onclick="closeEditBizModal()"
-              style="flex: 1; background: #333"
-            >
-              Отмена
-            </button>
-            <button
-              class="modal-action-btn"
-              onclick="saveBizProfile()"
-              style="flex: 1; background: var(--yellow-main); color: #000"
-            >
-              Сохранить
-            </button>
+          <div class="premium-grid-2">
+            <div class="premium-input-group">
+              <label>Часы работы</label>
+              <input type="text" id="edit-biz-hours" class="premium-input" placeholder="09:00 - 20:00">
+            </div>
+            <div class="premium-input-group">
+              <label>Instagram (без @)</label>
+              <input type="text" id="edit-biz-inst" class="premium-input" placeholder="my_shop">
+            </div>
           </div>
+
+          <button class="btn-premium-unity full-width mt-10" onclick="saveBizProfile()">
+            Сохранить изменения
+          </button>
         </div>
       </div>
       <div

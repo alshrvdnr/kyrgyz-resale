@@ -382,7 +382,6 @@ window.quickToggleStatus = async function (adId, currentStatus) {
 // 2. Функция заполнения Инста-шапки
 // --- НОВАЯ ФУНКЦИЯ ОБНОВЛЕНИЯ ВИТРИНЫ (STOREFRONT) ---
 function updateStorefrontUI() {
-  // Если данных о магазине нет, выходим
   if (!myShopData) {
     console.error("Ошибка: Данные myShopData не загружены.");
     return;
@@ -394,83 +393,98 @@ function updateStorefrontUI() {
     nameEl.innerText = myShopData.shopName || "Мой Магазин";
   }
 
-  // 2. ОБНОВЛЯЕМ ЛОГОТИП (Лого в кружке/квадрате поверх баннера)
+  // 2. ОБНОВЛЯЕМ ЛОГОТИП
   const logoEl = document.getElementById("biz-logo-main");
   if (logoEl) {
     if (myShopData.logo) {
-      // Если в базе есть ссылка на картинку-лого
       logoEl.style.backgroundImage = `url('${myShopData.logo}')`;
-      logoEl.style.backgroundSize = "cover";
-      logoEl.style.backgroundPosition = "center";
-      logoEl.innerText = ""; // Скрываем первую букву
+      logoEl.innerText = "";
     } else {
-      // Если логотипа нет — рисуем первую букву названия на сером фоне
       logoEl.style.backgroundImage = "none";
       logoEl.style.backgroundColor = "#2c2c2e";
-      logoEl.innerText = myShopData.shopName
-        ? myShopData.shopName[0].toUpperCase()
-        : "?";
+      logoEl.innerText = myShopData.shopName ? myShopData.shopName[0].toUpperCase() : "?";
     }
   }
 
-  // 3. ОБНОВЛЯЕМ БАННЕР (Большая обложка магазина сверху)
+  // 3. ОБНОВЛЯЕМ БАННЕР (Большая обложка)
   const bannerEl = document.getElementById("biz-banner");
   if (bannerEl) {
     if (myShopData.cover) {
-      // Если баннер загружен в базу
       bannerEl.style.backgroundImage = `url('${myShopData.cover}')`;
-      bannerEl.style.backgroundSize = "cover";
-      bannerEl.style.backgroundPosition = "center";
     } else {
-      // Стандартный фон баннера, если картинки нет
-      bannerEl.style.backgroundImage = "none";
-      bannerEl.style.backgroundColor = "#1c1c1e";
+      bannerEl.style.backgroundImage = "url('https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=1000')";
     }
   }
 
-  // 4. ОБНОВЛЯЕМ ТЕКСТОВЫЕ ПОЛЯ (Био, Часы, Инста)
-  // Это поля, которые видны в настройках или под шапкой
+  // 4. ТЕКСТОВЫЕ ПОЛЯ
   const bioEl = document.getElementById("biz-bio-display");
-  if (bioEl)
-    bioEl.innerText = myShopData.bio || "Описание магазина не заполнено";
+  if (bioEl) bioEl.innerText = myShopData.bio || "Описание не заполнено.";
 
   const hoursEl = document.getElementById("biz-hours-display");
-  if (hoursEl) hoursEl.innerText = myShopData.workHours || "09:00 - 21:00";
+  if (hoursEl) hoursEl.innerText = myShopData.workHours || "09:00 - 20:00";
 
   const instEl = document.getElementById("biz-inst-display");
   if (instEl) {
-    instEl.innerText = myShopData.instagram
-      ? "@" + myShopData.instagram
-      : "Instagram не привязан";
+    instEl.innerText = myShopData.instagram ? "@" + myShopData.instagram : "Не указан";
   }
 
-  // 5. ОБНОВЛЯЕМ СТАТИСТИКУ (Просмотры в Dashboard)
+  // 5. ОБНОВЛЯЕМ СТАТИСТИКУ
   const viewsEl = document.getElementById("biz-views-count");
   if (viewsEl) {
-    // Если в базе нет поля views, пишем 0
     viewsEl.innerText = myShopData.views || "0";
   }
 
-  console.log("Интерфейс витрины обновлен для:", myShopData.shopName);
+  console.log("Интерфейс витрины обновлен");
 }
 
-// 4. Сохранение профиля (с поддержкой загрузки логотипа)
-// --- ЕДИНАЯ ФУНКЦИЯ СОХРАНЕНИЯ ПРОФИЛЯ МАГАЗИНА ---
+// Загрузка фото обложки или лого (Сразу в Firebase)
+window.handleBizMedia = async function(input, type) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const loader = document.getElementById("media-upload-loader");
+  
+  if (loader) loader.classList.remove("hidden");
+  
+  try {
+    const url = await uploadFile(file);
+    if (!url) throw new Error("Не удалось загрузить файл");
+
+    const myId = tg.initDataUnsafe?.user?.id || getUserId();
+    
+    // Обновляем нужный параметр
+    const updatePayload = {};
+    if (type === 'cover') {
+      updatePayload.cover = url;
+      myShopData.cover = url;
+    } else if (type === 'logo') {
+      updatePayload.logo = url;
+      myShopData.logo = url;
+    }
+
+    await db.ref("users/" + myId).update(updatePayload);
+    
+    // Мгновенно обновляем UI
+    updateStorefrontUI();
+    
+  } catch(e) {
+    alert("Ошибка загрузки: " + e.message);
+  } finally {
+    if (loader) loader.classList.add("hidden");
+    input.value = ""; // Сбрасываем input
+  }
+};
+
+// ЕДИНАЯ ФУНКЦИЯ СОХРАНЕНИЯ ПРОФИЛЯ МАГАЗИНА
 window.saveBizProfile = async function () {
-  const myId = tg.initDataUnsafe?.user?.id || 0;
+  const myId = tg.initDataUnsafe?.user?.id || getUserId();
   if (!myId) return;
 
-  // 1. Собираем данные из полей ввода в модалке (проверь, чтобы ID совпадали с HTML)
+  const newName = document.getElementById("edit-biz-name")?.value || myShopData.shopName;
   const newBio = document.getElementById("edit-biz-bio")?.value || "";
   const newHours = document.getElementById("edit-biz-hours")?.value || "";
   const newInst = document.getElementById("edit-biz-inst")?.value || "";
 
-  // Если у тебя в модалке есть поле для смены названия:
-  const newName =
-    document.getElementById("edit-biz-name")?.value || myShopData.shopName;
-
   try {
-    // 2. Отправляем обновление в Firebase
     await db.ref("users/" + myId).update({
       shopName: newName,
       bio: newBio,
@@ -478,30 +492,33 @@ window.saveBizProfile = async function () {
       instagram: newInst,
     });
 
-    // 3. Обновляем локальные данные, чтобы изменения применились сразу
     myShopData.shopName = newName;
     myShopData.bio = newBio;
     myShopData.workHours = newHours;
     myShopData.instagram = newInst;
 
-    // 4. Закрываем модалку и перерисовываем профиль
     if (typeof closeEditBizModal === "function") closeEditBizModal();
-
-    // Вызываем обновление витрины, чтобы увидеть новое био/имя
     updateStorefrontUI();
-
-    alert("Профиль магазина успешно обновлен! ✨");
+    
   } catch (e) {
     console.error("Ошибка при сохранении профиля:", e);
     alert("Не удалось сохранить: " + e.message);
   }
 };
 
-// 3. Управление модалкой настроек
 window.openEditBizModal = function () {
-  document.getElementById("edit-biz-bio").value = myShopData.bio || "";
-  document.getElementById("edit-biz-hours").value = myShopData.workHours || "";
-  document.getElementById("edit-biz-inst").value = myShopData.instagram || "";
+  const nameInput = document.getElementById("edit-biz-name");
+  if (nameInput) nameInput.value = myShopData.shopName || "";
+  
+  const bioInput = document.getElementById("edit-biz-bio");
+  if (bioInput) bioInput.value = myShopData.bio || "";
+  
+  const hoursInput = document.getElementById("edit-biz-hours");
+  if (hoursInput) hoursInput.value = myShopData.workHours || "";
+  
+  const instInput = document.getElementById("edit-biz-inst");
+  if (instInput) instInput.value = myShopData.instagram || "";
+  
   document.getElementById("edit-biz-modal").classList.remove("hidden");
 };
 
