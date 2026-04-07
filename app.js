@@ -257,6 +257,10 @@ function renderProfile() {
     if (typeof renderBizAds === "function") {
       renderBizAds();
     }
+    
+    // ДОБАВЛЯЕМ VIP-РЕКОМЕНДАЦИИ И В ПРОФИЛЬ МАГАЗИНА
+    renderVipRecommendations("biz-recommendations-grid", "biz-recommendations-header", myId);
+    
     console.log("Отрисован: Экран Магазина");
   }
 
@@ -2080,19 +2084,39 @@ window.openPublicShop = async function (shopId) {
   }
 
   // Отрисовка рекомендаций (только VIP)
-  const recGrid = document.getElementById("public-recommendations-grid");
-  const recHeader = document.getElementById("public-recommendations-header");
-  recGrid.innerHTML = "";
-  
-  const recommendations = ads.filter(a => a.userId !== shopId && a.status === "active" && a.tariff === "vip").slice(0, 4); 
-  
-  if (recommendations.length > 0) {
-    if (recHeader) recHeader.style.display = "block";
-    recGrid.style.display = "grid";
-    recommendations.forEach(ad => recGrid.appendChild(createAdCard(ad)));
+  renderVipRecommendations("public-recommendations-grid", "public-recommendations-header", shopId);
+};
+
+// --- ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ VIP-РЕКОМЕНДАЦИЙ ---
+window.renderVipRecommendations = function (containerId, headerId, excludeShopId) {
+  const grid = document.getElementById(containerId);
+  const header = document.getElementById(headerId);
+  if (!grid) return;
+
+  grid.innerHTML = "";
+  const now = Math.floor(Date.now() / 1000);
+  const threeDays = 259200; // 3 дня в секундах
+
+  // Фильтруем только активные VIP-объявления (не старше 3 дней)
+  const vips = ads.filter(ad => {
+    if (ad.status !== "active") return false;
+    if (ad.userId === excludeShopId) return false;
+    
+    const adTime = Number(ad.approvedAt || ad.createdAt || 0);
+    const isVip = ad.tariff === "vip" && (now - adTime < threeDays);
+    return isVip;
+  });
+
+  // Берем максимум 4 случайных VIP объявления
+  const shuffled = vips.sort(() => 0.5 - Math.random()).slice(0, 4);
+
+  if (shuffled.length > 0) {
+    if (header) header.style.display = "block";
+    grid.style.display = "grid";
+    shuffled.forEach(ad => grid.appendChild(createAdCard(ad)));
   } else {
-    if (recHeader) recHeader.style.display = "none";
-    recGrid.style.display = "none";
+    if (header) header.style.display = "none";
+    grid.style.display = "none";
   }
 };
 
