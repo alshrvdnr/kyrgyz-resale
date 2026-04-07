@@ -852,11 +852,9 @@ function renderFeed() {
   let filtered = ads.filter((ad) => {
     // 0. ФИЛЬТР ПО РЕСЕЙЛУ И МАГАЗИНАМ
     if (window.currentFeedFilter === "resale") {
-      if (!ad.isResale) return false;
-      if (ad.isShop) return false; // Без магазинов
-    } else {
-      if (ad.isResale) return false; // В "Всё для вас" скрываем ресейл
+      if (ad.isShop) return false; // В "Ресейл" скрываем магазины, оставляем только обычные
     }
+    // Во вкладке "Все" показываем и магазины, и обычные
     // А. Проверка категории
     const catMatch = curCat === "Все" || ad.cat === curCat;
 
@@ -2096,11 +2094,21 @@ window.openPublicShop = async function (shopId) {
     rGrid.innerHTML = "<p style='color:gray; width:100%; text-align:center; grid-column:1/3;'>Товаров пока нет</p>";
   }
 
-  // Отрисовка рекомендаций (другие магазины/товары)
+  // Отрисовка рекомендаций (только VIP)
   const recGrid = document.getElementById("public-recommendations-grid");
+  const recHeader = document.getElementById("public-recommendations-header");
   recGrid.innerHTML = "";
-  const recommendations = ads.filter(a => a.userId !== shopId && a.status === "active").slice(0, 4); // Берем 4 случайных
-  recommendations.forEach(ad => recGrid.appendChild(createAdCard(ad)));
+  
+  const recommendations = ads.filter(a => a.userId !== shopId && a.status === "active" && a.tariff === "vip").slice(0, 4); 
+  
+  if (recommendations.length > 0) {
+    if (recHeader) recHeader.style.display = "block";
+    recGrid.style.display = "grid";
+    recommendations.forEach(ad => recGrid.appendChild(createAdCard(ad)));
+  } else {
+    if (recHeader) recHeader.style.display = "none";
+    recGrid.style.display = "none";
+  }
 };
 
 window.openPublicInst = function () {
@@ -2150,7 +2158,7 @@ window.renderShopsLine = async function () {
 
     const div = document.createElement("div");
     // New design: Dark rounded card with logo taking top space, title below, and hover/active animations
-    div.style = "display:flex; flex-direction:column; background: #222224; border-radius: 12px; padding: 6px; cursor:pointer; width: 105px; position:relative; box-shadow: 0 4px 6px rgba(0,0,0,0.4); transition: transform 0.2s ease;";
+    div.style = "display:flex; flex-direction:column; background: #222224; border-radius: 12px; padding: 6px; cursor:pointer; width: 126px; position:relative; box-shadow: 0 4px 6px rgba(0,0,0,0.4); transition: transform 0.2s ease;";
     div.className = "flex-shrink-0";
     div.onmousedown = () => div.style.transform = 'scale(0.95)';
     div.onmouseup = () => div.style.transform = 'scale(1)';
@@ -2164,7 +2172,7 @@ window.renderShopsLine = async function () {
 
     if (isTextLogo) {
       div.innerHTML = `
-        <div style="width:100%; height:75px; background:var(--premium-grad); color:#000; font-weight:bold; font-size:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; margin-bottom:6px;">
+        <div style="width:100%; height:90px; background:var(--premium-grad); color:#000; font-weight:bold; font-size:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; margin-bottom:6px;">
           ${logoUrl}
         </div>
         <div style="display:flex; align-items:center;">
@@ -2175,7 +2183,7 @@ window.renderShopsLine = async function () {
       `;
     } else {
       div.innerHTML = `
-        <div style="width:100%; height:75px; border-radius:8px; margin-bottom:6px; overflow:hidden; background:#1c1c1e;">
+        <div style="width:100%; height:90px; border-radius:8px; margin-bottom:6px; overflow:hidden; background:#1c1c1e;">
           <img src="${logoUrl}" style="width:100%; height:100%; object-fit:cover;">
         </div>
         <div style="display:flex; align-items:center;">
