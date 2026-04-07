@@ -82,9 +82,14 @@ body {
   z-index: 5000;
   padding: 10px 15px 15px !important;
   box-sizing: border-box;
-  /* Добавляем плавность для свойства top */
-  transition: top 0.3s ease-in-out;
+  /* Мягкая и плавная анимация через transform */
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   border-bottom: 1px solid #1c1c1e;
+  will-change: transform;
+}
+
+.header-hidden {
+  transform: translateY(-110%);
 }
 
 .top-location-bar {
@@ -261,6 +266,13 @@ body {
   align-items: center;
   z-index: 6000;
   padding-bottom: env(safe-area-inset-bottom);
+  /* Мягкая анимация */
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+.bottom-nav-hidden {
+  transform: translateY(110%);
 }
 
 .nav-item {

@@ -621,10 +621,21 @@ window.showPage = function (p) {
   }
 
   // 4. УПРАВЛЕНИЕ ШАПКОЙ (Поиск и Город)
-  // Шапка видна ТОЛЬКО на главной. На остальных (профиль, офис, подача) — прячем.
+  // Шапка видна ТОЛЬКО на главной. На остальных (профиль, офис, подача) — плавно убираем.
   const header = document.getElementById("dynamic-header");
+  const bottomNav = document.querySelector(".bottom-nav");
+
   if (header) {
-    header.style.display = p === "home" ? "block" : "none";
+    if (p === "home") {
+      header.classList.remove("header-hidden");
+    } else {
+      header.classList.add("header-hidden");
+    }
+  }
+
+  // При переключении страницы всегда показываем нижнюю панель (сбрасываем скрытие от скролла)
+  if (bottomNav) {
+    bottomNav.classList.remove("bottom-nav-hidden");
   }
 
   // 5. ПОДСВЕТКА КНОПОК В НИЖНЕМ МЕНЮ
@@ -1819,33 +1830,7 @@ function clearFavs() {
   renderFeed();
 }
 
-// --- ЛОГИКА СКРЫТИЯ ШАПКИ (СКРОЛЛ) ---
-let lastScrollTop = 0;
-
-window.addEventListener(
-  "scroll",
-  function () {
-    const header = document.getElementById("dynamic-header");
-
-    // Если шапка скрыта функцией showPage (мы в Профиле или Подать), скролл не трогаем
-    if (!header || header.style.display === "none") return;
-
-    let currentScroll =
-      window.pageYOffset || document.documentElement.scrollTop;
-
-    if (currentScroll > lastScrollTop && currentScroll > 100) {
-      // Скроллим ВНИЗ — прячем шапку (уводим вверх)
-      header.style.top = "-250px";
-    } else if (currentScroll < lastScrollTop) {
-      // Скроллим ВВЕРХ — показываем шапку
-      header.style.top = "0";
-    }
-
-    // Запоминаем позицию (фикс для iOS)
-    lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
-  },
-  { passive: true }
-);
+// --- (Старая логика скрытия шапки удалена, заменена новой в конце файла) ---
 
 // --- ЛОГИКА КАТЕГОРИЙ И ПОИСКА ---
 
@@ -2282,3 +2267,43 @@ window.toggleComboFields = function(isChecked) {
     }
   }
 };
+
+// --- ЛОГИКА СКРОЛЛА ДЛЯ ПЛАВНОГО ИНТЕРФЕЙСА ---
+// Эта логика отвечает за автоскрытие шапки и нижней панели при прокрутке ленты вниз
+// и их появление при прокрутке вверх.
+let lastScrollTop = 0;
+const scrollDelta = 10; // Минимальная дистанция скролла для срабатывания
+
+window.addEventListener("scroll", () => {
+  const currentScrollPos = window.scrollY || document.documentElement.scrollTop;
+  const homePage = document.getElementById("page-home");
+  
+  // Проверяем, находимся ли мы на главной странице
+  const isHome = homePage && !homePage.classList.contains("hidden");
+  const header = document.getElementById("dynamic-header");
+  const nav = document.querySelector(".bottom-nav");
+
+  // Игнорируем слишком мелкие колебания (дребезг)
+  if (Math.abs(lastScrollTop - currentScrollPos) <= scrollDelta) return;
+
+  if (currentScrollPos > lastScrollTop && currentScrollPos > 80) {
+    // Прокрутка вниз — "умное" скрытие элементов для экономии места
+    if (isHome && header) {
+      header.classList.add("header-hidden");
+    }
+    if (nav) {
+      nav.classList.add("bottom-nav-hidden");
+    }
+  } else {
+    // Прокрутка вверх или мы в самом верху — возвращаем элементы на место
+    if (isHome && header) {
+      header.classList.remove("header-hidden");
+    }
+    if (nav) {
+      nav.classList.remove("bottom-nav-hidden");
+    }
+  }
+
+  // Запоминаем позицию скролла. Не позволяем ей быть отрицательной (для iOS rubber-band)
+  lastScrollTop = currentScrollPos <= 0 ? 0 : currentScrollPos;
+}, { passive: true });
