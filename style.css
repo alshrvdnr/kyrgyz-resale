@@ -3,11 +3,13 @@
   --card: #1e1e1e;
   --yellow-main: #ffcc00;
   --yellow-vip: #ffd700;
+  --kyrgyz-red: #E8112D; /* Национальный красный */
   --white: #ffffff;
   --gray: #8e8e93;
   --card-gray: #2c2c2e;
   --input-bg: #1c1c1e;
   --premium-grad: linear-gradient(135deg, #ffcc00 0%, #ffdb4d 100%);
+  --ethno-pattern: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l5 10h10l-8 7 3 11-10-7-10 7 3-11-8-7h10l5-10z' fill='%23ffffff' fill-opacity='0.1'/%3E%3C/svg%3E");
 }
 
 #page-home {
@@ -82,10 +84,21 @@ body {
   z-index: 5000;
   padding: 10px 15px 15px !important;
   box-sizing: border-box;
-  /* Мягкая и плавная анимация через transform */
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  border-bottom: 1px solid #1c1c1e;
+  border-bottom: 2px solid var(--yellow-main);
   will-change: transform;
+}
+
+/* Этно-фон для шапки */
+.main-header::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-image: var(--ethno-pattern);
+  background-size: 80px;
+  opacity: 0.04; /* Очень слабая прозрачность по ТЗ */
+  pointer-events: none;
+  z-index: -1;
 }
 
 .header-hidden {
@@ -254,21 +267,68 @@ body {
 
 /* НИЖНЯЯ ПАНЕЛЬ И КРУГЛЫЙ ПЛЮС */
 .bottom-nav {
-  position: fixed !important;
-  bottom: 0 !important;
+  position: fixed;
+  bottom: 0;
   left: 0;
   width: 100%;
   height: 65px;
-  background: #121212 !important; /* Твой оригинальный черный цвет */
-  border-top: 1px solid #333;
+  background: #121212;
   display: flex;
   justify-content: space-around;
   align-items: center;
-  z-index: 6000;
-  padding-bottom: env(safe-area-inset-bottom);
-  /* Мягкая анимация */
+  z-index: 1000;
+  border-top: 1px solid #333;
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: transform;
+}
+
+/* Тонкий узор для навигации */
+.bottom-nav::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-image: var(--ethno-pattern);
+  background-size: 50px;
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Этно-разделитель */
+.ethno-divider {
+  height: 2px;
+  background: var(--yellow-main);
+  margin: 12px 15px;
+  position: relative;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.ethno-divider::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-image: linear-gradient(90deg, transparent 25%, rgba(0,0,0,0.2) 50%, transparent 75%);
+  background-size: 40px 100%;
+}
+
+/* VIP бейдж в этно стиле */
+.badge-vip-ethno {
+  background: var(--kyrgyz-red) !important;
+  color: #fff !important;
+  font-weight: bold;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+/* Tunduk Brand Symbol */
+.tunduk-brand {
+  width: 24px;
+  height: 24px;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50' cy='50' r='45' stroke='%23FFD400' stroke-width='6' fill='none'/%3E%3Cpath d='M50 5 L50 95 M5 50 L95 50 M18 18 L82 82 M82 18 L18 82' stroke='%23FFD400' stroke-width='6'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
 }
 
 .bottom-nav-hidden {

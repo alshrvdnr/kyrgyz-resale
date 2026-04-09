@@ -48,9 +48,9 @@
               <div id="search-suggestions-box" class="hidden"></div>
             </div>
 
-            <div class="city-pill" onclick="toggleCitySelector()">
+            <div class="city-pill" onclick="toggleCitySelector()" style="display: flex; align-items: center; gap: 8px;">
+              <div class="tunduk-brand"></div>
               <i class="fa-solid fa-location-dot"></i>
-              <!-- Вернули пин -->
               <span id="current-city-label">Бишкек</span>
             </div>
           </div>
@@ -99,6 +99,9 @@
               <div class="cat-card" onclick="filterByCat('certs', this)">
                 <i class="fa-solid fa-ticket"></i><span>Сертификаты</span>
               </div>
+              <div class="cat-card" onclick="filterByCat('kyrgyz', this)">
+                <i class="fa-solid fa-mountain-sun"></i><span>Кыргыз Товарлары</span>
+              </div>
             </div>
           </div>
           <!-- Lalafo-style toggle buttons right above the listings -->
@@ -145,9 +148,10 @@
         </div>
 
         <!-- Нижняя часть: лента товаров магазинов -->
-        <h2 style="margin: 10px 15px 15px; font-size: 20px; font-weight: bold">
-          All Products
-        </h2>
+          <div class="ethno-divider"></div>
+          <h2 id="dynamic-feed-title" style="margin: 10px 15px 5px; font-size: 16px; font-weight: bold; color: var(--gray);">
+            Свежие предложения
+          </h2>
         <main class="listings-grid" id="shops-grid" style="padding: 0 10px">
           <!-- Javascript will render shop-only products here in random order -->
         </main>

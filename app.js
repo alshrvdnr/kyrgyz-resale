@@ -89,6 +89,7 @@ const catMap = {
   jewelry: "Ювелирка",
   gifts: "Подарки",
   certs: "Сертификаты",
+  kyrgyz: "Кыргыз Товарлары",
   Все: "Все",
 };
 const catTitles = {
@@ -97,6 +98,7 @@ const catTitles = {
   gifts: "Свежие подарки",
   jewelry: "Свежая ювелирка",
   certs: "Свежие сертификаты",
+  kyrgyz: "Кыргыз Товарлары",
 };
 
 let verifyPhotoFile = null; // Файл проверочного фото
@@ -1909,8 +1911,8 @@ window.currentSearchSort = 'relevance';
 function normalizeSearchText(text) {
   if (!text) return "";
   return text.toLowerCase()
-    .replace(/[^\w\sа-яё]/gi, ' ') // Убираем спецсимволы
-    .replace(/\s+/g, ' ')         // Убираем лишние пробелы
+    .replace(/[^\w\sа-яёөүң]/gi, ' ') // Добавлена поддержка ө, ү, ң
+    .replace(/\s+/g, ' ')            // Убираем лишние пробелы
     .trim();
 }
 
@@ -1930,9 +1932,13 @@ function calculateAdSearchScore(ad, queryTokens) {
   queryTokens.forEach(token => {
     // 1. Проверка в заголовке (Title) - Вес 5 за точное слово, 3 за частичное
     if (titleNorm.includes(token)) {
-      const regex = new RegExp(`\\b${token}\\b`, 'i');
-      if (regex.test(titleNorm)) score += 5;
-      else score += 3;
+      // Имитируем границу слова (\b) для кириллицы
+      const index = titleNorm.indexOf(token);
+      const before = index === 0 || /\s/.test(titleNorm[index - 1]);
+      const after = (index + token.length === titleNorm.length) || /\s/.test(titleNorm[index + token.length]);
+      
+      if (before && after) score += 5; // Точное совпадение слова
+      else score += 3;                 // Частичное совпадение
     }
     
     // 2. Проверка в описании (Description) - Вес 2
@@ -2014,7 +2020,16 @@ function renderSearchResults() {
   }
 
   if (sorted.length === 0) {
-    container.innerHTML = `<div style="text-align:center; padding:50px; color:gray;">Ничего не найдено по вашему запросу</div>`;
+    container.innerHTML = `
+      <div style="text-align:center; padding:80px 20px; color:gray; width:100%; grid-column:1/3;">
+        <div style="display:flex; justify-content:center; gap:10px; margin-bottom:20px; opacity:0.4;">
+          <i class="fa fa-mountain" style="font-size:40px;"></i>
+          <div class="tunduk-brand" style="width:40px; height:40px;"></div>
+        </div>
+        <p style="font-size:17px; color:#fff; font-weight:bold;">Ничего не найдено</p>
+        <p style="font-size:14px; margin-top:10px;">Попробуйте изменить запрос</p>
+      </div>
+    `;
   } else {
     sorted.forEach(ad => container.appendChild(createAdCard(ad)));
   }
@@ -2433,10 +2448,19 @@ window.renderShopsFeed = function () {
   }
 
   if (shopAds.length === 0) {
-    grid.innerHTML = `<p style="text-align:center; color:gray; grid-column: 1/3; margin-top:50px;">Нет товаров</p>`;
-  } else {
-    shopAds.forEach(ad => grid.appendChild(createAdCard(ad)));
+    grid.innerHTML = `
+      <div style="text-align:center; padding:80px 20px; color:gray; width:100%; grid-column:1/3;">
+        <div style="display:flex; justify-content:center; gap:10px; margin-bottom:20px; opacity:0.4;">
+          <i class="fa fa-mountain" style="font-size:40px;"></i>
+          <div class="tunduk-brand" style="width:40px; height:40px;"></div>
+        </div>
+        <p style="font-size:17px; color:#fff; font-weight:bold;">Объявлений пока нет</p>
+        <p style="font-size:14px; margin-top:10px;">Будьте первым, кто подаст объявление в этом разделе!</p>
+      </div>
+    `;
+    return;
   }
+  shopAds.forEach(ad => grid.appendChild(createAdCard(ad)));
 };
 
 
