@@ -114,7 +114,7 @@ let curCity = localStorage.getItem("selected_city_v15") || "bishkek",
 const CITY_COORDS = {
   bishkek: { lat: 42.87, lng: 74.59 },
   osh: { lat: 40.51, lng: 72.81 },
-  "jalal-abad": { lat: 40.93, lng: 73.00 },
+  manas: { lat: 43.06, lng: 74.47 },
   tokmok: { lat: 42.84, lng: 75.30 },
   karakol: { lat: 42.49, lng: 78.39 },
 };
@@ -122,7 +122,7 @@ const CITY_COORDS = {
 const CITY_NAMES = {
   bishkek: "Бишкек",
   osh: "Ош",
-  "jalal-abad": "Жалал-Абад",
+  manas: "Манас",
   tokmok: "Токмок",
   karakol: "Каракол"
 };
@@ -890,7 +890,12 @@ function renderFeed() {
     const catMatch = curCat === "Все" || ad.cat === curCat;
 
     // Б. Проверка города (самое важное!)
-    const cityMatch = ad.city_key === curCity || ad.city === CITY_NAMES[curCity] || ad.city === curCity;
+    const targetCityName = CITY_NAMES[curCity];
+    const cityMatch = ad.city_key === curCity || 
+                      ad.city === targetCityName || 
+                      ad.city === curCity;
+    
+    // console.log(`Checking ad: ${ad.title}, City: ${ad.city}, Target: ${targetCityName}, Match: ${cityMatch}`);
 
     // В. Проверка статуса
     const statusMatch =
