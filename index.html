@@ -1,421 +1,343 @@
 <!DOCTYPE html>
 <html lang="ru">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
-    />
-    <title>Gifts KG</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-    />
-    <link rel="stylesheet" href="style.css" />
-    <!-- Firebase SDK -->
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    <!-- ВОТ ЭТУ СТРОЧКУ ДОБАВЬ ОБЯЗАТЕЛЬНО: -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
-  </head>
-  <body>
-    <div id="splash-screen">
-      <div class="splash-content">
-        <!-- Твое желтое сердце (иконка) -->
-        <div class="splash-logo">
-          <i class="fa-solid fa-heart"></i>
-        </div>
-        <div class="splash-text">GIFTS KG</div>
-      </div>
-    </div>
-    <div id="app">
-      <!-- ГЛАВНАЯ СТРАНИЦА -->
-      <section id="page-home" class="page">
-        <!-- Проверь, чтобы было именно так -->
-        <header class="main-header" id="dynamic-header">
-          <!-- Строка: Поиск + Кнопка Города -->
-          <div class="search-city-row">
-            <div class="search-wrapper" onclick="openSearchModal()">
-              <i class="fa fa-search" style="color: var(--gray)"></i>
-              <input
-                type="text"
-                id="main-search-trigger"
-                placeholder="Поиск подарков..."
-                readonly
-              />
-            </div>
 
-            <div class="city-pill" onclick="toggleCitySelector()">
-              <i class="fa-solid fa-location-dot"></i>
-              <span id="current-city-label">Бишкек</span>
-            </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Gifts KG</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+  <!-- Firebase SDK -->
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+  <!-- ВОТ ЭТУ СТРОЧКУ ДОБАВЬ ОБЯЗАТЕЛЬНО: -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+</head>
+
+<body>
+  <div id="splash-screen">
+    <div class="splash-content">
+      <!-- Твое желтое сердце (иконка) -->
+      <div class="splash-logo">
+        <i class="fa-solid fa-heart"></i>
+      </div>
+      <div class="splash-text">GIFTS KG</div>
+    </div>
+  </div>
+  <div id="app">
+    <!-- ГЛАВНАЯ СТРАНИЦА -->
+    <section id="page-home" class="page">
+      <!-- Проверь, чтобы было именно так -->
+      <header class="main-header" id="dynamic-header">
+        <!-- Строка: Поиск + Кнопка Города -->
+        <div class="search-city-row">
+          <div class="search-wrapper" onclick="openSearchModal()">
+            <i class="fa fa-search" style="color: var(--gray)"></i>
+            <input type="text" id="main-search-trigger" placeholder="Поиск подарков..." readonly />
           </div>
 
-          <div class="stories-wrapper">
-            <div class="stories-container" id="shop-stories">
-              <!-- Кнопка "Стать партнером" -->
-              <div
-                class="story-item partner-invite"
-                onclick="tg.openTelegramLink('https://t.me/D1NCHO')"
-              >
-                <div class="story-circle-add">
-                  <span
-                    style="
+          <div class="city-pill" onclick="toggleCitySelector()">
+            <i class="fa-solid fa-location-dot"></i>
+            <span id="current-city-label">Бишкек</span>
+          </div>
+        </div>
+
+        <div class="stories-wrapper">
+          <div class="stories-container" id="shop-stories">
+            <!-- Кнопка "Стать партнером" -->
+            <div class="story-item partner-invite" onclick="tg.openTelegramLink('https://t.me/D1NCHO')">
+              <div class="story-circle-add">
+                <span style="
                       font-size: 30px;
                       font-weight: 200;
                       color: var(--yellow-main);
-                    "
-                    >+</span
-                  >
-                </div>
-                <span>Стать партнером</span>
+                    ">+</span>
               </div>
-
+              <span>Стать партнером</span>
             </div>
-          </div>
 
-          <!-- Категории (остаются под поиском) -->
-          <div class="categories-wrapper">
-            <div class="categories-container" id="cat-container">
-              <div
-                class="cat-card active"
-                onclick="filterByCat('Все', this)"
-              >
-                <i class="fa-solid fa-list"></i><span>Все</span>
-              </div>
-              <div class="cat-card" onclick="filterByCat('flowers', this)">
-                <i class="fa-solid fa-leaf"></i><span>Цветы</span>
-              </div>
-              <div class="cat-card" onclick="filterByCat('gifts', this)">
-                <i class="fa-solid fa-gift"></i><span>Подарки</span>
-              </div>
-              <div class="cat-card" onclick="filterByCat('jewelry', this)">
-                <i class="fa-solid fa-ring"></i><span>Ювелирка</span>
-              </div>
-              <div class="cat-card" onclick="filterByCat('certs', this)">
-                <i class="fa-solid fa-ticket"></i><span>Сертификаты</span>
-              </div>
-              <div class="cat-card" onclick="filterByCat('kyrgyz', this)">
-                <i class="fa-solid fa-mountain-sun"></i><span>Кыргыз Товарлары</span>
-              </div>
+          </div>
+        </div>
+
+        <!-- Категории (остаются под поиском) -->
+        <div class="categories-wrapper">
+          <div class="categories-container" id="cat-container">
+            <div class="cat-card active" onclick="filterByCat('Все', this)">
+              <i class="fa-solid fa-list"></i><span>Все</span>
             </div>
-          </div>
-          <!-- Lalafo-style toggle buttons right above the listings -->
-          <div style="display:flex; padding: 10px 15px 0;">
-            <div id="f-btn-all" onclick="setFeedFilter('all', this)" style="flex:1; text-align:center; padding-bottom:10px; color:var(--yellow-main); border-bottom: 2px solid var(--yellow-main); font-weight:bold; cursor:pointer; font-size:15px; transition:all 0.3s ease;">Все</div>
-            <div id="f-btn-resale" onclick="setFeedFilter('resale', this)" style="flex:1; text-align:center; padding-bottom:10px; color:gray; border-bottom: 2px solid transparent; font-weight:bold; cursor:pointer; font-size:15px; transition:all 0.3s ease;">Ресейл</div>
-          </div>
-        </header>
-
-        <!-- ИНДИКАТОР СТАТУСА БОТА (ТОЛЬКО ДЛЯ АДМИНА) -->
-        <div id="admin-bot-status" class="hidden" style="margin: 10px 15px">
-          <div class="status-content">
-            <div id="status-dot"></div>
-            <div class="status-info">
-              <span id="status-text">Связь с сервером...</span>
-              <small id="status-time">инициализация</small>
+            <div class="cat-card" onclick="filterByCat('flowers', this)">
+              <i class="fa-solid fa-leaf"></i><span>Цветы</span>
+            </div>
+            <div class="cat-card" onclick="filterByCat('gifts', this)">
+              <i class="fa-solid fa-gift"></i><span>Подарки</span>
+            </div>
+            <div class="cat-card" onclick="filterByCat('jewelry', this)">
+              <i class="fa-solid fa-ring"></i><span>Ювелирка</span>
+            </div>
+            <div class="cat-card" onclick="filterByCat('certs', this)">
+              <i class="fa-solid fa-ticket"></i><span>Сертификаты</span>
+            </div>
+            <div class="cat-card" onclick="filterByCat('kyrgyz', this)">
+              <i class="fa-solid fa-mountain-sun"></i><span>Кыргыз Товарлары</span>
             </div>
           </div>
         </div>
-        <main class="listings-grid" id="home-grid"></main>
-      </section>
-
-      <section
-        id="page-shops"
-        class="page hidden"
-        style="padding-top: 15px; padding-bottom: 80px"
-      >
-        <!-- Заголовок Explore Shops -->
-        <h2 style="margin: 0 15px 15px; font-size: 20px; font-weight: bold">
-          Explore Shops
-        </h2>
-
-        <!-- Верхняя часть: горизонтальный скролл магазинов -->
-        <div
-          class="shops-preview-wrapper"
-          style="overflow-x: auto; padding: 0 15px 15px"
-        >
-          <div
-            id="verified-shops-list"
-            style="display: flex; gap: 15px; min-width: max-content"
-          >
-            <!-- Javascript will render shops here via renderShopsLine() -->
-          </div>
+        <!-- Lalafo-style toggle buttons right above the listings -->
+        <div style="display:flex; padding: 10px 15px 0;">
+          <div id="f-btn-all" onclick="setFeedFilter('all', this)"
+            style="flex:1; text-align:center; padding-bottom:10px; color:var(--yellow-main); border-bottom: 2px solid var(--yellow-main); font-weight:bold; cursor:pointer; font-size:15px; transition:all 0.3s ease;">
+            Все</div>
+          <div id="f-btn-resale" onclick="setFeedFilter('resale', this)"
+            style="flex:1; text-align:center; padding-bottom:10px; color:gray; border-bottom: 2px solid transparent; font-weight:bold; cursor:pointer; font-size:15px; transition:all 0.3s ease;">
+            Ресейл</div>
         </div>
+      </header>
 
-        <!-- Нижняя часть: лента товаров магазинов -->
-          <div class="ethno-divider"></div>
-          <h2 id="dynamic-feed-title" style="margin: 10px 15px 5px; font-size: 16px; font-weight: bold; color: var(--gray);">
-            Свежие предложения
-          </h2>
-        <main class="listings-grid" id="shops-grid" style="padding: 0 10px">
-          <!-- Javascript will render shop-only products here in random order -->
-        </main>
-      </section>
-
-      <!-- ОКНО РЕЗУЛЬТАТОВ ПОИСКА -->
-      <div id="search-results-page" class="hidden">
-        <div class="search-header" style="height: 60px;">
-          <h3 style="margin: 0">Результаты поиска</h3>
-          <i
-            class="fa fa-times"
-            onclick="closeSearch()"
-            style="font-size: 24px; color: var(--yellow-main); cursor: pointer"
-          ></i>
-        </div>
-
-        <div class="search-tabs">
-          <div class="s-tab active" onclick="updateSearchSort('relevance', this)">По релевантности</div>
-          <div class="s-tab" onclick="updateSearchSort('new', this)">Сначала новые</div>
-          <div class="s-tab" onclick="updateSearchSort('cheap', this)">Сначала дешевые</div>
-          <div class="s-tab" onclick="updateSearchSort('expensive', this)">Сначала дорогие</div>
-        </div>
-
-        <div id="search-results-area" class="listings-grid" style="padding: 10px;"></div>
-      </div>
-
-      <!-- ОКНО ПОИСКА (LALAFO STYLE) -->
-      <div id="search-modal" class="hidden">
-        <div class="search-modal-header">
-          <i class="fa fa-arrow-left" onclick="closeSearchModal()" style="font-size: 20px; color: var(--yellow-main);"></i>
-          <div class="search-modal-wrapper">
-            <i class="fa fa-search" style="color: var(--gray)"></i>
-            <input type="text" id="search-modal-input" placeholder="Что вы ищете?" autocomplete="off">
-            <i class="fa fa-times-circle hidden" id="clear-search-modal" style="color: var(--gray);"></i>
-          </div>
-        </div>
-        
-        <div class="search-modal-content">
-          <div id="search-suggestions-box-modal" class="hidden" style="margin-bottom: 20px;"></div>
-
-          <div class="search-section-title">Популярные запросы</div>
-          <div class="popular-tags" id="popular-queries-list">
-            <!-- Загрузится из Firebase -->
-          </div>
-
-          <div class="search-section-title">История поиска</div>
-          <div class="history-list" id="search-history-list">
-            <!-- Загрузится из LocalStorage -->
+      <!-- ИНДИКАТОР СТАТУСА БОТА (ТОЛЬКО ДЛЯ АДМИНА) -->
+      <div id="admin-bot-status" class="hidden" style="margin: 10px 15px">
+        <div class="status-content">
+          <div id="status-dot"></div>
+          <div class="status-info">
+            <span id="status-text">Связь с сервером...</span>
+            <small id="status-time">инициализация</small>
           </div>
         </div>
       </div>
+      <main class="listings-grid" id="home-grid"></main>
+    </section>
 
-      <!-- ВЫБОР ГОРОДА -->
-      <div id="city-selector" class="hidden modal-overlay">
-        <div class="modal-box">
-          <i
-            class="fa fa-times"
-            onclick="toggleCitySelector()"
-            style="
+    <section id="page-shops" class="page hidden" style="padding-top: 15px; padding-bottom: 80px">
+      <!-- Заголовок Explore Shops -->
+      <h2 style="margin: 0 15px 15px; font-size: 20px; font-weight: bold">
+        Explore Shops
+      </h2>
+
+      <!-- Верхняя часть: горизонтальный скролл магазинов -->
+      <div class="shops-preview-wrapper" style="overflow-x: auto; padding: 0 15px 15px">
+        <div id="verified-shops-list" style="display: flex; gap: 15px; min-width: max-content">
+          <!-- Javascript will render shops here via renderShopsLine() -->
+        </div>
+      </div>
+
+      <!-- Нижняя часть: лента товаров магазинов -->
+      <div class="ethno-divider"></div>
+      <h2 id="dynamic-feed-title"
+        style="margin: 10px 15px 5px; font-size: 16px; font-weight: bold; color: var(--gray);">
+        Свежие предложения
+      </h2>
+      <main class="listings-grid" id="shops-grid" style="padding: 0 10px">
+        <!-- Javascript will render shop-only products here in random order -->
+      </main>
+    </section>
+
+    <!-- ОКНО РЕЗУЛЬТАТОВ ПОИСКА -->
+    <div id="search-results-page" class="hidden">
+      <div class="search-header" style="height: 60px;">
+        <h3 style="margin: 0">Результаты поиска</h3>
+        <i class="fa fa-times" onclick="closeSearch()"
+          style="font-size: 24px; color: var(--yellow-main); cursor: pointer"></i>
+      </div>
+
+      <div class="search-tabs">
+        <div class="s-tab active" onclick="updateSearchSort('relevance', this)">По релевантности</div>
+        <div class="s-tab" onclick="updateSearchSort('new', this)">Сначала новые</div>
+        <div class="s-tab" onclick="updateSearchSort('cheap', this)">Сначала дешевые</div>
+        <div class="s-tab" onclick="updateSearchSort('expensive', this)">Сначала дорогие</div>
+      </div>
+
+      <div id="search-results-area" class="listings-grid" style="padding: 10px;"></div>
+    </div>
+
+    <!-- ОКНО ПОИСКА (LALAFO STYLE) -->
+    <div id="search-modal" class="hidden">
+      <div class="search-modal-header">
+        <i class="fa fa-arrow-left" onclick="closeSearchModal()"
+          style="font-size: 20px; color: var(--yellow-main);"></i>
+        <div class="search-modal-wrapper">
+          <i class="fa fa-search" style="color: var(--gray)"></i>
+          <input type="text" id="search-modal-input" placeholder="Что вы ищете?" autocomplete="off">
+          <i class="fa fa-times-circle hidden" id="clear-search-modal" style="color: var(--gray);"></i>
+        </div>
+      </div>
+
+      <div class="search-modal-content">
+        <div id="search-suggestions-box-modal" class="hidden" style="margin-bottom: 20px;"></div>
+
+        <div class="search-section-title">Популярные запросы</div>
+        <div class="popular-tags" id="popular-queries-list">
+          <!-- Загрузится из Firebase -->
+        </div>
+
+        <div class="search-section-title">История поиска</div>
+        <div class="history-list" id="search-history-list">
+          <!-- Загрузится из LocalStorage -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ВЫБОР ГОРОДА -->
+    <div id="city-selector" class="hidden modal-overlay">
+      <div class="modal-box">
+        <i class="fa fa-times" onclick="toggleCitySelector()" style="
               position: absolute;
               top: 15px;
               right: 15px;
               color: var(--yellow-main);
               font-size: 22px;
-            "
-          ></i>
-          <h3 style="margin-top: 0">Выберите город</h3>
-          <div
-            style="
+            "></i>
+        <h3 style="margin-top: 0">Выберите город</h3>
+        <div style="
               display: grid;
               grid-template-columns: 1fr 1fr;
               gap: 10px;
               margin-top: 20px;
-            "
-          >
-            <div class="modal-action-btn" onclick="selectCity('bishkek')">
-              Бишкек
-            </div>
-            <div class="modal-action-btn" onclick="selectCity('osh')">Ош</div>
-            <div class="modal-action-btn" onclick="selectCity('jalal-abad')">
-              Жалал-Абад
-            </div>
-            <div class="modal-action-btn" onclick="selectCity('tokmok')">
-              Токмок
-            </div>
-            <div class="modal-action-btn" onclick="selectCity('karakol')">
-              Каракол
-            </div>
+            ">
+          <div class="modal-action-btn" onclick="selectCity('bishkek')">
+            Бишкек
+          </div>
+          <div class="modal-action-btn" onclick="selectCity('osh')">Ош</div>
+          <div class="modal-action-btn" onclick="selectCity('jalal-abad')">
+            Манас
+          </div>
+          <div class="modal-action-btn" onclick="selectCity('tokmok')">
+            Токмок
+          </div>
+          <div class="modal-action-btn" onclick="selectCity('karakol')">
+            Каракол
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- УПРАВЛЕНИЕ -->
-      <div id="manage-modal" class="hidden modal-overlay">
-        <div class="modal-box">
-          <i
-            class="fa fa-times"
-            onclick="closeManageModal()"
-            style="
+    <!-- УПРАВЛЕНИЕ -->
+    <div id="manage-modal" class="hidden modal-overlay">
+      <div class="modal-box">
+        <i class="fa fa-times" onclick="closeManageModal()" style="
               position: absolute;
               top: 15px;
               right: 15px;
               color: var(--yellow-main);
               font-size: 22px;
-            "
-          ></i>
-          <h3>Управление</h3>
-          <div id="manage-info" class="modal-info-text"></div>
-          <div class="modal-btn-list">
-            <div class="modal-action-btn edit" onclick="startAdEdit()">
-              Изменить
-            </div>
-            <div class="modal-action-btn sold" onclick="confirmAction('sold')">
-              Продано
-            </div>
-            <div class="modal-action-btn" onclick="confirmAction('delete')">
-              Удалить
-            </div>
+            "></i>
+        <h3>Управление</h3>
+        <div id="manage-info" class="modal-info-text"></div>
+        <div class="modal-btn-list">
+          <div class="modal-action-btn edit" onclick="startAdEdit()">
+            Изменить
+          </div>
+          <div class="modal-action-btn sold" onclick="confirmAction('sold')">
+            Продано
+          </div>
+          <div class="modal-action-btn" onclick="confirmAction('delete')">
+            Удалить
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- ПОДТВЕРЖДЕНИЕ -->
-      <div id="confirm-modal" class="hidden modal-overlay">
-        <div class="modal-box">
-          <h3 id="confirm-title">Вы точно уверены?</h3>
-          <p
-            id="confirm-text"
-            style="font-size: 14px; color: #aaa; margin-bottom: 20px"
-          ></p>
-          <div style="display: flex; gap: 10px">
-            <div
-              class="modal-action-btn"
-              style="flex: 1; background: #444"
-              onclick="closeConfirmModal()"
-            >
-              Назад
-            </div>
-            <div
-              id="confirm-btn-final"
-              class="modal-action-btn"
-              style="flex: 1; background: var(--yellow-main); color: #000"
-            >
-              Да
-            </div>
+    <!-- ПОДТВЕРЖДЕНИЕ -->
+    <div id="confirm-modal" class="hidden modal-overlay">
+      <div class="modal-box">
+        <h3 id="confirm-title">Вы точно уверены?</h3>
+        <p id="confirm-text" style="font-size: 14px; color: #aaa; margin-bottom: 20px"></p>
+        <div style="display: flex; gap: 10px">
+          <div class="modal-action-btn" style="flex: 1; background: #444" onclick="closeConfirmModal()">
+            Назад
+          </div>
+          <div id="confirm-btn-final" class="modal-action-btn"
+            style="flex: 1; background: var(--yellow-main); color: #000">
+            Да
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- СЕКЦИЯ: ОФИС МАГАЗИНА (Dashboard) -->
-      <section id="page-business-admin" class="page hidden">
-        <div style="padding: 20px">
-          <!-- Шапка офиса -->
-          <div
-            style="
+    <!-- СЕКЦИЯ: ОФИС МАГАЗИНА (Dashboard) -->
+    <section id="page-business-admin" class="page hidden">
+      <div style="padding: 20px">
+        <!-- Шапка офиса -->
+        <div style="
               background: var(--premium-grad);
               padding: 20px;
               border-radius: 20px;
               color: #000;
               margin-bottom: 20px;
-            "
-          >
-            <div id="biz-name" style="font-size: 20px; font-weight: 800">
-              Мой Магазин
-            </div>
-            <div style="font-size: 12px; opacity: 0.8">
-              Статус: Золотой партнер 🏆
-            </div>
+            ">
+          <div id="biz-name" style="font-size: 20px; font-weight: 800">
+            Мой Магазин
           </div>
+          <div style="font-size: 12px; opacity: 0.8">
+            Статус: Золотой партнер 🏆
+          </div>
+        </div>
 
-          <!-- Кнопки действий -->
-          <div
-            style="
+        <!-- Кнопки действий -->
+        <div style="
               display: grid;
               grid-template-columns: 1fr 1fr;
               gap: 10px;
               margin-bottom: 25px;
-            "
-          >
-            <div
-              class="modal-action-btn"
-              onclick="openAddForm('standard')"
-              style="background: #1c1c1e; border: 1px solid #333"
-            >
-              <i class="fa-solid fa-plus" style="color: var(--yellow-main)"></i
-              ><br />
-              <span style="font-size: 11px">Товар</span>
-            </div>
-            <div
-              class="modal-action-btn"
-              onclick="openAddForm('combo')"
-              style="background: #1c1c1e; border: 1px solid #333"
-            >
-              <i class="fa-solid fa-layer-group" style="color: #ff3b30"></i
-              ><br />
-              <span style="font-size: 11px">Комбо-набор</span>
-            </div>
+            ">
+          <div class="modal-action-btn" onclick="openAddForm('standard')"
+            style="background: #1c1c1e; border: 1px solid #333">
+            <i class="fa-solid fa-plus" style="color: var(--yellow-main)"></i><br />
+            <span style="font-size: 11px">Товар</span>
           </div>
-
-          <h3 style="font-size: 16px; margin-bottom: 15px">Моя витрина</h3>
-          <div id="biz-my-ads" class="listings-grid">
-            <!-- Сюда JS выведет только товары этого магазина -->
+          <div class="modal-action-btn" onclick="openAddForm('combo')"
+            style="background: #1c1c1e; border: 1px solid #333">
+            <i class="fa-solid fa-layer-group" style="color: #ff3b30"></i><br />
+            <span style="font-size: 11px">Комбо-набор</span>
           </div>
         </div>
-      </section>
 
-      <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ -->
-      <section id="page-add" class="page hidden">
-        <header
-          style="
+        <h3 style="font-size: 16px; margin-bottom: 15px">Моя витрина</h3>
+        <div id="biz-my-ads" class="listings-grid">
+          <!-- Сюда JS выведет только товары этого магазина -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ПОДАТЬ ОБЪЯВЛЕНИЕ -->
+    <section id="page-add" class="page hidden">
+      <header style="
             padding: 15px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-          "
-        >
-          <i
-            class="fa fa-times"
-            onclick="cancelAdd()"
-            style="font-size: 24px; cursor: pointer"
-          ></i>
-          <h2 id="add-title-text" style="font-size: 18px; margin: 0">
-            Новое объявление
-          </h2>
-          <div style="width: 24px"></div>
-        </header>
-        <div class="form-scroll">
-          <div
-            id="tariff-block"
-            style="display: flex; gap: 12px; margin-bottom: 20px"
-          >
-            <div
-              class="tariff-card-box active-std"
-              id="tariff-std"
-              onclick="selectTariff('standard')"
-            >
-              <b id="label-std">Стандарт</b><br />
-              <small id="price-std">Бесплатно</small>
-            </div>
-            <div
-              class="tariff-card-box"
-              id="tariff-vip"
-              onclick="selectTariff('vip')"
-            >
-              <b id="label-vip">VIP+TOP</b><br />
-              <small id="price-vip">100 сом</small>
-            </div>
+          ">
+        <i class="fa fa-times" onclick="cancelAdd()" style="font-size: 24px; cursor: pointer"></i>
+        <h2 id="add-title-text" style="font-size: 18px; margin: 0">
+          Новое объявление
+        </h2>
+        <div style="width: 24px"></div>
+      </header>
+      <div class="form-scroll">
+        <div id="tariff-block" style="display: flex; gap: 12px; margin-bottom: 20px">
+          <div class="tariff-card-box active-std" id="tariff-std" onclick="selectTariff('standard')">
+            <b id="label-std">Стандарт</b><br />
+            <small id="price-std">Бесплатно</small>
           </div>
-          <div id="vip-block" class="hidden">
-            <div
-              style="
+          <div class="tariff-card-box" id="tariff-vip" onclick="selectTariff('vip')">
+            <b id="label-vip">VIP+TOP</b><br />
+            <small id="price-vip">100 сом</small>
+          </div>
+        </div>
+        <div id="vip-block" class="hidden">
+          <div style="
                 border: 2px dashed var(--yellow-main);
                 border-radius: 15px;
                 padding: 20px;
                 margin-bottom: 20px;
                 text-align: center;
-              "
-            >
-              <p id="vip-promo-text" style="font-size: 14px; margin: 0">
-                VIP-объявление будет в ТОПе 3 дня.
-              </p>
-              <!-- Ссылка берется из базы -->
-              <img
-                id="qr-display"
-                src=""
-                style="
+              ">
+            <p id="vip-promo-text" style="font-size: 14px; margin: 0">
+              VIP-объявление будет в ТОПе 3 дня.
+            </p>
+            <!-- Ссылка берется из базы -->
+            <img id="qr-display" src="" style="
                   width: 180px;
                   height: 180px;
                   margin: 15px 0;
@@ -423,500 +345,355 @@
                   object-fit: contain;
                   background: white;
                   padding: 5px;
-                "
-              />
-              <div
-                id="receipt-label"
-                style="
+                " />
+            <div id="receipt-label" style="
                   background: var(--yellow-main);
                   color: #000;
                   padding: 14px;
                   border-radius: 12px;
                   font-weight: bold;
                   cursor: pointer;
-                "
-                onclick="document.getElementById('receipt-input').click()"
-              >
-                Добавить чек
-              </div>
-              <input
-                type="file"
-                id="receipt-input"
-                hidden
-                onchange="handleReceiptSelect(this)"
-              />
+                " onclick="document.getElementById('receipt-input').click()">
+              Добавить чек
             </div>
+            <input type="file" id="receipt-input" hidden onchange="handleReceiptSelect(this)" />
           </div>
-          <div class="f-group" id="file-group">
-            <label>Фотографии (макс. 5 фото)</label>
-            <div
-              class="main-input"
-              onclick="document.getElementById('file-input').click()"
-              style="
+        </div>
+        <div class="f-group" id="file-group">
+          <label>Фотографии (макс. 5 фото)</label>
+          <div class="main-input" onclick="document.getElementById('file-input').click()" style="
                 text-align: center;
                 border: 1px dashed #555;
                 cursor: pointer;
-              "
-            >
-              <i class="fa fa-camera"></i> Выбрать фото<input
-                type="file"
-                id="file-input"
-                multiple
-                hidden
-                onchange="handleFileSelect(this)"
-              />
-            </div>
-            <div
-              id="gallery-preview"
-              style="
+              ">
+            <i class="fa fa-camera"></i> Выбрать фото<input type="file" id="file-input" multiple hidden
+              onchange="handleFileSelect(this)" />
+          </div>
+          <div id="gallery-preview" style="
                 display: flex;
                 gap: 8px;
                 margin-top: 10px;
                 overflow-x: auto;
-              "
-            ></div>
-          </div>
-          <!-- Блок верификации -->
-          <div id="verification-block" class="verification-card">
-            <div
-              style="
+              "></div>
+        </div>
+        <!-- Блок верификации -->
+        <div id="verification-block" class="verification-card">
+          <div style="
                 display: flex;
                 align-items: center;
                 gap: 10px;
                 margin-bottom: 10px;
-              "
-            >
-              <i
-                class="fa-solid fa-shield-halved"
-                style="color: var(--yellow-main); font-size: 18px"
-              ></i>
-              <span style="font-weight: bold; font-size: 15px"
-                >Подтверждение наличия</span
-              >
-            </div>
-
-            <p class="verification-text">
-              Напишите на листке код
-              <b id="display-verify-code" class="code-badge">0000</b> и время.
-              Положите листок рядом с товаром и сделайте фото.
-            </p>
-
-            <button
-              type="button"
-              class="verification-btn"
-              onclick="document.getElementById('verify-photo-input').click()"
-            >
-              <i class="fa-solid fa-camera"></i> Сделать фото с кодом
-            </button>
-
-            <input
-              type="file"
-              id="verify-photo-input"
-              hidden
-              onchange="handleVerifyPhotoSelect(this)"
-              accept="image/*"
-            />
-
-            <!-- Сюда будет выводиться статус "Фото добавлено" -->
-            <div id="verify-preview" class="hidden"></div>
+              ">
+            <i class="fa-solid fa-shield-halved" style="color: var(--yellow-main); font-size: 18px"></i>
+            <span style="font-weight: bold; font-size: 15px">Подтверждение наличия</span>
           </div>
 
-          <div class="f-group" id="cat-group">
-            <label>Категория</label
-            ><select id="in-cat" class="main-input">
-              <option value="flowers">Цветы</option>
-              <option value="jewelry">Ювелирка</option>
-              <option value="gifts">Подарки</option>
-              <option value="certs">Сертификаты</option>
-            </select>
-          </div>
-          <div class="f-group" id="city-group">
-            <label>Город</label
-            ><select id="in-city" class="main-input">
-              <option value="Бишкек">Бишкек</option>
-              <option value="Ош">Ош</option>
-              <option value="Жалал-Абад">Жалал-Абад</option>
-              <option value="Токмок">Токмок</option>
-              <option value="Каракол">Каракол</option>
-            </select>
-          </div>
-          <div class="f-group">
-            <label>Название товара (макс. 40 симв.)</label>
-            <input
-              type="text"
-              id="in-title"
-              class="main-input"
-              maxlength="40"
-              placeholder="Например: Букет роз"
-            />
-          </div>
-          <div class="f-group">
-            <label>Цена (KGS) — ТОЛЬКО ЦИФРЫ</label>
-            <input
-              type="number"
-              id="in-price"
-              class="main-input"
-              placeholder="Например: 1500"
-            />
-          </div>
+          <p class="verification-text">
+            Напишите на листке код
+            <b id="display-verify-code" class="code-badge">0000</b> и время.
+            Положите листок рядом с товаром и сделайте фото.
+          </p>
 
-          <!-- УНИКАЛЬНЫЕ ПОЛЯ ДЛЯ МАГАЗИНОВ -->
-          <div id="biz-only-fields" class="hidden" style="background:#222224; padding:15px; border-radius:15px; margin-bottom:15px; border:1px solid #333;">
-            <div style="font-weight:bold; color:var(--yellow-main); margin-bottom:15px; font-size:14px;">
-              <i class="fa-solid fa-store"></i> Данные магазина
-            </div>
-            
-            <div class="f-group" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:15px;">
-              <label style="margin:0; font-weight:bold;">Это набор / комбо?</label>
-              <label class="switch">
-                <input type="checkbox" id="in-is-combo" onchange="toggleComboFields(this.checked)">
-                <span class="slider round"></span>
-              </label>
-            </div>
-
-            <div class="f-group">
-              <label>Срок годности / Хранение</label>
-              <input type="text" id="in-biz-shelf" class="main-input" placeholder="Например: 14 дней в холоде" />
-            </div>
-
-            <div class="f-group">
-              <label>Сезонность</label>
-              <select id="in-biz-season" class="main-input">
-                <option value="Всесезонный">Всесезонный</option>
-                <option value="Летний">Летний</option>
-                <option value="Зимний">Зимний</option>
-                <option value="Весенний">Весенний</option>
-                <option value="Осенний">Осенний</option>
-              </select>
-            </div>
-
-            <div class="f-group" style="margin-bottom:0;">
-              <label>Время изготовления / Сборка заказа</label>
-              <input type="text" id="in-biz-production" class="main-input" placeholder="Например: Отправка в день заказа" />
-            </div>
-          </div>
-
-          <div id="combo-fields" class="hidden">
-            <div class="f-group">
-              <label>Что входит в набор? (через запятую)</label>
-              <textarea
-                id="in-combo-items"
-                class="main-input"
-                placeholder="Например: 25 роз, Бенто-торт, 3 гелиевых шара"
-                rows="2"
-              ></textarea>
-            </div>
-            <div class="f-group">
-              <label>Выгода для клиента</label>
-              <input
-                type="text"
-                id="in-combo-benefit"
-                class="main-input"
-                placeholder="Например: Скидка 15% на набор"
-              />
-            </div>
-          </div>
-          <div class="f-group" id="date-group">
-            <label>Дата получения товара</label
-            ><input type="date" id="in-receive-date" class="main-input" />
-          </div>
-          <div class="f-group" id="address-group">
-            <label>Адрес / Местоположение</label
-            ><input
-              type="text"
-              id="in-address"
-              class="main-input"
-              placeholder="Улица, дом или район"
-            />
-          </div>
-          <div class="f-group" id="tg-group">
-            <label>Telegram (@nick)</label
-            ><input
-              type="text"
-              id="in-tg"
-              class="main-input"
-              placeholder="@nickname"
-            />
-          </div>
-          <div class="f-group" id="phone-group">
-            <label>Телефон / WhatsApp</label
-            ><input
-              type="tel"
-              id="in-wa"
-              class="main-input"
-              placeholder="0XXXXXXXXX"
-            />
-          </div>
-          <div class="f-group">
-            <label>Описание (макс. 400 симв.)</label>
-            <textarea
-              id="in-desc"
-              class="main-input"
-              rows="3"
-              maxlength="400"
-            ></textarea>
-          </div>
-          <button
-            id="pub-btn"
-            class="btn-premium-unity"
-            onclick="publishAndSend()"
-          >
-            Опубликовать
+          <button type="button" class="verification-btn"
+            onclick="document.getElementById('verify-photo-input').click()">
+            <i class="fa-solid fa-camera"></i> Сделать фото с кодом
           </button>
-        </div>
-      </section>
 
-      <section id="page-favs" class="page hidden">
-        <header
-          style="
+          <input type="file" id="verify-photo-input" hidden onchange="handleVerifyPhotoSelect(this)" accept="image/*" />
+
+          <!-- Сюда будет выводиться статус "Фото добавлено" -->
+          <div id="verify-preview" class="hidden"></div>
+        </div>
+
+        <div class="f-group" id="cat-group">
+          <label>Категория</label><select id="in-cat" class="main-input">
+            <option value="flowers">Цветы</option>
+            <option value="jewelry">Ювелирка</option>
+            <option value="gifts">Подарки</option>
+            <option value="certs">Сертификаты</option>
+          </select>
+        </div>
+        <div class="f-group" id="city-group">
+          <label>Город</label><select id="in-city" class="main-input">
+              <option value="bishkek">Бишкек</option>
+              <option value="osh">Ош</option>
+              <option value="jalal-abad">Жалал-Абад</option>
+              <option value="tokmok">Токмок</option>
+              <option value="karakol">Каракол</option>
+          </select>
+        </div>
+        <div class="f-group">
+          <label>Название товара (макс. 40 симв.)</label>
+          <input type="text" id="in-title" class="main-input" maxlength="40" placeholder="Например: Букет роз" />
+        </div>
+        <div class="f-group">
+          <label>Цена (KGS) — ТОЛЬКО ЦИФРЫ</label>
+          <input type="number" id="in-price" class="main-input" placeholder="Например: 1500" />
+        </div>
+
+        <!-- УНИКАЛЬНЫЕ ПОЛЯ ДЛЯ МАГАЗИНОВ -->
+        <div id="biz-only-fields" class="hidden"
+          style="background:#222224; padding:15px; border-radius:15px; margin-bottom:15px; border:1px solid #333;">
+          <div style="font-weight:bold; color:var(--yellow-main); margin-bottom:15px; font-size:14px;">
+            <i class="fa-solid fa-store"></i> Данные магазина
+          </div>
+
+          <div class="f-group"
+            style="display:flex; align-items:center; justify-content:space-between; margin-bottom:15px;">
+            <label style="margin:0; font-weight:bold;">Это набор / комбо?</label>
+            <label class="switch">
+              <input type="checkbox" id="in-is-combo" onchange="toggleComboFields(this.checked)">
+              <span class="slider round"></span>
+            </label>
+          </div>
+
+          <div class="f-group">
+            <label>Срок годности / Хранение</label>
+            <input type="text" id="in-biz-shelf" class="main-input" placeholder="Например: 14 дней в холоде" />
+          </div>
+
+          <div class="f-group">
+            <label>Сезонность</label>
+            <select id="in-biz-season" class="main-input">
+              <option value="Всесезонный">Всесезонный</option>
+              <option value="Летний">Летний</option>
+              <option value="Зимний">Зимний</option>
+              <option value="Весенний">Весенний</option>
+              <option value="Осенний">Осенний</option>
+            </select>
+          </div>
+
+          <div class="f-group" style="margin-bottom:0;">
+            <label>Время изготовления / Сборка заказа</label>
+            <input type="text" id="in-biz-production" class="main-input"
+              placeholder="Например: Отправка в день заказа" />
+          </div>
+        </div>
+
+        <div id="combo-fields" class="hidden">
+          <div class="f-group">
+            <label>Что входит в набор? (через запятую)</label>
+            <textarea id="in-combo-items" class="main-input" placeholder="Например: 25 роз, Бенто-торт, 3 гелиевых шара"
+              rows="2"></textarea>
+          </div>
+          <div class="f-group">
+            <label>Выгода для клиента</label>
+            <input type="text" id="in-combo-benefit" class="main-input" placeholder="Например: Скидка 15% на набор" />
+          </div>
+        </div>
+        <div class="f-group" id="date-group">
+          <label>Дата получения товара</label><input type="date" id="in-receive-date" class="main-input" />
+        </div>
+        <div class="f-group" id="address-group">
+          <label>Адрес / Местоположение</label><input type="text" id="in-address" class="main-input"
+            placeholder="Улица, дом или район" />
+        </div>
+        <div class="f-group" id="tg-group">
+          <label>Telegram (@nick)</label><input type="text" id="in-tg" class="main-input" placeholder="@nickname" />
+        </div>
+        <div class="f-group" id="phone-group">
+          <label>Телефон / WhatsApp</label><input type="tel" id="in-wa" class="main-input" placeholder="0XXXXXXXXX" />
+        </div>
+        <div class="f-group">
+          <label>Описание (макс. 400 симв.)</label>
+          <textarea id="in-desc" class="main-input" rows="3" maxlength="400"></textarea>
+        </div>
+        <button id="pub-btn" class="btn-premium-unity" onclick="publishAndSend()">
+          Опубликовать
+        </button>
+      </div>
+    </section>
+
+    <section id="page-favs" class="page hidden">
+      <header style="
             padding: 20px 15px;
             border-bottom: 1px solid #333;
             display: flex;
             justify-content: space-between;
             align-items: center;
-          "
-        >
-          <h2 style="margin: 0">Избранное</h2>
-          <span
-            onclick="clearFavs()"
-            style="
+          ">
+        <h2 style="margin: 0">Избранное</h2>
+        <span onclick="clearFavs()" style="
               color: var(--yellow-main);
               font-weight: bold;
               cursor: pointer;
-            "
-            >Очистить</span
-          >
-        </header>
-        <main id="favs-content-area"></main>
-      </section>
+            ">Очистить</span>
+      </header>
+      <main id="favs-content-area"></main>
+    </section>
 
-      <!-- СЕКЦИЯ ПРОФИЛЯ (УНИВЕРСАЛЬНАЯ: ЮЗЕР + БИЗНЕС) -->
-      <section id="page-profile" class="page hidden">
-        <!-- 1. ПАНЕЛЬ АДМИНИСТРАТОРА (Core Control) -->
-        <div id="view-admin" class="hidden">
-          <div style="padding: 20px">
-            <h2
-              style="
+    <!-- СЕКЦИЯ ПРОФИЛЯ (УНИВЕРСАЛЬНАЯ: ЮЗЕР + БИЗНЕС) -->
+    <section id="page-profile" class="page hidden">
+      <!-- 1. ПАНЕЛЬ АДМИНИСТРАТОРА (Core Control) -->
+      <div id="view-admin" class="hidden">
+        <div style="padding: 20px">
+          <h2 style="
                 color: var(--yellow-main);
                 margin-bottom: 20px;
                 font-weight: 900;
-              "
-            >
-              ADMIN PANEL
-            </h2>
+              ">
+            ADMIN PANEL
+          </h2>
 
-            <!-- Блок статистики (Цифры) -->
-            <div
-              style="
+          <!-- Блок статистики (Цифры) -->
+          <div style="
                 display: grid;
                 grid-template-columns: 1fr 1fr 1fr;
                 gap: 10px;
                 margin-bottom: 25px;
-              "
-            >
-              <div
-                style="
+              ">
+            <div style="
                   background: #1c1c1e;
                   padding: 15px;
                   border-radius: 15px;
                   border: 1px solid #333;
                   text-align: center;
-                "
-              >
-                <b
-                  id="adm-total-ads"
-                  style="
+                ">
+              <b id="adm-total-ads" style="
                     font-size: 20px;
                     color: var(--yellow-main);
                     display: block;
-                  "
-                  >0</b
-                >
-                <span
-                  style="
+                  ">0</b>
+              <span style="
                     font-size: 10px;
                     color: gray;
                     text-transform: uppercase;
-                  "
-                  >Всего постов</span
-                >
-              </div>
-              <div
-                style="
-                  background: #1c1c1e;
-                  padding: 15px;
-                  border-radius: 15px;
-                  border: 1px solid #333;
-                  text-align: center;
-                "
-              >
-                <b
-                  id="adm-active-ads"
-                  style="font-size: 20px; color: #4cd964; display: block"
-                  >0</b
-                >
-                <span
-                  style="
-                    font-size: 10px;
-                    color: gray;
-                    text-transform: uppercase;
-                  "
-                  >Активных</span
-                >
-              </div>
-              <div
-                style="
-                  background: #1c1c1e;
-                  padding: 15px;
-                  border-radius: 15px;
-                  border: 1px solid #333;
-                  text-align: center;
-                "
-              >
-                <b
-                  id="adm-active-users"
-                  style="font-size: 20px; color: #0088cc; display: block"
-                  >0</b
-                >
-                <span
-                  style="
-                    font-size: 10px;
-                    color: gray;
-                    text-transform: uppercase;
-                  "
-                  >Продавцов</span
-                >
-              </div>
+                  ">Всего постов</span>
             </div>
+            <div style="
+                  background: #1c1c1e;
+                  padding: 15px;
+                  border-radius: 15px;
+                  border: 1px solid #333;
+                  text-align: center;
+                ">
+              <b id="adm-active-ads" style="font-size: 20px; color: #4cd964; display: block">0</b>
+              <span style="
+                    font-size: 10px;
+                    color: gray;
+                    text-transform: uppercase;
+                  ">Активных</span>
+            </div>
+            <div style="
+                  background: #1c1c1e;
+                  padding: 15px;
+                  border-radius: 15px;
+                  border: 1px solid #333;
+                  text-align: center;
+                ">
+              <b id="adm-active-users" style="font-size: 20px; color: #0088cc; display: block">0</b>
+              <span style="
+                    font-size: 10px;
+                    color: gray;
+                    text-transform: uppercase;
+                  ">Продавцов</span>
+            </div>
+          </div>
 
-            <!-- Статус бота -->
-            <div
-              id="admin-bot-status"
-              style="
+          <!-- Статус бота -->
+          <div id="admin-bot-status" style="
                 background: #1c1c1e;
                 padding: 15px;
                 border-radius: 15px;
                 border: 1px solid #333;
                 margin-bottom: 20px;
-              "
-            >
-              <div class="status-content">
-                <div id="status-dot"></div>
-                <div class="status-info">
-                  <span id="status-text">Связь с сервером...</span>
-                  <small id="status-time">инициализация</small>
-                </div>
+              ">
+            <div class="status-content">
+              <div id="status-dot"></div>
+              <div class="status-info">
+                <span id="status-text">Связь с сервером...</span>
+                <small id="status-time">инициализация</small>
               </div>
             </div>
+          </div>
 
-            <!-- Место для жалоб (если нужно) -->
-            <h3 style="font-size: 16px">Жалобы (Reports)</h3>
-            <div
-              id="admin-reports-list"
-              style="color: gray; font-size: 14px; margin-top: 10px"
-            >
-              Жалоб пока нет.
-            </div>
+          <!-- Место для жалоб (если нужно) -->
+          <h3 style="font-size: 16px">Жалобы (Reports)</h3>
+          <div id="admin-reports-list" style="color: gray; font-size: 14px; margin-top: 10px">
+            Жалоб пока нет.
           </div>
         </div>
+      </div>
 
-        <!-- 2. ИНТЕРФЕЙС МАГАЗИНА (STOREFRONT) -->
-        <div id="view-business" class="hidden">
-          <!-- СЛОЖНЫЙ ГРАДИЕНТНЫЙ БЛОК ШАПКИ С BLUR -->
-          <div class="biz-premium-header">
-            <!-- Большая обложка -->
-            <div
-              id="biz-banner"
-              class="biz-banner-image"
-              style="
+      <!-- 2. ИНТЕРФЕЙС МАГАЗИНА (STOREFRONT) -->
+      <div id="view-business" class="hidden">
+        <!-- СЛОЖНЫЙ ГРАДИЕНТНЫЙ БЛОК ШАПКИ С BLUR -->
+        <div class="biz-premium-header">
+          <!-- Большая обложка -->
+          <div id="biz-banner" class="biz-banner-image" style="
                 background-image: url('https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=1000');
-              "
-            >
-              <div class="biz-banner-overlay"></div>
-            </div>
-
-            <div class="biz-profile-card">
-              <div class="biz-logo-container">
-                <div id="biz-logo-main" class="biz-logo">?</div>
-                <div class="biz-verified-badge">
-                  <i class="fa-solid fa-circle-check"></i> PRO
-                </div>
-              </div>
-              <div class="biz-info-container">
-                <h2 id="biz-name-main" class="biz-name">Название магазина</h2>
-                <div class="biz-category" id="biz-category-main">
-                  Партнер Gifts KG
-                </div>
-                <p id="biz-bio-display" class="biz-bio">
-                  Описание магазина пока не задано. Здесь будет красивый текст о
-                  вас.
-                </p>
-                <div class="biz-meta">
-                  <div class="biz-meta-item">
-                    <i
-                      class="fa-solid fa-clock"
-                      style="color: var(--yellow-main)"
-                    ></i>
-                    <span id="biz-hours-display">09:00 - 20:00</span>
-                  </div>
-                  <div class="biz-meta-item">
-                    <i
-                      class="fa-brands fa-instagram"
-                      style="color: #e1306c"
-                    ></i>
-                    <span id="biz-inst-display">Не указан</span>
-                  </div>
-                </div>
-              </div>
-              <button class="biz-edit-btn" onclick="openEditBizModal()">
-                <i class="fa-solid fa-pen"></i> Редактировать
-              </button>
-            </div>
+              ">
+            <div class="biz-banner-overlay"></div>
           </div>
 
-          <!-- СТАТИСТИКА И ДЕЙСТВИЯ -->
-          <div class="biz-action-board">
-            <div class="biz-stat-card">
-              <div class="biz-stat-value" id="biz-views-count">0</div>
-              <div class="biz-stat-label">Просмотры витрины</div>
-            </div>
-            <div class="biz-action-cards">
-              <div class="biz-action-btn" onclick="openAddForm('standard')">
-                <i class="fa-solid fa-plus"></i>
-                <span>Добавить Товар</span>
+          <div class="biz-profile-card">
+            <div class="biz-logo-container">
+              <div id="biz-logo-main" class="biz-logo">?</div>
+              <div class="biz-verified-badge">
+                <i class="fa-solid fa-circle-check"></i> PRO
               </div>
-
             </div>
+            <div class="biz-info-container">
+              <h2 id="biz-name-main" class="biz-name">Название магазина</h2>
+              <div class="biz-category" id="biz-category-main">
+                Партнер Gifts KG
+              </div>
+              <p id="biz-bio-display" class="biz-bio">
+                Описание магазина пока не задано. Здесь будет красивый текст о
+                вас.
+              </p>
+              <div class="biz-meta">
+                <div class="biz-meta-item">
+                  <i class="fa-solid fa-clock" style="color: var(--yellow-main)"></i>
+                  <span id="biz-hours-display">09:00 - 20:00</span>
+                </div>
+                <div class="biz-meta-item">
+                  <i class="fa-brands fa-instagram" style="color: #e1306c"></i>
+                  <span id="biz-inst-display">Не указан</span>
+                </div>
+              </div>
+            </div>
+            <button class="biz-edit-btn" onclick="openEditBizModal()">
+              <i class="fa-solid fa-pen"></i> Редактировать
+            </button>
           </div>
-
-          <div class="profile-tabs" style="margin-top: 10px">
-            <div
-              class="p-tab active"
-              id="tab-active"
-              onclick="switchProfileTab('active')"
-            >
-              Витрина ✨
-            </div>
-            <div
-              class="p-tab"
-              id="tab-archive"
-              onclick="switchProfileTab('archive')"
-            >
-              Архив
-            </div>
-          </div>
-          <main class="listings-grid" id="biz-ads-grid"></main>
-
-          <h3 id="biz-recommendations-header" style="font-size: 18px; margin-bottom: 10px; border-top: 1px solid #333; padding-top: 20px; display:none;">Рекомендации</h3>
-          <div id="biz-recommendations-grid" class="listings-grid" style="margin-bottom: 20px; display:none;"></div>
         </div>
 
-        <!-- 3. ИНТЕРФЕЙС ОБЫЧНОГО ЮЗЕРА (Твой старый формат) -->
-        <div id="view-user" class="hidden">
-          <div style="text-align: center; padding: 30px 20px 20px">
-            <div
-              id="u-avatar-big"
-              style="
+        <!-- СТАТИСТИКА И ДЕЙСТВИЯ -->
+        <div class="biz-action-board">
+          <div class="biz-stat-card">
+            <div class="biz-stat-value" id="biz-views-count">0</div>
+            <div class="biz-stat-label">Просмотры витрины</div>
+          </div>
+          <div class="biz-action-cards">
+            <div class="biz-action-btn" onclick="openAddForm('standard')">
+              <i class="fa-solid fa-plus"></i>
+              <span>Добавить Товар</span>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="profile-tabs" style="margin-top: 10px">
+          <div class="p-tab active" id="tab-active" onclick="switchProfileTab('active')">
+            Витрина ✨
+          </div>
+          <div class="p-tab" id="tab-archive" onclick="switchProfileTab('archive')">
+            Архив
+          </div>
+        </div>
+        <main class="listings-grid" id="biz-ads-grid"></main>
+
+        <h3 id="biz-recommendations-header"
+          style="font-size: 18px; margin-bottom: 10px; border-top: 1px solid #333; padding-top: 20px; display:none;">
+          Рекомендации</h3>
+        <div id="biz-recommendations-grid" class="listings-grid" style="margin-bottom: 20px; display:none;"></div>
+      </div>
+
+      <!-- 3. ИНТЕРФЕЙС ОБЫЧНОГО ЮЗЕРА (Твой старый формат) -->
+      <div id="view-user" class="hidden">
+        <div style="text-align: center; padding: 30px 20px 20px">
+          <div id="u-avatar-big" style="
                 width: 80px;
                 height: 80px;
                 background: var(--yellow-main);
@@ -928,91 +705,60 @@
                 color: #000;
                 font-size: 28px;
                 font-weight: bold;
-              "
-            >
-              ?
-            </div>
-            <h2 id="u-name-simple" style="margin-top: 15px; font-size: 22px">
-              Пользователь
-            </h2>
-            <p style="color: gray; font-size: 14px; margin-bottom: 20px">
-              Стандартный аккаунт
-            </p>
+              ">
+            ?
           </div>
+          <h2 id="u-name-simple" style="margin-top: 15px; font-size: 22px">
+            Пользователь
+          </h2>
+          <p style="color: gray; font-size: 14px; margin-bottom: 20px">
+            Стандартный аккаунт
+          </p>
+        </div>
 
-          <div class="profile-tabs">
-            <div
-              class="p-tab active"
-              id="tab-active"
-              onclick="switchProfileTab('active')"
-            >
-              Активные
-            </div>
-            <div
-              class="p-tab"
-              id="tab-archive"
-              onclick="switchProfileTab('archive')"
-            >
-              Продано
-            </div>
+        <div class="profile-tabs">
+          <div class="p-tab active" id="tab-active" onclick="switchProfileTab('active')">
+            Активные
           </div>
-
-          <!-- Твоя старая сетка для юзеров -->
-          <main class="listings-grid" id="my-ads-grid"></main>
-
-          <div style="padding: 20px">
-            <button
-              class="btn-premium-unity"
-              onclick="tg.openTelegramLink('https://t.me/D1NCHO')"
-            >
-              Стать партнером
-            </button>
+          <div class="p-tab" id="tab-archive" onclick="switchProfileTab('archive')">
+            Продано
           </div>
         </div>
-      </section>
 
-      <!-- МОДАЛКА РЕДАКТИРОВАНИЯ БИЗНЕСА -->
-      <div id="edit-biz-modal" class="hidden modal-overlay frosted-overlay">
-        <div class="modal-box premium-modal-box">
-          <div class="modal-header">
-            <h3>Магазин</h3>
-            <i class="fa fa-times close-icon" onclick="closeEditBizModal()"></i>
-          </div>
+        <!-- Твоя старая сетка для юзеров -->
+        <main class="listings-grid" id="my-ads-grid"></main>
 
-          <!-- Обложка и Лого -->
-          <div class="premium-upload-area">
-            <div
-              class="upload-cover-box"
-              onclick="document.getElementById('edit-biz-cover-input').click()"
-            >
-              <i class="fa-solid fa-image"></i> Изменить Фон
-              <input
-                type="file"
-                id="edit-biz-cover-input"
-                hidden
-                accept="image/*"
-                onchange="handleBizMedia(this, 'cover')"
-              />
-            </div>
-            <div
-              class="upload-logo-box"
-              onclick="document.getElementById('edit-biz-logo-input').click()"
-            >
-              <i class="fa-solid fa-camera"></i> Логотип
-              <input
-                type="file"
-                id="edit-biz-logo-input"
-                hidden
-                accept="image/*"
-                onchange="handleBizMedia(this, 'logo')"
-              />
-            </div>
+        <div style="padding: 20px">
+          <button class="btn-premium-unity" onclick="tg.openTelegramLink('https://t.me/D1NCHO')">
+            Стать партнером
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- МОДАЛКА РЕДАКТИРОВАНИЯ БИЗНЕСА -->
+    <div id="edit-biz-modal" class="hidden modal-overlay frosted-overlay">
+      <div class="modal-box premium-modal-box">
+        <div class="modal-header">
+          <h3>Магазин</h3>
+          <i class="fa fa-times close-icon" onclick="closeEditBizModal()"></i>
+        </div>
+
+        <!-- Обложка и Лого -->
+        <div class="premium-upload-area">
+          <div class="upload-cover-box" onclick="document.getElementById('edit-biz-cover-input').click()">
+            <i class="fa-solid fa-image"></i> Изменить Фон
+            <input type="file" id="edit-biz-cover-input" hidden accept="image/*"
+              onchange="handleBizMedia(this, 'cover')" />
           </div>
-          <!-- Лоадер для фото -->
-          <div
-            id="media-upload-loader"
-            class="hidden"
-            style="
+          <div class="upload-logo-box" onclick="document.getElementById('edit-biz-logo-input').click()">
+            <i class="fa-solid fa-camera"></i> Логотип
+            <input type="file" id="edit-biz-logo-input" hidden accept="image/*"
+              onchange="handleBizMedia(this, 'logo')" />
+          </div>
+        </div>
+        <!-- Лоадер для фото -->
+        <div id="media-upload-loader" class="hidden" style="
               text-align: center;
               color: var(--yellow-main);
               font-size: 12px;
@@ -1020,74 +766,53 @@
               background: rgba(255, 204, 0, 0.1);
               padding: 8px;
               border-radius: 8px;
-            "
-          >
-            <i class="fa-solid fa-spinner fa-spin"></i> Загрузка изображения...
-          </div>
-
-          <div class="premium-input-group">
-            <label>Название магазина</label>
-            <input
-              type="text"
-              id="edit-biz-name"
-              class="premium-input"
-              placeholder="Введите название"
-            />
-          </div>
-
-          <div class="premium-input-group">
-            <label>О компании (Bio)</label>
-            <textarea
-              id="edit-biz-bio"
-              class="premium-input"
-              rows="2"
-              placeholder="Расскажите о вас: цветы, доставка..."
-            ></textarea>
-          </div>
-
-          <div class="premium-grid-2">
-            <div class="premium-input-group">
-              <label>Часы работы</label>
-              <input
-                type="text"
-                id="edit-biz-hours"
-                class="premium-input"
-                placeholder="09:00 - 20:00"
-              />
-            </div>
-            <div class="premium-input-group">
-              <label>Instagram (без @)</label>
-              <input type="text" id="edit-biz-inst" class="premium-input" placeholder="my_shop" />
-            </div>
-          </div>
-
-          <div class="premium-grid-2">
-            <div class="premium-input-group">
-              <label>Телефон / WhatsApp</label>
-              <input type="tel" id="edit-biz-phone" class="premium-input" placeholder="0555XXXXXX" />
-            </div>
-            <div class="premium-input-group">
-              <label>Telegram (@nick)</label>
-              <input type="text" id="edit-biz-tg" class="premium-input" placeholder="@nickname" />
-            </div>
-          </div>
-          <div class="premium-input-group">
-            <label>Адрес / Местоположение витрины</label>
-            <input type="text" id="edit-biz-address" class="premium-input" placeholder="г. Бишкек, ЦУМ" />
-          </div>
-
-          <button
-            class="btn-premium-unity full-width mt-10"
-            onclick="saveBizProfile()"
-          >
-            Сохранить изменения
-          </button>
+            ">
+          <i class="fa-solid fa-spinner fa-spin"></i> Загрузка изображения...
         </div>
+
+        <div class="premium-input-group">
+          <label>Название магазина</label>
+          <input type="text" id="edit-biz-name" class="premium-input" placeholder="Введите название" />
+        </div>
+
+        <div class="premium-input-group">
+          <label>О компании (Bio)</label>
+          <textarea id="edit-biz-bio" class="premium-input" rows="2"
+            placeholder="Расскажите о вас: цветы, доставка..."></textarea>
+        </div>
+
+        <div class="premium-grid-2">
+          <div class="premium-input-group">
+            <label>Часы работы</label>
+            <input type="text" id="edit-biz-hours" class="premium-input" placeholder="09:00 - 20:00" />
+          </div>
+          <div class="premium-input-group">
+            <label>Instagram (без @)</label>
+            <input type="text" id="edit-biz-inst" class="premium-input" placeholder="my_shop" />
+          </div>
+        </div>
+
+        <div class="premium-grid-2">
+          <div class="premium-input-group">
+            <label>Телефон / WhatsApp</label>
+            <input type="tel" id="edit-biz-phone" class="premium-input" placeholder="0555XXXXXX" />
+          </div>
+          <div class="premium-input-group">
+            <label>Telegram (@nick)</label>
+            <input type="text" id="edit-biz-tg" class="premium-input" placeholder="@nickname" />
+          </div>
+        </div>
+        <div class="premium-input-group">
+          <label>Адрес / Местоположение витрины</label>
+          <input type="text" id="edit-biz-address" class="premium-input" placeholder="г. Бишкек, ЦУМ" />
+        </div>
+
+        <button class="btn-premium-unity full-width mt-10" onclick="saveBizProfile()">
+          Сохранить изменения
+        </button>
       </div>
-      <div
-        id="product-modal"
-        class="hidden"
-        style="
+    </div>
+    <div id="product-modal" class="hidden" style="
           position: fixed;
           top: 0;
           left: 0;
@@ -1096,160 +821,128 @@
           background: var(--bg);
           z-index: 4000;
           overflow-y: auto;
-        "
-      >
-        <div id="pv-content"></div>
-      </div>
+        ">
+      <div id="pv-content"></div>
+    </div>
 
-      <!-- BRAND NEW: СТРАНИЦА ПРОСМОТРА МАГАЗИНА ДЛЯ ОБЫЧНЫХ КЛИЕНТОВ -->
-      <section
-        id="page-public-shop"
-        class="page hidden"
-        style="position: relative; z-index: 45"
-      >
-        <!-- Header / Back button -->
-        <header
-          style="
+    <!-- BRAND NEW: СТРАНИЦА ПРОСМОТРА МАГАЗИНА ДЛЯ ОБЫЧНЫХ КЛИЕНТОВ -->
+    <section id="page-public-shop" class="page hidden" style="position: relative; z-index: 45">
+      <!-- Header / Back button -->
+      <header style="
             padding: 15px;
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             z-index: 50;
-          "
-        >
-          <i
-            class="fa fa-arrow-left"
-            onclick="showPage('home')"
-            style="
+          ">
+        <i class="fa fa-arrow-left" onclick="showPage('home')" style="
               font-size: 24px;
               cursor: pointer;
               color: #fff;
               background: rgba(0, 0, 0, 0.5);
               padding: 8px 10px;
               border-radius: 50%;
-            "
-          ></i>
-        </header>
+            "></i>
+      </header>
 
-        <div class="biz-premium-header" style="margin-top: 0">
-          <!-- Большая обложка -->
-          <div
-            id="public-shop-banner"
-            class="biz-banner-image"
-            style="height: 220px"
-          >
-            <div class="biz-banner-overlay"></div>
-          </div>
+      <div class="biz-premium-header" style="margin-top: 0">
+        <!-- Большая обложка -->
+        <div id="public-shop-banner" class="biz-banner-image" style="height: 220px">
+          <div class="biz-banner-overlay"></div>
+        </div>
 
-          <div class="biz-profile-card">
-            <div class="biz-logo-container">
-              <div id="public-shop-logo" class="biz-logo">?</div>
-              <div class="biz-verified-badge">
-                <i class="fa-solid fa-circle-check"></i> Магазин
-              </div>
-            </div>
-            <div class="biz-info-container">
-              <h2 id="public-shop-name" class="biz-name">Магазин</h2>
-              <div class="biz-category">Партнер Gifts KG</div>
-              <p id="public-shop-bio" class="biz-bio">...</p>
-              <div class="biz-meta">
-                <div class="biz-meta-item">
-                  <i
-                    class="fa-solid fa-clock"
-                    style="color: var(--yellow-main)"
-                  ></i>
-                  <span id="public-shop-hours">09:00 - 20:00</span>
-                </div>
-                <div class="biz-meta-item" onclick="openPublicInst()">
-                  <i class="fa-brands fa-instagram" style="color: #e1306c"></i>
-                  <span id="public-shop-inst">Не указан</span>
-                </div>
-              </div>
+        <div class="biz-profile-card">
+          <div class="biz-logo-container">
+            <div id="public-shop-logo" class="biz-logo">?</div>
+            <div class="biz-verified-badge">
+              <i class="fa-solid fa-circle-check"></i> Магазин
             </div>
           </div>
-        </div>
-
-        <div style="padding: 10px 15px; padding-bottom: 80px">
-          <h3 style="font-size: 18px; margin-bottom: 10px">Товары магазина</h3>
-
-          <div
-            id="public-shop-grid"
-            class="listings-grid"
-            style="margin-bottom: 30px"
-          >
-            <!-- Товары магазина -->
-          </div>
-
-          <h3
-            id="public-recommendations-header"
-            style="
-              font-size: 18px;
-              margin-bottom: 10px;
-              border-top: 1px solid #333;
-              padding-top: 20px;
-            "
-          >
-            Рекомендации
-          </h3>
-          <div
-            id="public-recommendations-grid"
-            class="listings-grid"
-            style="margin-bottom: 20px"
-          >
-            <!-- Случайные товары -->
-          </div>
-        </div>
-      </section>
-
-      <nav class="bottom-nav">
-        <button class="nav-item active" onclick="showPage('home')" id="n-home">
-          <i class="fa-solid fa-house"></i><span>Лента</span>
-        </button>
-
-        <button class="nav-item" onclick="showPage('shops')" id="n-shops">
-          <i class="fa-solid fa-store"></i><span>Магазины</span>
-        </button>
-
-        <div class="nav-center-container" onclick="showPage('add')">
-          <div class="yellow-plus-main">
-            <i class="fa-solid fa-plus"></i>
-          </div>
-          <span class="plus-label">Подать</span>
-        </div>
-
-        <button class="nav-item" onclick="showPage('favs')" id="n-favs">
-          <i class="fa-solid fa-heart"></i><span>Избранное</span>
-        </button>
-
-        <button class="nav-item" onclick="showPage('profile')" id="n-profile">
-          <i class="fa-solid fa-user"></i><span>Профиль</span>
-        </button>
-      </nav>
-      <!-- VPN ALERT MODAL -->
-      <div id="vpn-alert" class="hidden modal-overlay">
-        <div class="modal-box vpn-modal-box">
-          <div class="vpn-ethno-icon">
-            <i class="fa-solid fa-shield-virus"></i>
-          </div>
-          <h3>VPN Detected</h3>
-          <p style="font-size: 14px; color: #ccc; margin-bottom: 20px; line-height: 1.6;">
-            Похоже, у вас включен VPN. Пожалуйста, выберите город вручную для корректного отображения товаров.
-          </p>
-          <div class="modal-action-btn btn-ethno-red" onclick="closeVpnAlert()">
-            Понятно
+          <div class="biz-info-container">
+            <h2 id="public-shop-name" class="biz-name">Магазин</h2>
+            <div class="biz-category">Партнер Gifts KG</div>
+            <p id="public-shop-bio" class="biz-bio">...</p>
+            <div class="biz-meta">
+              <div class="biz-meta-item">
+                <i class="fa-solid fa-clock" style="color: var(--yellow-main)"></i>
+                <span id="public-shop-hours">09:00 - 20:00</span>
+              </div>
+              <div class="biz-meta-item" onclick="openPublicInst()">
+                <i class="fa-brands fa-instagram" style="color: #e1306c"></i>
+                <span id="public-shop-inst">Не указан</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-    </div>
-    <script src="app.js"></script>
+      <div style="padding: 10px 15px; padding-bottom: 80px">
+        <h3 style="font-size: 18px; margin-bottom: 10px">Товары магазина</h3>
 
-    <!-- ЭКРАН ФОНОВОЙ ЗАГРУЗКИ -->
-    <div
-      id="upload-overlay"
-      class="hidden"
-      style="
+        <div id="public-shop-grid" class="listings-grid" style="margin-bottom: 30px">
+          <!-- Товары магазина -->
+        </div>
+
+        <h3 id="public-recommendations-header" style="
+              font-size: 18px;
+              margin-bottom: 10px;
+              border-top: 1px solid #333;
+              padding-top: 20px;
+            ">
+          Рекомендации
+        </h3>
+        <div id="public-recommendations-grid" class="listings-grid" style="margin-bottom: 20px">
+          <!-- Случайные товары -->
+        </div>
+      </div>
+    </section>
+
+    <nav class="bottom-nav">
+      <button class="nav-item active" onclick="showPage('home')" id="n-home">
+        <i class="fa-solid fa-house"></i><span>Лента</span>
+      </button>
+
+      <button class="nav-item" onclick="showPage('shops')" id="n-shops">
+        <i class="fa-solid fa-store"></i><span>Магазины</span>
+      </button>
+
+      <div class="nav-center-container" onclick="showPage('add')">
+        <div class="yellow-plus-main">
+          <i class="fa-solid fa-plus"></i>
+        </div>
+        <span class="plus-label">Подать</span>
+      </div>
+
+      <button class="nav-item" onclick="showPage('favs')" id="n-favs">
+        <i class="fa-solid fa-heart"></i><span>Избранное</span>
+      </button>
+
+      <button class="nav-item" onclick="showPage('profile')" id="n-profile">
+        <i class="fa-solid fa-user"></i><span>Профиль</span>
+      </button>
+    </nav>
+    <!-- VPN ALERT MODAL -->
+    <div id="vpn-alert" class="hidden modal-overlay">
+      <div class="modal-box vpn-modal-box">
+        <div class="vpn-ethno-icon">
+          <i class="fa-solid fa-shield-virus"></i>
+        </div>
+        <h3>VPN Detected</h3>
+        <p style="font-size: 14px; color: #ccc; margin-bottom: 20px; line-height: 1.6;">
+          Похоже, у вас включен VPN. Пожалуйста, выберите город вручную для корректного отображения товаров.
+        </p>
+        <div class="modal-action-btn btn-ethno-red" onclick="closeVpnAlert()">
+          Понятно
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <script src="app.js"></script>
+
+  <!-- ЭКРАН ФОНОВОЙ ЗАГРУЗКИ -->
+  <div id="upload-overlay" class="hidden" style="
         position: fixed;
         top: 0;
         left: 0;
@@ -1261,33 +954,24 @@
         align-items: center;
         justify-content: center;
         backdrop-filter: blur(10px);
-      "
-    >
-      <div style="text-align: center; padding: 30px">
-        <div
-          id="loader-visual"
-          class="pulse-heart"
-          style="
+      ">
+    <div style="text-align: center; padding: 30px">
+      <div id="loader-visual" class="pulse-heart" style="
             font-size: 60px;
             color: var(--yellow-main);
             margin-bottom: 20px;
-          "
-        >
-          <i class="fa-solid fa-heart"></i>
-        </div>
-        <h2 id="loader-title" style="margin-bottom: 10px; font-size: 24px">
-          Принято!
-        </h2>
-        <p id="loader-text" style="color: var(--gray); font-size: 14px">
-          Ваше объявление обрабатывается и скоро появится в ленте.
-        </p>
+          ">
+        <i class="fa-solid fa-heart"></i>
+      </div>
+      <h2 id="loader-title" style="margin-bottom: 10px; font-size: 24px">
+        Принято!
+      </h2>
+      <p id="loader-text" style="color: var(--gray); font-size: 14px">
+        Ваше объявление обрабатывается и скоро появится в ленте.
+      </p>
 
-        <!-- Кнопка появится только в случае ошибки -->
-        <button
-          id="loader-error-btn"
-          class="hidden"
-          onclick="closeUploadOverlay()"
-          style="
+      <!-- Кнопка появится только в случае ошибки -->
+      <button id="loader-error-btn" class="hidden" onclick="closeUploadOverlay()" style="
             margin-top: 20px;
             background: #ff3b30;
             color: #fff;
@@ -1295,11 +979,11 @@
             padding: 12px 25px;
             border-radius: 12px;
             font-weight: bold;
-          "
-        >
-          Понятно
-        </button>
-      </div>
+          ">
+        Понятно
+      </button>
     </div>
-  </body>
+  </div>
+</body>
+
 </html>

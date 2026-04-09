@@ -890,7 +890,7 @@ function renderFeed() {
     const catMatch = curCat === "Все" || ad.cat === curCat;
 
     // Б. Проверка города (самое важное!)
-    const cityMatch = ad.city_key === curCity || ad.city === cityNames[curCity];
+    const cityMatch = ad.city_key === curCity || ad.city === CITY_NAMES[curCity] || ad.city === curCity;
 
     // В. Проверка статуса
     const statusMatch =
