@@ -46,12 +46,39 @@
 
 #page-add,
 #page-favs,
-#page-profile {
+#page-profile,
+#page-shops {
   padding-top: 0 !important;
   z-index: 10;
   position: relative;
   background: #121212;
   overflow-x: hidden; /* FIX: Prevent horizontal scroll across all pages */
+}
+
+/* Fix for horizontal scroll on the entire app */
+#app {
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
+}
+
+/* Active city highlighting in modal */
+.modal-action-btn.active-city {
+  border: 2px solid var(--yellow-main) !important;
+  background: rgba(255, 204, 0, 0.1) !important;
+  color: var(--yellow-main) !important;
+}
+
+/* Shops preview fix */
+.shops-preview-wrapper {
+  overflow-x: auto;
+  padding: 0 15px 15px;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+  -webkit-overflow-scrolling: touch;
+}
+.shops-preview-wrapper::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
 }
 
 #page-add {

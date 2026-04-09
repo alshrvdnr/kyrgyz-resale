@@ -890,10 +890,11 @@ function renderFeed() {
     const catMatch = curCat === "Все" || ad.cat === curCat;
 
     // Б. Проверка города (самое важное!)
-    const targetCityName = CITY_NAMES[curCity];
+    const targetCityName = (CITY_NAMES[curCity] || "").toLowerCase();
+    const adCityLow = (ad.city || "").toLowerCase().trim();
     const cityMatch = ad.city_key === curCity || 
-                      ad.city === targetCityName || 
-                      ad.city === curCity;
+                      adCityLow === targetCityName || 
+                      adCityLow === curCity.toLowerCase();
     
     // console.log(`Checking ad: ${ad.title}, City: ${ad.city}, Target: ${targetCityName}, Match: ${cityMatch}`);
 
@@ -1971,6 +1972,16 @@ window.closeVpnAlert = function() {
 function updateCityUI(cityKey) {
   const label = document.getElementById("current-city-label");
   if (label) label.innerText = CITY_NAMES[cityKey] || cityKey;
+
+  // ОБНОВЛЯЕМ АКТИВНЫЙ ГОРОД В МОДАЛКЕ
+  document.querySelectorAll(".city-btn").forEach((btn) => {
+    if (btn.getAttribute("data-city") === cityKey) {
+      btn.classList.add("active-city");
+    } else {
+      btn.classList.remove("active-city");
+    }
+  });
+
   renderFeed();
 }
 
