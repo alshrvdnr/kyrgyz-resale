@@ -37,19 +37,17 @@
         <header class="main-header" id="dynamic-header">
           <!-- Строка: Поиск + Кнопка Города -->
           <div class="search-city-row">
-            <div class="search-wrapper">
+            <div class="search-wrapper" onclick="openSearchModal()">
               <i class="fa fa-search" style="color: var(--gray)"></i>
               <input
                 type="text"
-                id="main-search"
+                id="main-search-trigger"
                 placeholder="Поиск подарков..."
-                autocomplete="off"
+                readonly
               />
-              <div id="search-suggestions-box" class="hidden"></div>
             </div>
 
-            <div class="city-pill" onclick="toggleCitySelector()" style="display: flex; align-items: center; gap: 8px;">
-              <div class="tunduk-brand"></div>
+            <div class="city-pill" onclick="toggleCitySelector()">
               <i class="fa-solid fa-location-dot"></i>
               <span id="current-city-label">Бишкек</span>
             </div>
@@ -176,6 +174,32 @@
         </div>
 
         <div id="search-results-area" class="listings-grid" style="padding: 10px;"></div>
+      </div>
+
+      <!-- ОКНО ПОИСКА (LALAFO STYLE) -->
+      <div id="search-modal" class="hidden">
+        <div class="search-modal-header">
+          <i class="fa fa-arrow-left" onclick="closeSearchModal()" style="font-size: 20px; color: var(--yellow-main);"></i>
+          <div class="search-modal-wrapper">
+            <i class="fa fa-search" style="color: var(--gray)"></i>
+            <input type="text" id="search-modal-input" placeholder="Что вы ищете?" autocomplete="off">
+            <i class="fa fa-times-circle hidden" id="clear-search-modal" style="color: var(--gray);"></i>
+          </div>
+        </div>
+        
+        <div class="search-modal-content">
+          <div id="search-suggestions-box-modal" class="hidden" style="margin-bottom: 20px;"></div>
+
+          <div class="search-section-title">Популярные запросы</div>
+          <div class="popular-tags" id="popular-queries-list">
+            <!-- Загрузится из Firebase -->
+          </div>
+
+          <div class="search-section-title">История поиска</div>
+          <div class="history-list" id="search-history-list">
+            <!-- Загрузится из LocalStorage -->
+          </div>
+        </div>
       </div>
 
       <!-- ВЫБОР ГОРОДА -->

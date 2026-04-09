@@ -128,15 +128,16 @@ document.addEventListener("DOMContentLoaded", () => {
   initUser();
   listenSettings();
   listenAds();
-  const sIn = document.getElementById("main-search");
-  if (sIn) {
-    sIn.addEventListener("input", (e) => {
-      showSearchSuggestions(e.target.value);
+  // Удаляем обработчики старого поиска и добавляем для модалки
+  const modalInput = document.getElementById("search-modal-input");
+  if (modalInput) {
+    modalInput.addEventListener("input", (e) => {
+      showSearchSuggestionsModal(e.target.value);
     });
-    sIn.addEventListener("keypress", (e) => {
+    modalInput.addEventListener("keypress", (e) => {
       if (e.key === "Enter") {
         startSearch(e.target.value);
-        sIn.blur(); // Скрываем клавиатуру после поиска
+        modalInput.blur();
       }
     });
   }
@@ -1934,11 +1935,17 @@ function calculateAdSearchScore(ad, queryTokens) {
     if (titleNorm.includes(token)) {
       // Имитируем границу слова (\b) для кириллицы
       const index = titleNorm.indexOf(token);
-      const before = index === 0 || /\s/.test(titleNorm[index - 1]);
-      const after = (index + token.length === titleNorm.length) || /\s/.test(titleNorm[index + token.length]);
       
-      if (before && after) score += 5; // Точное совпадение слова
-      else score += 3;                 // Частичное совпадение
+      // БОЛЕЕ ГИБКАЯ ПРОВЕРКА: Если слово короткое ( < 4 букв ), требуем границы. 
+      // Если длинное ( роза -> розы ), разрешаем частичное совпадение как полное.
+      if (token.length > 3) {
+        score += 5; // Для длинных слов считаем включение за 5
+      } else {
+        const before = index === 0 || /\s/.test(titleNorm[index - 1]);
+        const after = (index + token.length === titleNorm.length) || /\s/.test(titleNorm[index + token.length]);
+        if (before && after) score += 5; 
+        else score += 3;
+      }
     }
     
     // 2. Проверка в описании (Description) - Вес 2
@@ -1999,6 +2006,10 @@ window.startSearch = function (val) {
   
   const searchPage = document.getElementById("search-results-page");
   if (searchPage) searchPage.classList.remove("hidden");
+  
+  // Добавляем в историю
+  addSearchToHistory(query);
+  closeSearchModal();
 };
 
 // Отрисовка результатов с учетом сортировки
@@ -2038,52 +2049,113 @@ function renderSearchResults() {
 // Переключение вкладок сортировки
 window.updateSearchSort = function(mode, btn) {
   window.currentSearchSort = mode;
-  
-  // Визуал вкладок
   document.querySelectorAll('.s-tab').forEach(t => t.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  
   renderSearchResults();
 };
 
-// --- АВТОДОПОЛНЕНИЕ ---
-window.showSearchSuggestions = function(val) {
-  const suggestBox = document.getElementById("search-suggestions-box");
-  if (!suggestBox) return;
+// --- УПРАВЛЕНИЕ МОДАЛКОЙ ПОИСКА ---
+window.openSearchModal = function() {
+  const modal = document.getElementById("search-modal");
+  if (modal) {
+    modal.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+    setTimeout(() => document.getElementById("search-modal-input")?.focus(), 100);
+    renderSearchHistory();
+    renderPopularQueries();
+  }
+};
+
+window.closeSearchModal = function() {
+  const modal = document.getElementById("search-modal");
+  if (modal) {
+    modal.classList.add("hidden");
+    document.body.style.overflow = "auto";
+  }
+};
+
+// История поиска
+function addSearchToHistory(q) {
+  let history = JSON.parse(localStorage.getItem("search_history") || "[]");
+  history = [q, ...history.filter(i => i !== q)].slice(0, 5);
+  localStorage.setItem("search_history", JSON.stringify(history));
+}
+
+function renderSearchHistory() {
+  const list = document.getElementById("search-history-list");
+  if (!list) return;
+  const history = JSON.parse(localStorage.getItem("search_history") || "[]");
+  
+  list.innerHTML = history.length ? "" : "<p style='color:gray; font-size:14px;'>История пуста</p>";
+  history.forEach(q => {
+    const div = document.createElement("div");
+    div.className = "history-item";
+    div.innerHTML = `<i class="fa fa-history"></i><span>${q}</span><i class="fa fa-times remove-history"></i>`;
+    div.onclick = (e) => {
+      if (e.target.classList.contains("remove-history")) {
+        removeFromHistory(q);
+      } else {
+        startSearch(q);
+      }
+    };
+    list.appendChild(div);
+  });
+}
+
+function removeFromHistory(q) {
+  let history = JSON.parse(localStorage.getItem("search_history") || "[]");
+  history = history.filter(i => i !== q);
+  localStorage.setItem("search_history", JSON.stringify(history));
+  renderSearchHistory();
+}
+
+async function renderPopularQueries() {
+  const container = document.getElementById("popular-queries-list");
+  if (!container) return;
+  
+  try {
+    const snap = await db.ref("searchQueries").orderByValue().limitToLast(6).once("value");
+    const data = snap.val() || {};
+    const queries = Object.keys(data).sort((a,b) => data[b] - data[a]);
+    
+    container.innerHTML = "";
+    queries.forEach(q => {
+      const tag = document.createElement("div");
+      tag.className = "popular-tag";
+      tag.innerText = q.replace(/_/g, '.');
+      tag.onclick = () => startSearch(tag.innerText);
+      container.appendChild(tag);
+    });
+  } catch(e) { console.error(e); }
+}
+
+// Автодополнение в модалке
+window.showSearchSuggestionsModal = function(val) {
+  const box = document.getElementById("search-suggestions-box-modal");
+  if (!box) return;
 
   if (!val || val.trim().length < 2) {
-    suggestBox.classList.add("hidden");
+    box.classList.add("hidden");
     return;
   }
 
   const query = val.toLowerCase();
-  
-  // Ищем совпадения в названиях и категориях
-  const matches = ads.filter(ad => ad.status === "active" && ad.title.toLowerCase().includes(query))
-    .slice(0, 5); // Только первые 5
+  const matches = ads.filter(ad => ad.status === "active" && ad.title.toLowerCase().includes(query)).slice(0, 5);
 
   if (matches.length === 0) {
-    suggestBox.classList.add("hidden");
+    box.classList.add("hidden");
     return;
   }
 
-  suggestBox.innerHTML = "";
-  matches.forEach(match => {
+  box.innerHTML = "";
+  matches.forEach(m => {
     const div = document.createElement("div");
     div.className = "suggestion-item";
-    div.innerHTML = `
-      <i class="fa fa-history"></i>
-      <span class="suggestion-text">${match.title}</span>
-      <span class="suggestion-category">${catMap[match.cat] || match.cat}</span>
-    `;
-    div.onclick = () => {
-      document.getElementById("main-search").value = match.title;
-      window.startSearch(match.title);
-    };
-    suggestBox.appendChild(div);
+    div.innerHTML = `<i class="fa fa-search"></i><span>${m.title}</span>`;
+    div.onclick = () => startSearch(m.title);
+    box.appendChild(div);
   });
-
-  suggestBox.classList.remove("hidden");
+  box.classList.remove("hidden");
 };
 
 // Аналитика поиска

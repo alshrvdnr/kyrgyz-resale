@@ -23,6 +23,7 @@
   z-index: 10;
   position: relative;
   background: #121212;
+  overflow-x: hidden; /* FIX: Prevent horizontal scroll across all pages */
 }
 
 #page-add {
@@ -1840,4 +1841,99 @@ body {
   top: 0;
   z-index: 11;
   border-bottom: 1px solid #222;
+}
+
+/* --- LALAFO STYLE SEARCH MODAL --- */
+#search-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #121212;
+  z-index: 9500;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.search-modal-header {
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #121212;
+  border-bottom: 1px solid #333;
+}
+
+.search-modal-wrapper {
+  flex: 1;
+  background: #1c1c1e;
+  border-radius: 12px;
+  padding: 10px 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#search-modal-input {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  flex: 1;
+  outline: none;
+}
+
+.search-modal-content {
+  padding: 20px 15px;
+}
+
+.search-section-title {
+  color: var(--gray);
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+}
+
+.popular-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 30px;
+}
+
+.popular-tag {
+  background: #1c1c1e;
+  border: 1px solid #333;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  color: #fff;
+  cursor: pointer;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  padding: 15px 0;
+  border-bottom: 1px solid #222;
+  cursor: pointer;
+}
+
+.history-item i {
+  color: var(--gray);
+  margin-right: 15px;
+}
+
+.history-item .remove-history {
+  margin-left: auto;
+  color: var(--gray);
+  padding: 5px;
 }
