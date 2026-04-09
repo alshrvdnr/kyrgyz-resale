@@ -229,8 +229,8 @@
               Бишкек
             </div>
             <div class="modal-action-btn" onclick="selectCity('osh')">Ош</div>
-            <div class="modal-action-btn" onclick="selectCity('manas')">
-              Манас
+            <div class="modal-action-btn" onclick="selectCity('jalal-abad')">
+              Жалал-Абад
             </div>
             <div class="modal-action-btn" onclick="selectCity('tokmok')">
               Токмок
@@ -535,7 +535,7 @@
             ><select id="in-city" class="main-input">
               <option value="Бишкек">Бишкек</option>
               <option value="Ош">Ош</option>
-              <option value="Манас">Манас</option>
+              <option value="Жалал-Абад">Жалал-Абад</option>
               <option value="Токмок">Токмок</option>
               <option value="Каракол">Каракол</option>
             </select>
@@ -1226,6 +1226,22 @@
           <i class="fa-solid fa-user"></i><span>Профиль</span>
         </button>
       </nav>
+      <!-- VPN ALERT MODAL -->
+      <div id="vpn-alert" class="hidden modal-overlay">
+        <div class="modal-box vpn-modal-box">
+          <div class="vpn-ethno-icon">
+            <i class="fa-solid fa-shield-virus"></i>
+          </div>
+          <h3>VPN Detected</h3>
+          <p style="font-size: 14px; color: #ccc; margin-bottom: 20px; line-height: 1.6;">
+            Похоже, у вас включен VPN. Пожалуйста, выберите город вручную для корректного отображения товаров.
+          </p>
+          <div class="modal-action-btn btn-ethno-red" onclick="closeVpnAlert()">
+            Понятно
+          </div>
+        </div>
+      </div>
+
     </div>
     <script src="app.js"></script>
 

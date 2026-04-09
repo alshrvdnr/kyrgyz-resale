@@ -105,18 +105,26 @@ let verifyPhotoFile = null; // Файл проверочного фото
 
 let ads = [],
   favs = JSON.parse(localStorage.getItem("favs_v15")) || [];
-let curCat = "Все",
-  curCity = "bishkek", // Теперь по умолчанию латиница
+let curCity = localStorage.getItem("selected_city_v15") || "bishkek",
   selectedTariff = "standard",
   editingId = null,
   selectedFiles = [],
   profTab = "active";
-const cityNames = {
+
+const CITY_COORDS = {
+  bishkek: { lat: 42.87, lng: 74.59 },
+  osh: { lat: 40.51, lng: 72.81 },
+  "jalal-abad": { lat: 40.93, lng: 73.00 },
+  tokmok: { lat: 42.84, lng: 75.30 },
+  karakol: { lat: 42.49, lng: 78.39 },
+};
+
+const CITY_NAMES = {
   bishkek: "Бишкек",
   osh: "Ош",
-  manas: "Манас",
+  "jalal-abad": "Жалал-Абад",
   tokmok: "Токмок",
-  karakol: "Каракол",
+  karakol: "Каракол"
 };
 let currentManageId = null,
   holidayMode = false,
@@ -128,6 +136,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initUser();
   listenSettings();
   listenAds();
+  initSmartLocation(); // Автоматическое определение города и VPN
   // Удаляем обработчики старого поиска и добавляем для модалки
   const modalInput = document.getElementById("search-modal-input");
   if (modalInput) {
@@ -1854,6 +1863,83 @@ window.filterByCat = function (c, el) {
   document
     .querySelectorAll(".cat-card")
     .forEach((i) => i.classList.remove("active"));
+  
+  // --- SMART LOCATION & VPN ENGINE ---
+async function initSmartLocation() {
+  // 1. Попытка получить координаты через IP API
+  try {
+    const response = await fetch("https://ipapi.co/json/");
+    if (!response.ok) throw new Error("API Limit reached");
+    
+    const data = await response.json();
+    const { latitude, longitude, country_code } = data;
+
+    console.log("Detected location:", country_code, latitude, longitude);
+
+    // 2. Детектор VPN (если страна не KG)
+    if (country_code && country_code !== "KG") {
+      showVpnAlert();
+    }
+
+    // 3. Если город не выбран вручную, определяем ближайший
+    const userSelected = localStorage.getItem("selected_city_v15");
+    
+    if (latitude && longitude && !userSelected) {
+      let closestCity = "bishkek";
+      let minDistance = Infinity;
+
+      for (const [key, coords] of Object.entries(CITY_COORDS)) {
+        const dist = getHaversineDistance(latitude, longitude, coords.lat, coords.lng);
+        if (dist < minDistance) {
+          minDistance = dist;
+          closestCity = key;
+        }
+      }
+
+      window.curCity = closestCity;
+      updateCityUI(closestCity);
+    } else if (userSelected) {
+      // Если выбран вручную, просто обновляем интерфейс
+      updateCityUI(userSelected);
+    } else {
+      // Fallback
+      updateCityUI("bishkek");
+    }
+  } catch (err) {
+    console.warn("Smart Location Error:", err.message);
+    // Если API не сработало, проверяем localStorage или ставим Бишкек
+    const saved = localStorage.getItem("selected_city_v15") || "bishkek";
+    updateCityUI(saved);
+  }
+}
+
+function getHaversineDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Радиус Земли в км
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+function showVpnAlert() {
+  const alert = document.getElementById("vpn-alert");
+  if (alert) alert.classList.remove("hidden");
+}
+
+window.closeVpnAlert = function() {
+  const alert = document.getElementById("vpn-alert");
+  if (alert) alert.classList.add("hidden");
+};
+
+function updateCityUI(cityKey) {
+  const label = document.getElementById("current-city-label");
+  if (label) label.innerText = CITY_NAMES[cityKey] || cityKey;
+  renderFeed();
+}
   if (el) {
     el.classList.add("active");
   } else {
@@ -1879,14 +1965,11 @@ window.filterByCat = function (c, el) {
 // 2. Выбор города
 window.selectCity = function (c) {
   console.log("Выбран город (ключ):", c);
-  curCity = c;
+  window.curCity = c;
+  localStorage.setItem("selected_city_v15", c);
 
-  // Берем "Бишкек" из словаря cityNames по ключу "bishkek"
-  const label = document.getElementById("current-city-label");
-  if (label) label.innerText = cityNames[c] || c;
-
+  updateCityUI(c);
   toggleCitySelector();
-  renderFeed(); // Перерисовываем ленту
 };
 
 // 3. Показать/скрыть выбор города
