@@ -104,6 +104,7 @@ const catTitles = {
 let verifyPhotoFile = null; // Файл проверочного фото
 
 let ads = [],
+  curCat = "Все",
   favs = JSON.parse(localStorage.getItem("favs_v15")) || [];
 let curCity = localStorage.getItem("selected_city_v15") || "bishkek",
   selectedTariff = "standard",

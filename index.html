@@ -62,18 +62,8 @@
           </div>
         </div>
 
-        <!-- Lalafo-style toggle buttons -->
-        <div style="display:flex; padding: 10px 15px 5px;">
-          <div id="f-btn-all" onclick="setFeedFilter('all', this)"
-            style="flex:1; text-align:center; padding-bottom:10px; color:var(--yellow-main); border-bottom: 2px solid var(--yellow-main); font-weight:bold; cursor:pointer; font-size:15px; transition:all 0.3s ease;">
-            Все</div>
-          <div id="f-btn-resale" onclick="setFeedFilter('resale', this)"
-            style="flex:1; text-align:center; padding-bottom:10px; color:gray; border-bottom: 2px solid transparent; font-weight:bold; cursor:pointer; font-size:15px; transition:all 0.3s ease;">
-            Ресейл</div>
-        </div>
-
         <!-- Категории (остаются под поиском) -->
-        <div class="categories-wrapper" style="margin-top: 5px;">
+        <div class="categories-wrapper">
           <div class="categories-container" id="cat-container">
             <div class="cat-card active" onclick="filterByCat('Все', this)">
               <i class="fa-solid fa-list"></i><span>Все</span>
@@ -94,6 +84,15 @@
               <i class="fa-solid fa-mountain-sun"></i><span>Кыргыз Товарлары</span>
             </div>
           </div>
+        </div>
+        <!-- Lalafo-style toggle buttons right above the listings -->
+        <div style="display:flex; padding: 10px 15px 0;">
+          <div id="f-btn-all" onclick="setFeedFilter('all', this)"
+            style="flex:1; text-align:center; padding-bottom:10px; color:var(--yellow-main); border-bottom: 2px solid var(--yellow-main); font-weight:bold; cursor:pointer; font-size:15px; transition:all 0.3s ease;">
+            Все</div>
+          <div id="f-btn-resale" onclick="setFeedFilter('resale', this)"
+            style="flex:1; text-align:center; padding-bottom:10px; color:gray; border-bottom: 2px solid transparent; font-weight:bold; cursor:pointer; font-size:15px; transition:all 0.3s ease;">
+            Ресейл</div>
         </div>
       </header>
 
