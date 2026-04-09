@@ -43,7 +43,9 @@
                 type="text"
                 id="main-search"
                 placeholder="Поиск подарков..."
+                autocomplete="off"
               />
+              <div id="search-suggestions-box" class="hidden"></div>
             </div>
 
             <div class="city-pill" onclick="toggleCitySelector()">
@@ -153,7 +155,7 @@
 
       <!-- ОКНО РЕЗУЛЬТАТОВ ПОИСКА -->
       <div id="search-results-page" class="hidden">
-        <div class="search-header">
+        <div class="search-header" style="height: 60px;">
           <h3 style="margin: 0">Результаты поиска</h3>
           <i
             class="fa fa-times"
@@ -161,7 +163,15 @@
             style="font-size: 24px; color: var(--yellow-main); cursor: pointer"
           ></i>
         </div>
-        <div id="search-results-area" class="listings-grid"></div>
+
+        <div class="search-tabs">
+          <div class="s-tab active" onclick="updateSearchSort('relevance', this)">По релевантности</div>
+          <div class="s-tab" onclick="updateSearchSort('new', this)">Сначала новые</div>
+          <div class="s-tab" onclick="updateSearchSort('cheap', this)">Сначала дешевые</div>
+          <div class="s-tab" onclick="updateSearchSort('expensive', this)">Сначала дорогие</div>
+        </div>
+
+        <div id="search-results-area" class="listings-grid" style="padding: 10px;"></div>
       </div>
 
       <!-- ВЫБОР ГОРОДА -->

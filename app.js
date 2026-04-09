@@ -127,13 +127,17 @@ document.addEventListener("DOMContentLoaded", () => {
   listenSettings();
   listenAds();
   const sIn = document.getElementById("main-search");
-  if (sIn)
+  if (sIn) {
+    sIn.addEventListener("input", (e) => {
+      showSearchSuggestions(e.target.value);
+    });
     sIn.addEventListener("keypress", (e) => {
       if (e.key === "Enter") {
         startSearch(e.target.value);
         sIn.blur(); // Скрываем клавиатуру после поиска
       }
     });
+  }
 
   // Глобальный фикс для скрытия клавиатуры (нет кнопки Готово на мобилках)
   // 1. По клику вне поля
@@ -1897,34 +1901,189 @@ window.toggleCitySelector = function () {
   }
 };
 
-// 4. Поиск (глобальная функция для HTML)
-window.startSearch = function (val) {
-  if (!val || val.trim() === "") return;
+// 4. ПРОДВИНУТЫЙ ПОИСК (Lalafo Style)
+window.currentSearchResults = [];
+window.currentSearchSort = 'relevance';
 
-  console.log("Поиск по запросу:", val);
+// Помощник для нормализации текста
+function normalizeSearchText(text) {
+  if (!text) return "";
+  return text.toLowerCase()
+    .replace(/[^\w\sа-яё]/gi, ' ') // Убираем спецсимволы
+    .replace(/\s+/g, ' ')         // Убираем лишние пробелы
+    .trim();
+}
 
-  // Фильтруем объявления по названию
-  const results = ads.filter(
-    (ad) =>
-      ad.title.toLowerCase().includes(val.toLowerCase()) &&
-      ad.status !== "deleted"
-  );
+// Помощник для токенизации
+function tokenize(text) {
+  return normalizeSearchText(text).split(' ').filter(word => word.length > 1);
+}
 
-  const container = document.getElementById("search-results-area");
-  const searchPage = document.getElementById("search-results-page");
+// Расчет веса (Score) объявления для поиска
+function calculateAdSearchScore(ad, queryTokens) {
+  const titleNorm = normalizeSearchText(ad.title);
+  const descNorm = normalizeSearchText(ad.description || "");
+  const catNorm = normalizeSearchText(ad.cat || "");
+  
+  let score = 0;
 
-  if (container && searchPage) {
-    container.innerHTML = "";
-    if (results.length === 0) {
-      container.innerHTML = `<p style="text-align:center; color:gray; margin-top:50px;">Ничего не найдено</p>`;
-    } else {
-      results.forEach((ad) => container.appendChild(createAdCard(ad)));
+  queryTokens.forEach(token => {
+    // 1. Проверка в заголовке (Title) - Вес 5 за точное слово, 3 за частичное
+    if (titleNorm.includes(token)) {
+      const regex = new RegExp(`\\b${token}\\b`, 'i');
+      if (regex.test(titleNorm)) score += 5;
+      else score += 3;
     }
-    searchPage.classList.remove("hidden");
+    
+    // 2. Проверка в описании (Description) - Вес 2
+    if (descNorm.includes(token)) score += 2;
+    
+    // 3. Проверка в категории - Вес 2
+    if (catNorm.includes(token)) score += 2;
+  });
+
+  // 4. Бонус за свежесть (Freshness Score)
+  const now = Math.floor(Date.now() / 1000);
+  const createdAt = Number(ad.approvedAt || ad.createdAt || 0);
+  const diffHours = (now - createdAt) / 3600;
+
+  if (diffHours < 24) score += 3;
+  else if (diffHours < 72) score += 2;
+  else if (diffHours < 168) score += 1;
+
+  // 5. Бонус за популярность (Views Score)
+  score += (ad.views || 0) / 100;
+
+  // 6. Продвигаемые объявления (Promotion Score) - Огромный буст +10
+  if (ad.tariff === "vip" || ad.is_promoted) {
+    score += 10;
   }
+
+  return score;
+}
+
+// Главная функция старта поиска
+window.startSearch = function (val) {
+  const query = val || document.getElementById("main-search")?.value;
+  if (!query || query.trim().length < 2) return;
+
+  console.log("Запуск умного поиска:", query);
+  
+  // Закрываем подсказки
+  const suggestBox = document.getElementById("search-suggestions-box");
+  if (suggestBox) suggestBox.classList.add("hidden");
+
+  // Сохраняем запрос для аналитики ( Firebase )
+  trackSearchQuery(query);
+
+  const queryTokens = tokenize(query);
+  
+  // Фильтрация и расчет весов
+  const results = ads.filter(ad => ad.status === "active")
+    .map(ad => ({
+      ...ad,
+      searchScore: calculateAdSearchScore(ad, queryTokens)
+    }))
+    .filter(ad => ad.searchScore > 1); // Показываем только если есть хоть какое-то совпадение
+
+  window.currentSearchResults = results;
+  window.currentSearchSort = 'relevance';
+  
+  renderSearchResults();
+  
+  const searchPage = document.getElementById("search-results-page");
+  if (searchPage) searchPage.classList.remove("hidden");
 };
 
-// 5. Закрыть окно поиска
+// Отрисовка результатов с учетом сортировки
+function renderSearchResults() {
+  const container = document.getElementById("search-results-area");
+  if (!container) return;
+  container.innerHTML = "";
+
+  let sorted = [...window.currentSearchResults];
+
+  if (window.currentSearchSort === 'relevance') {
+    sorted.sort((a,b) => b.searchScore - a.searchScore);
+  } else if (window.currentSearchSort === 'new') {
+    sorted.sort((a,b) => Number(b.createdAt) - Number(a.createdAt));
+  } else if (window.currentSearchSort === 'cheap') {
+    sorted.sort((a,b) => Number(a.price) - Number(b.price));
+  } else if (window.currentSearchSort === 'expensive') {
+    sorted.sort((a,b) => Number(b.price) - Number(a.price));
+  }
+
+  if (sorted.length === 0) {
+    container.innerHTML = `<div style="text-align:center; padding:50px; color:gray;">Ничего не найдено по вашему запросу</div>`;
+  } else {
+    sorted.forEach(ad => container.appendChild(createAdCard(ad)));
+  }
+}
+
+// Переключение вкладок сортировки
+window.updateSearchSort = function(mode, btn) {
+  window.currentSearchSort = mode;
+  
+  // Визуал вкладок
+  document.querySelectorAll('.s-tab').forEach(t => t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  
+  renderSearchResults();
+};
+
+// --- АВТОДОПОЛНЕНИЕ ---
+window.showSearchSuggestions = function(val) {
+  const suggestBox = document.getElementById("search-suggestions-box");
+  if (!suggestBox) return;
+
+  if (!val || val.trim().length < 2) {
+    suggestBox.classList.add("hidden");
+    return;
+  }
+
+  const query = val.toLowerCase();
+  
+  // Ищем совпадения в названиях и категориях
+  const matches = ads.filter(ad => ad.status === "active" && ad.title.toLowerCase().includes(query))
+    .slice(0, 5); // Только первые 5
+
+  if (matches.length === 0) {
+    suggestBox.classList.add("hidden");
+    return;
+  }
+
+  suggestBox.innerHTML = "";
+  matches.forEach(match => {
+    const div = document.createElement("div");
+    div.className = "suggestion-item";
+    div.innerHTML = `
+      <i class="fa fa-history"></i>
+      <span class="suggestion-text">${match.title}</span>
+      <span class="suggestion-category">${catMap[match.cat] || match.cat}</span>
+    `;
+    div.onclick = () => {
+      document.getElementById("main-search").value = match.title;
+      window.startSearch(match.title);
+    };
+    suggestBox.appendChild(div);
+  });
+
+  suggestBox.classList.remove("hidden");
+};
+
+// Аналитика поиска
+async function trackSearchQuery(q) {
+  const cleanQ = normalizeSearchText(q);
+  if (!cleanQ) return;
+  
+  try {
+    const qRef = db.ref("searchQueries/" + cleanQ.replace(/\./g, '_'));
+    const snap = await qRef.once("value");
+    const count = snap.val() || 0;
+    await qRef.set(count + 1);
+  } catch(e) { console.error("Search analytics error:", e); }
+}
+
 window.closeSearch = function () {
   const searchPage = document.getElementById("search-results-page");
   if (searchPage) searchPage.classList.add("hidden");
