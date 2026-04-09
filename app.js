@@ -1924,13 +1924,15 @@ async function initSmartLocation() {
         }
       }
 
-      window.curCity = closestCity;
+      curCity = closestCity;
       updateCityUI(closestCity);
     } else if (userSelected) {
       // Если выбран вручную, просто обновляем интерфейс
+      curCity = userSelected;
       updateCityUI(userSelected);
     } else {
       // Fallback
+      curCity = "bishkek";
       updateCityUI("bishkek");
     }
   } catch (err) {
@@ -1988,7 +1990,7 @@ function updateCityUI(cityKey) {
 // 2. Выбор города
 window.selectCity = function (c) {
   console.log("Выбран город (ключ):", c);
-  window.curCity = c;
+  curCity = c;
   localStorage.setItem("selected_city_v15", c);
 
   updateCityUI(c);
