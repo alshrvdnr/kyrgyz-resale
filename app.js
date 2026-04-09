@@ -1950,6 +1950,12 @@ function getHaversineDistance(lat1, lon1, lat2, lon2) {
 function showVpnAlert() {
   const alert = document.getElementById("vpn-alert");
   if (alert) alert.classList.remove("hidden");
+  
+  // КРИТИЧНО: Прячем сплеш-скрин, чтобы юзер видел модалку
+  const splash = document.getElementById("splash-screen");
+  if (splash && !splash.classList.contains("hidden-splash")) {
+    splash.classList.add("hidden-splash");
+  }
 }
 
 window.closeVpnAlert = function() {
