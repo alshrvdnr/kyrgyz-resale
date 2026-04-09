@@ -1863,8 +1863,30 @@ window.filterByCat = function (c, el) {
   document
     .querySelectorAll(".cat-card")
     .forEach((i) => i.classList.remove("active"));
-  
-  // --- SMART LOCATION & VPN ENGINE ---
+    
+  if (el) {
+    el.classList.add("active");
+  } else {
+    // Если элемент не передан, ищем его по тексту
+    const cards = document.querySelectorAll(".cat-card");
+    cards.forEach((card) => {
+      // Исключаем кнопки "Все" из поиска категорий если они внутри
+      if (card.id === "f-btn-all" || card.id === "f-btn-resale") return;
+      if (card.innerText.includes(catMap[c] || c)) card.classList.add("active");
+    });
+  }
+
+  // Меняем заголовок над лентой
+  const titleEl = document.getElementById("dynamic-feed-title");
+  if (titleEl) {
+    titleEl.innerText = catTitles[c] || "Свежие предложения";
+  }
+
+  // Обновляем ленту
+  if (typeof renderFeed === "function") renderFeed();
+};
+
+// --- SMART LOCATION & VPN ENGINE ---
 async function initSmartLocation() {
   // 1. Попытка получить координаты через IP API
   try {
@@ -1940,27 +1962,6 @@ function updateCityUI(cityKey) {
   if (label) label.innerText = CITY_NAMES[cityKey] || cityKey;
   renderFeed();
 }
-  if (el) {
-    el.classList.add("active");
-  } else {
-    // Если элемент не передан, ищем его по тексту
-    const cards = document.querySelectorAll(".cat-card");
-    cards.forEach((card) => {
-      // Исключаем кнопки "Все" из поиска категорий если они внутри
-      if (card.id === "f-btn-all" || card.id === "f-btn-resale") return;
-      if (card.innerText.includes(catMap[c] || c)) card.classList.add("active");
-    });
-  }
-
-  // Меняем заголовок над лентой
-  const titleEl = document.getElementById("dynamic-feed-title");
-  if (titleEl) {
-    titleEl.innerText = catTitles[c] || "Свежие предложения";
-  }
-
-  // Обновляем ленту
-  if (typeof renderFeed === "function") renderFeed();
-};
 
 // 2. Выбор города
 window.selectCity = function (c) {
