@@ -137,6 +137,15 @@ document.addEventListener("DOMContentLoaded", () => {
   listenSettings();
   listenAds();
   initSmartLocation(); // Автоматическое определение города и VPN
+  
+  // Резервный таймер для скрытия сплеша (на случай сбоя API)
+  setTimeout(() => {
+    const splash = document.getElementById("splash-screen");
+    if (splash && !splash.classList.contains("hidden-splash")) {
+      splash.classList.add("hidden-splash");
+      renderFeed();
+    }
+  }, 4000); 
   // Удаляем обработчики старого поиска и добавляем для модалки
   const modalInput = document.getElementById("search-modal-input");
   if (modalInput) {
@@ -774,6 +783,8 @@ function listenAds() {
       }
       if (splash && !splash.classList.contains("hidden-splash")) {
         splash.classList.add("hidden-splash");
+        // ПРИНУДИТЕЛЬНО: Еще раз рендерим фид после скрытия сплеша для гарантии
+        setTimeout(() => renderFeed(), 100);
 
         // --- 1. ЛОГИКА ПАРАМЕТРОВ TELEGRAM (Deep Linking) ---
         // Это сработает, если ссылка была t.me/bot/app?startapp=ID
