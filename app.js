@@ -849,8 +849,8 @@ function applyHolidayUI() {
   const cityInput = document.getElementById("in-city");
   const isBishkek = cityInput ? cityInput.value === "bishkek" : true;
 
-  // Праздничный режим только для Бишкека
-  if (holidayMode && isBishkek) {
+  // Платный режим только для Бишкека (100/200), для остальных (Бесплатно/100)
+  if (isBishkek) {
     if (labelStd) labelStd.innerText = "Стандарт";
     if (priceStd) priceStd.innerText = "100 сом";
     if (priceVip) priceVip.innerText = "200 сом";
@@ -1433,7 +1433,7 @@ async function publishAndSend() {
     if (!isPartner) {
       const cityIn = document.getElementById("in-city");
       const isBishkek = cityIn ? cityIn.value === "bishkek" : true;
-      const isPaid = (holidayMode && isBishkek) || selectedTariff === "vip";
+      const isPaid = isBishkek || selectedTariff === "vip";
       
       if (isPaid && !receiptAttached)
         throw new Error("Необходимо прикрепить чек об оплате!");
@@ -1448,7 +1448,7 @@ async function publishAndSend() {
     let receiptUrl = "";
     const cityIn = document.getElementById("in-city");
     const isBishkek = cityIn ? cityIn.value === "bishkek" : true;
-    const isPaid = (holidayMode && isBishkek) || selectedTariff === "vip";
+    const isPaid = isBishkek || selectedTariff === "vip";
 
     if (!isPartner && isPaid) {
       lText.innerText = "Загружаем чек об оплате...";
