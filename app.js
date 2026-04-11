@@ -852,18 +852,27 @@ window.applyHolidayUI = function() {
 
   if (!priceStd || !priceVip || !cityInput) return;
 
-  // Если город не выбран или это Бишкек - ставим платный режим
   const currentVal = (cityInput.value || "").toLowerCase().trim();
-  const isBishkek = (currentVal === "bishkek" || currentVal === "");
+  const currentText = (cityInput.options[cityInput.selectedIndex]?.text || "").toLowerCase().trim();
+
+  // Список ПЛАТНЫХ городов (Бишкек во всех вариантах)
+  const isBishkek = 
+    currentVal === "bishkek" || 
+    currentVal === "бишкек" || 
+    currentText === "бишкек" || 
+    currentVal === ""; // По умолчанию Бишкек
 
   if (isBishkek) {
     if (labelStd) labelStd.innerText = "Стандарт";
     priceStd.innerText = "100 сом";
+    priceStd.style.color = ""; // Сбрасываем цвет
     priceVip.innerText = "200 сом";
     if (vBlock) vBlock.classList.remove("hidden");
   } else {
+    // ДЛЯ ОСТАЛЬНЫХ ГОРОДОВ (Ош, Манас и т.д.)
     if (labelStd) labelStd.innerText = "Стандарт";
     priceStd.innerText = "Бесплатно";
+    priceStd.style.color = "#4cd964"; // ЗЕЛЕНЫЙ ЦВЕТ ДЛЯ МОМЕНТАЛЬНОГО ПОДТВЕРЖДЕНИЯ
     priceVip.innerText = "100 сом";
     if (vBlock) {
       if (selectedTariff === "vip") vBlock.classList.remove("hidden");
