@@ -649,8 +649,14 @@ window.showPage = function (p) {
        if (tgGroup) tgGroup.classList.remove("hidden");
        if (phoneGroup) phoneGroup.classList.remove("hidden");
     }
+    
+    // СИНХРОНИЗАЦИЯ: Устанавливаем город в форме таким же, какой выбран в приложении
+    const cityIn = document.getElementById("in-city");
+    if (cityIn && !editingId) {
+      cityIn.value = curCity;
+    }
 
-    // ВАЖНО: Применяем UI монетизации с учетом текущего выбранного города
+    // ВАЖНО: Применяем UI монетизации с учетом теперь уже точно правильного города
     applyHolidayUI();
   }
 
