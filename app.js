@@ -130,7 +130,9 @@ const CITY_NAMES = {
 let currentManageId = null,
   holidayMode = false,
   receiptAttached = false,
-  currentQrUrl = "";
+  currentQrUrl = "",
+  currentQr100 = "",
+  currentQr200 = "";
 
 // 2. ИНИЦИАЛИЗАЦИЯ
 document.addEventListener("DOMContentLoaded", () => {
@@ -790,6 +792,8 @@ function listenSettings() {
     const s = snap.val() || {};
     holidayMode = s.holiday_mode || false;
     currentQrUrl = s.qr_url || "";
+    currentQr100 = s.qr_100 || "";
+    currentQr200 = s.qr_200 || "";
     applyHolidayUI();
   });
 }
@@ -867,9 +871,6 @@ function applyHolidayUI() {
 
   if (!priceStd || !priceVip || !cityInput) return;
 
-  // Восстанавливаем QR код
-  if (qrImg && currentQrUrl) qrImg.src = currentQrUrl;
-
   const currentVal = (cityInput.value || "").toLowerCase().trim();
   let currentText = "";
   if (cityInput.selectedIndex >= 0) {
@@ -882,6 +883,19 @@ function applyHolidayUI() {
     currentVal === "бишкек" || 
     currentText === "бишкек" || 
     currentVal === ""; // По умолчанию Бишкек
+
+  // ВЫБОР QR КОДА
+  // Для Бишкека: Стандарт=100, VIP=200. Для других: Standard=0, VIP=100.
+  let targetQr = currentQrUrl; // Fallback
+  if (isBishkek) {
+    if (selectedTariff === "standard") targetQr = currentQr100 || currentQrUrl;
+    else targetQr = currentQr200 || currentQrUrl;
+  } else {
+    // Для других городов QR нужен только для VIP (100)
+    targetQr = currentQr100 || currentQrUrl;
+  }
+
+  if (qrImg && targetQr) qrImg.src = targetQr;
 
   if (isBishkek) {
     if (labelStd) labelStd.innerText = "Стандарт";
@@ -899,6 +913,11 @@ function applyHolidayUI() {
       if (selectedTariff === "vip") vBlock.classList.remove("hidden");
       else vBlock.classList.add("hidden");
     }
+  }
+
+  // ДИАГНОСТИКА: Показываем уведомление (только если город Ош/и т.д. для отладки)
+  if (!isBishkek) {
+    console.log("Debug: Detected other city -> " + currentVal);
   }
 }
 window.applyHolidayUI = applyHolidayUI;
