@@ -653,7 +653,21 @@ window.showPage = function (p) {
     // СИНХРОНИЗАЦИЯ: Устанавливаем город в форме таким же, какой выбран в приложении
     const cityIn = document.getElementById("in-city");
     if (cityIn && !editingId) {
-      cityIn.value = curCity;
+      const targetCity = (curCity || "bishkek").toLowerCase().trim();
+      // Пробуем установить напрямую
+      cityIn.value = targetCity;
+      
+      // Если прямое значение не подошло (например в curCity кириллица), ищем по тексту
+      if (cityIn.value !== targetCity) {
+        for (let i = 0; i < cityIn.options.length; i++) {
+          const opt = cityIn.options[i];
+          if (opt.value.toLowerCase().trim() === targetCity || 
+              opt.text.toLowerCase().trim() === targetCity) {
+            cityIn.selectedIndex = i;
+            break;
+          }
+        }
+      }
     }
 
     // ВАЖНО: Применяем UI монетизации с учетом теперь уже точно правильного города
@@ -843,7 +857,7 @@ setTimeout(() => {
   }
 }, 5000);
 
-window.applyHolidayUI = function() {
+function applyHolidayUI() {
   const vBlock = document.getElementById("vip-block");
   const qrImg = document.getElementById("qr-display");
   const priceStd = document.getElementById("price-std");
@@ -886,7 +900,8 @@ window.applyHolidayUI = function() {
       else vBlock.classList.add("hidden");
     }
   }
-};
+}
+window.applyHolidayUI = applyHolidayUI;
 
 // глобальный фильтр ленты
 window.currentFeedFilter = 'all';
