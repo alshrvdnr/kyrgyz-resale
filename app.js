@@ -161,6 +161,14 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Обновляем UI монетизации при смене города в форме подачи
+  const cityIn = document.getElementById("in-city");
+  if (cityIn) {
+    cityIn.addEventListener("change", () => {
+      applyHolidayUI();
+    });
+  }
+
   // Глобальный фикс для скрытия клавиатуры (нет кнопки Готово на мобилках)
   // 1. По клику вне поля
   document.addEventListener('touchstart', (e) => {
@@ -636,11 +644,14 @@ window.showPage = function (p) {
        if (tariffBlock) tariffBlock.classList.remove("hidden");
        if (verificationBlock) verificationBlock.classList.remove("hidden");
        // we do not remove hidden from vipBlock entirely, selectTariff logic handles it, but user starts with 'standard'.
-       if (window.selectedTariff !== 'vip' && vipBlock) vipBlock.classList.add("hidden");
+      if (window.selectedTariff !== 'vip' && vipBlock) vipBlock.classList.add("hidden");
        if (addressGroup) addressGroup.classList.remove("hidden");
        if (tgGroup) tgGroup.classList.remove("hidden");
        if (phoneGroup) phoneGroup.classList.remove("hidden");
     }
+
+    // ВАЖНО: Применяем UI монетизации с учетом текущего выбранного города
+    applyHolidayUI();
   }
 
   const targetPage = document.getElementById(`page-${finalPage}`);
@@ -835,7 +846,11 @@ function applyHolidayUI() {
 
   if (qrImg && currentQrUrl) qrImg.src = currentQrUrl;
 
-  if (holidayMode) {
+  const cityInput = document.getElementById("in-city");
+  const isBishkek = cityInput ? cityInput.value === "bishkek" : true;
+
+  // Праздничный режим только для Бишкека
+  if (holidayMode && isBishkek) {
     if (labelStd) labelStd.innerText = "Стандарт";
     if (priceStd) priceStd.innerText = "100 сом";
     if (priceVip) priceVip.innerText = "200 сом";
@@ -1416,7 +1431,11 @@ async function publishAndSend() {
 
     // Проверки перед загрузкой для обычных юзеров
     if (!isPartner) {
-      if ((holidayMode || selectedTariff === "vip") && !receiptAttached)
+      const cityIn = document.getElementById("in-city");
+      const isBishkek = cityIn ? cityIn.value === "bishkek" : true;
+      const isPaid = (holidayMode && isBishkek) || selectedTariff === "vip";
+      
+      if (isPaid && !receiptAttached)
         throw new Error("Необходимо прикрепить чек об оплате!");
       if (!verifyPhotoFile)
         throw new Error("Загрузите проверочное фото с кодом!");
@@ -1427,7 +1446,11 @@ async function publishAndSend() {
 
     // ШАГ А: Загрузка чека (если нужно)
     let receiptUrl = "";
-    if (!isPartner && (holidayMode || selectedTariff === "vip")) {
+    const cityIn = document.getElementById("in-city");
+    const isBishkek = cityIn ? cityIn.value === "bishkek" : true;
+    const isPaid = (holidayMode && isBishkek) || selectedTariff === "vip";
+
+    if (!isPartner && isPaid) {
       lText.innerText = "Загружаем чек об оплате...";
       const receiptFile = document.getElementById("receipt-input").files[0];
       if (receiptFile) receiptUrl = await uploadFile(receiptFile);
