@@ -845,6 +845,7 @@ setTimeout(() => {
 
 window.applyHolidayUI = function() {
   const vBlock = document.getElementById("vip-block");
+  const qrImg = document.getElementById("qr-display");
   const priceStd = document.getElementById("price-std");
   const priceVip = document.getElementById("price-vip");
   const labelStd = document.getElementById("label-std");
@@ -852,8 +853,14 @@ window.applyHolidayUI = function() {
 
   if (!priceStd || !priceVip || !cityInput) return;
 
+  // Восстанавливаем QR код
+  if (qrImg && currentQrUrl) qrImg.src = currentQrUrl;
+
   const currentVal = (cityInput.value || "").toLowerCase().trim();
-  const currentText = (cityInput.options[cityInput.selectedIndex]?.text || "").toLowerCase().trim();
+  let currentText = "";
+  if (cityInput.selectedIndex >= 0) {
+    currentText = (cityInput.options[cityInput.selectedIndex].text || "").toLowerCase().trim();
+  }
 
   // Список ПЛАТНЫХ городов (Бишкек во всех вариантах)
   const isBishkek = 
