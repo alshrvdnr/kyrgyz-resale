@@ -843,35 +843,34 @@ setTimeout(() => {
   }
 }, 5000);
 
-function applyHolidayUI() {
+window.applyHolidayUI = function() {
   const vBlock = document.getElementById("vip-block");
-  const qrImg = document.getElementById("qr-display");
-  const priceStd = document.getElementById("price-std"),
-    priceVip = document.getElementById("price-vip"),
-    labelStd = document.getElementById("label-std");
-
-  if (qrImg && currentQrUrl) qrImg.src = currentQrUrl;
-
+  const priceStd = document.getElementById("price-std");
+  const priceVip = document.getElementById("price-vip");
+  const labelStd = document.getElementById("label-std");
   const cityInput = document.getElementById("in-city");
+
+  if (!priceStd || !priceVip || !cityInput) return;
+
   // Если город не выбран или это Бишкек - ставим платный режим
-  const currentVal = cityInput ? cityInput.value.toLowerCase().trim() : "";
-  const isBishkek = currentVal === "bishkek" || currentVal === "";
+  const currentVal = (cityInput.value || "").toLowerCase().trim();
+  const isBishkek = (currentVal === "bishkek" || currentVal === "");
 
   if (isBishkek) {
     if (labelStd) labelStd.innerText = "Стандарт";
-    if (priceStd) priceStd.innerText = "100 сом";
-    if (priceVip) priceVip.innerText = "200 сом";
+    priceStd.innerText = "100 сом";
+    priceVip.innerText = "200 сом";
     if (vBlock) vBlock.classList.remove("hidden");
   } else {
     if (labelStd) labelStd.innerText = "Стандарт";
-    if (priceStd) priceStd.innerText = "Бесплатно";
-    if (priceVip) priceVip.innerText = "100 сом";
+    priceStd.innerText = "Бесплатно";
+    priceVip.innerText = "100 сом";
     if (vBlock) {
       if (selectedTariff === "vip") vBlock.classList.remove("hidden");
       else vBlock.classList.add("hidden");
     }
   }
-}
+};
 
 // глобальный фильтр ленты
 window.currentFeedFilter = 'all';
