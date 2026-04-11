@@ -853,9 +853,10 @@ function applyHolidayUI() {
   if (qrImg && currentQrUrl) qrImg.src = currentQrUrl;
 
   const cityInput = document.getElementById("in-city");
-  const isBishkek = cityInput ? cityInput.value === "bishkek" : true;
+  // Если город не выбран или это Бишкек - ставим платный режим
+  const currentVal = cityInput ? cityInput.value.toLowerCase().trim() : "";
+  const isBishkek = currentVal === "bishkek" || currentVal === "";
 
-  // Платный режим только для Бишкека (100/200), для остальных (Бесплатно/100)
   if (isBishkek) {
     if (labelStd) labelStd.innerText = "Стандарт";
     if (priceStd) priceStd.innerText = "100 сом";
