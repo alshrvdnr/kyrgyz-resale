@@ -607,6 +607,27 @@
             </div>
           </div>
 
+          <!-- Технические работы (Kill Switch) -->
+          <div style="
+                background: #1c1c1e;
+                padding: 15px;
+                border-radius: 15px;
+                border: 1px solid #333;
+                margin-bottom: 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              ">
+            <div>
+              <div style="font-weight: bold; font-size: 16px; margin-bottom: 5px;">Технические работы</div>
+              <div style="font-size: 12px; color: gray;">Отключить кнопку "Подать объявление"</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="admin-maintenance-toggle" onchange="toggleMaintenanceMode()">
+              <span class="slider round"></span>
+            </label>
+          </div>
+
           <!-- Место для жалоб (если нужно) -->
           <h3 style="font-size: 16px">Жалобы (Reports)</h3>
           <div id="admin-reports-list" style="color: gray; font-size: 14px; margin-top: 10px">
@@ -980,6 +1001,20 @@
             border-radius: 12px;
             font-weight: bold;
           ">
+        Понятно
+      </button>
+    </div>
+  </div>
+
+  <!-- MAINTENANCE MODAL (Технические работы) -->
+  <div id="maintenance-alert" class="hidden modal-overlay frosted-overlay">
+    <div class="modal-box premium-modal-box" style="text-align: center; padding: 40px 20px;">
+      <i class="fa-solid fa-gear fa-spin" style="font-size: 60px; color: var(--yellow-main); margin-bottom: 20px;"></i>
+      <h3 style="margin-bottom: 15px; font-size: 22px;">Технические работы</h3>
+      <p style="font-size: 15px; color: #ccc; line-height: 1.5; margin-bottom: 25px;">
+        Идут работы, попробуйте выложить позже. Извините за неудобства!
+      </p>
+      <button class="btn-premium-unity" onclick="document.getElementById('maintenance-alert').classList.add('hidden')" style="width: 100%;">
         Понятно
       </button>
     </div>

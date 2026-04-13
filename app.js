@@ -132,7 +132,8 @@ let currentManageId = null,
   receiptAttached = false,
   currentQrUrl = "",
   currentQr100 = "",
-  currentQr200 = "";
+  currentQr200 = "",
+  maintenanceMode = false;
 
 // 2. ИНИЦИАЛИЗАЦИЯ
 document.addEventListener("DOMContentLoaded", () => {
@@ -607,6 +608,14 @@ window.switchProfileTab = function (t) {
 window.showPage = function (p) {
   console.log("Переход на страницу:", p);
 
+  // ПРОВЕРКА НА ТЕХНИЧЕСКИЕ РАБОТЫ (KILL SWITCH)
+  if (p === "add" && maintenanceMode && currentUserRole !== "admin") {
+    // Админам разрешаем заходить, остальным - показываем заглушку
+    const mAlert = document.getElementById("maintenance-alert");
+    if (mAlert) mAlert.classList.remove("hidden");
+    return;
+  }
+
   // 1. Прячем абсолютно все страницы (секции с классом .page)
   document.querySelectorAll(".page").forEach((s) => s.classList.add("hidden"));
 
@@ -794,6 +803,11 @@ function listenSettings() {
     currentQrUrl = s.qr_url || "";
     currentQr100 = s.qr_100 || "";
     currentQr200 = s.qr_200 || "";
+    maintenanceMode = !!s.maintenance_mode;
+    
+    const mToggle = document.getElementById("admin-maintenance-toggle");
+    if (mToggle) mToggle.checked = maintenanceMode;
+    
     applyHolidayUI();
   });
 }
@@ -2435,6 +2449,18 @@ function monitorBotStatus() {
     }, 1000);
   });
 }
+
+window.toggleMaintenanceMode = async function() {
+  if (currentUserRole !== "admin") return;
+  const newState = !maintenanceMode;
+  try {
+    await db.ref("settings").update({ maintenance_mode: newState });
+    console.log("Технические работы:", newState ? "ВКЛЮЧЕНЫ" : "ВЫКЛЮЧЕНЫ");
+  } catch (e) {
+    console.error("Ошибка при обновлении статуса:", e);
+    alert("Ошибка. Проверьте соединение.");
+  }
+};
 
 window.quickEditPrice = async function (adId, currentPrice) {
   const newPrice = prompt("Введите новую цену (KGS):", currentPrice);
