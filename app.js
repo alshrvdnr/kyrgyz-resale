@@ -2454,10 +2454,12 @@ window.toggleMaintenanceMode = async function() {
   if (currentUserRole !== "admin") return;
   const newState = !maintenanceMode;
   try {
-    await db.ref("settings").update({ maintenance_mode: newState });
+    // Изменено: Обновляем конкретный узел, а не корень settings, чтобы избежать ошибок прав доступа
+    await db.ref("settings/maintenance_mode").set(newState);
     console.log("Технические работы:", newState ? "ВКЛЮЧЕНЫ" : "ВЫКЛЮЧЕНЫ");
   } catch (e) {
     console.error("Ошибка при обновлении статуса:", e);
+
     alert("Ошибка. Проверьте соединение.");
   }
 };
