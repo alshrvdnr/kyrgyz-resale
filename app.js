@@ -1084,7 +1084,69 @@ function createAdCard(ad, isProfile = false) {
     }`;
 
   // Клик по карточке открывает детальный просмотр
-  card.onclick = () => openProduct(ad);
+  let pressTimer = null;
+  let isLongPress = false;
+  let startX = 0; let startY = 0;
+
+  card.addEventListener("touchstart", (e) => {
+    isLongPress = false;
+    if (e.touches.length > 0) {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    }
+    card.classList.add("long-press-active");
+
+    pressTimer = setTimeout(() => {
+      isLongPress = true;
+      card.classList.remove("long-press-active");
+      if (typeof showQuickPreview === "function") {
+        showQuickPreview(ad);
+        if (navigator.vibrate) navigator.vibrate(50);
+      }
+    }, 500);
+  }, { passive: true });
+
+  card.addEventListener("touchmove", (e) => {
+    if (e.touches.length > 0) {
+      let dx = Math.abs(e.touches[0].clientX - startX);
+      let dy = Math.abs(e.touches[0].clientY - startY);
+      if (dx > 10 || dy > 10) {
+        clearTimeout(pressTimer);
+        card.classList.remove("long-press-active");
+      }
+    }
+  }, { passive: true });
+
+  card.addEventListener("touchend", (e) => {
+    clearTimeout(pressTimer);
+    card.classList.remove("long-press-active");
+
+    if (isLongPress) {
+      if (e.changedTouches && e.changedTouches.length > 0) {
+        let touch = e.changedTouches[0];
+        let elem = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (elem && (elem.id === "quick-preview-btn" || elem.closest("#quick-preview-btn"))) {
+          openProduct(ad);
+        }
+      }
+      if (typeof hideQuickPreview === "function") hideQuickPreview();
+    }
+  });
+
+  card.addEventListener("touchcancel", () => {
+    clearTimeout(pressTimer);
+    card.classList.remove("long-press-active");
+    if (typeof hideQuickPreview === "function") hideQuickPreview();
+  });
+
+  card.onclick = (e) => {
+    if (isLongPress) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    openProduct(ad);
+  };
 
   // 4. ГЕНЕРАЦИЯ БЛОКА УПРАВЛЕНИЯ (Кнопки под товаром)
   let managementHtml = "";
@@ -2454,13 +2516,11 @@ window.toggleMaintenanceMode = async function() {
   if (currentUserRole !== "admin") return;
   const newState = !maintenanceMode;
   try {
-    // Изменено: Обновляем конкретный узел, а не корень settings, чтобы избежать ошибок прав доступа
     await db.ref("settings/maintenance_mode").set(newState);
     console.log("Технические работы:", newState ? "ВКЛЮЧЕНЫ" : "ВЫКЛЮЧЕНЫ");
   } catch (e) {
     console.error("Ошибка при обновлении статуса:", e);
-
-    alert("Ошибка. Проверьте соединение.");
+    alert("Ошибка базы данных: " + e.message);
   }
 };
 
@@ -2813,3 +2873,64 @@ window.addEventListener("scroll", () => {
   // Запоминаем позицию скролла. Не позволяем ей быть отрицательной (для iOS rubber-band)
   lastScrollTop = currentScrollPos <= 0 ? 0 : currentScrollPos;
 }, { passive: true });
+
+// --- QUICK PREVIEW LOGIC ---
+window.showQuickPreview = function (ad) {
+  let overlay = document.getElementById("quick-preview-overlay");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "quick-preview-overlay";
+    overlay.innerHTML = `
+      <div id="quick-preview-card">
+        <img id="quick-preview-img" />
+        <h3 id="quick-preview-title"></h3>
+        <div id="quick-preview-price"></div>
+        <div id="quick-preview-btn">Открыть</div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+  }
+  
+  const img = overlay.querySelector("#quick-preview-img");
+  if (ad.img && ad.img[0]) {
+    img.src = ad.img[0];
+    img.style.display = "block";
+  } else {
+    img.style.display = "none";
+  }
+  
+  overlay.querySelector("#quick-preview-title").innerText = ad.title || "Без названия";
+  const displayPrice = String(ad.price).replace(/[^0-9]/g, "") || "0";
+  overlay.querySelector("#quick-preview-price").innerText = displayPrice + " KGS";
+  
+  overlay.style.display = "flex";
+  void overlay.offsetWidth; // trigger reflow
+  overlay.style.opacity = "1";
+  overlay.querySelector("#quick-preview-card").style.transform = "scale(1)";
+  
+  document.body.style.overflow = "hidden";
+  
+  // Добавляем обработчик, чтобы если кликнули ВНЕ карточки на десктопе или мыши - закрывалось
+  overlay.onclick = function(e) {
+    if (e.target === overlay || e.target.id === "quick-preview-btn") {
+      if (e.target.id === "quick-preview-btn") {
+        openProduct(ad);
+      }
+      hideQuickPreview();
+    }
+  };
+};
+
+window.hideQuickPreview = function () {
+  const overlay = document.getElementById("quick-preview-overlay");
+  if (!overlay) return;
+  
+  overlay.style.opacity = "0";
+  const card = overlay.querySelector("#quick-preview-card");
+  if (card) card.style.transform = "scale(0.8)";
+  
+  setTimeout(() => {
+    overlay.style.display = "none";
+    document.body.style.overflow = "";
+  }, 200);
+};
