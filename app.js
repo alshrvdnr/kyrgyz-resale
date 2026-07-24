@@ -3086,3 +3086,22 @@ window.openSupportModal = function (e) {
   }
 };
 
+window.openTgSupport = function (e) {
+  if (e && e.preventDefault) e.preventDefault();
+  if (window.tg && window.tg.openTelegramLink) {
+    window.tg.openTelegramLink("https://t.me/D1NCHO");
+  } else {
+    window.open("https://t.me/D1NCHO", "_blank");
+  }
+};
+
+window.scrollToHowItWorks = function (e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const sec = document.querySelector(".how-it-works-section");
+  if (sec) {
+    sec.scrollIntoView({ behavior: "smooth" });
+  } else {
+    showPage("home");
+  }
+};
+

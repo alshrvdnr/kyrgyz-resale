@@ -311,7 +311,124 @@
             </div>
           </div>
         </div>
+      <!-- СЕКЦИЯ "ЧТО ИМЕННО ВЫ ОПЛАЧИВАЕТЕ" -->
+      <section class="payment-info-section">
+        <div class="payment-info-container">
+          <h2 class="payment-info-title">Что именно вы оплачиваете</h2>
+          
+          <div class="payment-cards-grid">
+            <div class="payment-card">
+              <span class="pay-card-tag">ЗА ЧТО ПЛАТИТЕ</span>
+              <p class="pay-card-desc">За размещение объявления — не за продажу букета</p>
+            </div>
+            
+            <div class="payment-card">
+              <span class="pay-card-tag">ПОСЛЕ ОПЛАТЫ</span>
+              <p class="pay-card-desc">Объявление появляется в каталоге. Покупатель оплачивает букет продавцу напрямую.</p>
+            </div>
+            
+            <div class="payment-card">
+              <span class="pay-card-tag">ЕСЛИ ОПЛАТА НЕ ПРОШЛА</span>
+              <p class="pay-card-desc">Объявление останется в статусе ожидания оплаты. Попробуйте снова из кабинета продавца.</p>
+            </div>
+            
+            <div class="payment-card">
+              <span class="pay-card-tag">КОГДА СРОК ЗАКОНЧИТСЯ</span>
+              <p class="pay-card-desc">Публикация снимется с витрины. Если букет ещё актуален — создайте свежее объявление.</p>
+            </div>
+          </div>
+
+          <div class="payment-cta-group">
+            <button class="pay-cta-btn pay-cta-dark" onclick="showPage('add')">Разместить объявление &rarr;</button>
+            <button class="pay-cta-btn pay-cta-light" onclick="showPage('profile')">Личный кабинет &rarr;</button>
+          </div>
+        </div>
       </section>
+
+      <!-- ПОДВАЛ САЙТА (FOOTER RESALEBUKET) -->
+      <footer class="site-footer">
+        <div class="footer-inner">
+          <div class="footer-top-row">
+            <!-- Левая колонка бренд & счетчик -->
+            <div class="footer-brand-col">
+              <span class="footer-tag-label">МАРКЕТПЛЕЙС БУКЕТОВ НАПРЯМУЮ</span>
+              <div class="footer-logo">
+                <span class="logo-serif">resale</span><span class="logo-sans">buket.kg</span>
+              </div>
+              <p class="footer-about-text">
+                Свежие букеты от людей в вашем городе. Контакт, передача и оплата — напрямую между сторонами.
+              </p>
+              
+              <div class="footer-saved-badge">
+                <div class="saved-title">Спасено <span id="footer-saved-counter">13</span> букетов</div>
+                <div class="saved-sub">Считаем только реальные продажи через площадку.</div>
+              </div>
+            </div>
+
+            <!-- Колонки навигации -->
+            <div class="footer-nav-columns">
+              <div class="footer-col">
+                <h5 class="footer-col-title">МАРКЕТПЛЕЙС</h5>
+                <ul class="footer-links">
+                  <li><a href="#" onclick="scrollToFeed(event)">Смотреть букеты</a></li>
+                  <li><a href="#" onclick="showPage('favs')">Сохранённые поиски</a></li>
+                  <li><a href="#" onclick="showPage('favs')">Избранное</a></li>
+                  <li><a href="#" onclick="openFaqModal(event)">Гайды</a></li>
+                </ul>
+              </div>
+
+              <div class="footer-col">
+                <h5 class="footer-col-title">ПРОДАЖА</h5>
+                <ul class="footer-links">
+                  <li><a href="#" onclick="showPage('add')">Продать букет</a></li>
+                  <li><a href="#" onclick="openTariffsModal(event)">Тарифы</a></li>
+                  <li><a href="#" onclick="showPage('profile')">Кабинет продавца</a></li>
+                  <li><a href="#" onclick="openFaqModal(event)">Гид продавца</a></li>
+                  <li><a href="#" onclick="openFaqModal(event)">Как продать букет</a></li>
+                </ul>
+              </div>
+
+              <div class="footer-col">
+                <h5 class="footer-col-title">ПОМОЩЬ И БЕЗОПАСНОСТЬ</h5>
+                <ul class="footer-links">
+                  <li><a href="#" onclick="scrollToHowItWorks(event)">Как это работает</a></li>
+                  <li><a href="#" onclick="openFaqModal(event)">Гид покупателя</a></li>
+                  <li><a href="#" onclick="openSafetyModal(event)">Безопасность</a></li>
+                  <li><a href="#" onclick="openSupportModal(event)">Поддержка</a></li>
+                  <li><a href="#" onclick="openFaqModal(event)">Вопросы и ответы</a></li>
+                  <li><a href="#" onclick="scrollToFeed(event)">Купить букет недорого</a></li>
+                </ul>
+              </div>
+
+              <div class="footer-col">
+                <h5 class="footer-col-title">ПРАВИЛА И ПОЛИТИКА</h5>
+                <ul class="footer-links">
+                  <li><a href="#" onclick="openSafetyModal(event)">Правила</a></li>
+                  <li><a href="#" onclick="openSafetyModal(event)">Условия</a></li>
+                  <li><a href="#" onclick="openSafetyModal(event)">Конфиденциальность</a></li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Правая верхняя кнопка поддержки в ТГ -->
+            <div class="footer-actions-col">
+              <div class="footer-lang-row">
+                <span class="ft-lang">RU</span>
+                <span class="ft-lang">KG</span>
+                <span class="ft-lang">EN</span>
+              </div>
+              <button class="tg-support-btn" onclick="openTgSupport(event)">
+                <i class="fa-brands fa-telegram"></i> Поддержка в Telegram
+              </button>
+            </div>
+          </div>
+
+          <!-- Нижний дисклеймер -->
+          <div class="footer-disclaimer">
+            resalebuket показывает объявления и открывает контакт продавца. Передача букета и оплата согласуются напрямую между продавцом и покупателем.
+          </div>
+        </div>
+      </footer>
     </section>
 
     <section id="page-shops" class="page hidden" style="padding-top: 15px; padding-bottom: 80px">
