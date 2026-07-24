@@ -82,18 +82,77 @@
 
       <!-- ДЕСКТОПНЫЙ БАННЕР HERO (Виден на экранах >= 992px) -->
       <section class="desktop-hero-section" id="hero-section">
+        <!-- Floating Petals Glints -->
+        <div aria-hidden="true" class="hero-petals-layer">
+          <span class="rb-petal" style="left:6%;width:9px;height:14px;background:rgba(215,128,149,0.55);"></span>
+          <span class="rb-petal" style="left:28%;width:10px;height:15px;background:rgba(215,128,149,0.42);"></span>
+          <span class="rb-petal" style="left:55%;width:8px;height:13px;background:rgba(215,128,149,0.5);"></span>
+          <span class="rb-petal" style="left:78%;width:10px;height:15px;background:rgba(215,128,149,0.45);"></span>
+        </div>
+
         <div class="hero-bg-art">
-          <!-- Изящная растительная ветка (как на resalebuket.kz) -->
-          <svg class="hero-flower-svg" viewBox="0 0 800 240" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M 100 120 Q 250 20 400 120 T 700 120" stroke="rgba(100, 122, 105, 0.22)" stroke-width="2" fill="none" />
-            <path d="M 150 100 Q 280 200 450 80 T 750 140" stroke="rgba(215, 128, 149, 0.25)" stroke-width="2" fill="none" />
-            <!-- Бутоны / Цветы -->
-            <circle cx="180" cy="85" r="14" fill="rgba(215, 128, 149, 0.35)" />
-            <circle cx="180" cy="85" r="8" fill="#d78095" />
-            <circle cx="620" cy="100" r="14" fill="rgba(215, 128, 149, 0.35)" />
-            <circle cx="620" cy="100" r="8" fill="#d78095" />
-            <circle cx="400" cy="120" r="18" fill="rgba(215, 128, 149, 0.35)" />
-            <circle cx="400" cy="120" r="10" fill="#d78095" />
+          <!-- Подлинная изящная гирлянда-цветок resalebuket.kz -->
+          <svg class="hero-flower-svg" viewBox="0 0 680 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="dHalo" cx="50%" cy="46%" r="50%">
+                <stop offset="0%" stop-color="rgba(247,214,150,0.78)"></stop>
+                <stop offset="42%" stop-color="rgba(247,205,140,0.32)"></stop>
+                <stop offset="100%" stop-color="rgba(247,205,140,0)"></stop>
+              </radialGradient>
+              <linearGradient id="dPetal" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="rgba(226,144,164,0.95)"></stop>
+                <stop offset="100%" stop-color="rgba(201,104,129,0.9)"></stop>
+              </linearGradient>
+              <linearGradient id="dPetalSoft" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="rgba(235,172,188,0.94)"></stop>
+                <stop offset="100%" stop-color="rgba(216,132,153,0.88)"></stop>
+              </linearGradient>
+              <linearGradient id="dStem" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="rgba(108,132,112,0.62)"></stop>
+                <stop offset="100%" stop-color="rgba(84,106,90,0.62)"></stop>
+              </linearGradient>
+            </defs>
+            <path class="rb-lamp-vine" d="M340,-20 C330,40 360,90 340,150 C330,200 350,250 340,300" stroke="url(#dStem)" stroke-width="12" stroke-linecap="round"></path>
+            <path class="rb-lamp-vine" d="M340,80 C260,60 180,50 100,70 C70,75 50,90 30,110" stroke="url(#dStem)" stroke-width="7" stroke-linecap="round"></path>
+            <path class="rb-lamp-vine" d="M340,90 C420,70 500,60 580,80 C610,85 630,100 650,120" stroke="url(#dStem)" stroke-width="7" stroke-linecap="round"></path>
+            
+            <!-- Главный бутон по центру -->
+            <circle cx="340" cy="140" r="42" fill="url(#dHalo)"></circle>
+            <g transform="translate(340,140)">
+              <path d="M0,0 C-10,-8 -11,-28 0,-38 C11,-28 10,-8 0,0 Z" fill="url(#dPetal)" transform="rotate(0)"></path>
+              <path d="M0,0 C-10,-8 -11,-28 0,-38 C11,-28 10,-8 0,0 Z" fill="url(#dPetalSoft)" transform="rotate(45)"></path>
+              <path d="M0,0 C-10,-8 -11,-28 0,-38 C11,-28 10,-8 0,0 Z" fill="url(#dPetal)" transform="rotate(90)"></path>
+              <path d="M0,0 C-10,-8 -11,-28 0,-38 C11,-28 10,-8 0,0 Z" fill="url(#dPetalSoft)" transform="rotate(135)"></path>
+              <path d="M0,0 C-10,-8 -11,-28 0,-38 C11,-28 10,-8 0,0 Z" fill="url(#dPetal)" transform="rotate(180)"></path>
+              <path d="M0,0 C-10,-8 -11,-28 0,-38 C11,-28 10,-8 0,0 Z" fill="url(#dPetalSoft)" transform="rotate(225)"></path>
+              <path d="M0,0 C-10,-8 -11,-28 0,-38 C11,-28 10,-8 0,0 Z" fill="url(#dPetal)" transform="rotate(270)"></path>
+              <path d="M0,0 C-10,-8 -11,-28 0,-38 C11,-28 10,-8 0,0 Z" fill="url(#dPetalSoft)" transform="rotate(315)"></path>
+              <circle cx="0" cy="0" r="12" fill="rgba(247,222,158,0.98)"></circle>
+            </g>
+
+            <!-- Левый бутон -->
+            <circle cx="80" cy="110" r="28" fill="url(#dHalo)"></circle>
+            <g transform="translate(80,110)">
+              <path d="M0,0 C-7,-5 -8,-20 0,-26 C8,-20 7,-5 0,0 Z" fill="url(#dPetal)" transform="rotate(20)"></path>
+              <path d="M0,0 C-7,-5 -8,-20 0,-26 C8,-20 7,-5 0,0 Z" fill="url(#dPetalSoft)" transform="rotate(80)"></path>
+              <path d="M0,0 C-7,-5 -8,-20 0,-26 C8,-20 7,-5 0,0 Z" fill="url(#dPetal)" transform="rotate(140)"></path>
+              <path d="M0,0 C-7,-5 -8,-20 0,-26 C8,-20 7,-5 0,0 Z" fill="url(#dPetalSoft)" transform="rotate(200)"></path>
+              <path d="M0,0 C-7,-5 -8,-20 0,-26 C8,-20 7,-5 0,0 Z" fill="url(#dPetal)" transform="rotate(260)"></path>
+              <path d="M0,0 C-7,-5 -8,-20 0,-26 C8,-20 7,-5 0,0 Z" fill="url(#dPetalSoft)" transform="rotate(320)"></path>
+              <circle cx="0" cy="0" r="9" fill="rgba(247,222,158,0.98)"></circle>
+            </g>
+
+            <!-- Правый бутон -->
+            <circle cx="600" cy="115" r="28" fill="url(#dHalo)"></circle>
+            <g transform="translate(600,115)">
+              <path d="M0,0 C-7,-5 -8,-20 0,-26 C8,-20 7,-5 0,0 Z" fill="url(#dPetal)" transform="rotate(-15)"></path>
+              <path d="M0,0 C-7,-5 -8,-20 0,-26 C8,-20 7,-5 0,0 Z" fill="url(#dPetalSoft)" transform="rotate(45)"></path>
+              <path d="M0,0 C-7,-5 -8,-20 0,-26 C8,-20 7,-5 0,0 Z" fill="url(#dPetal)" transform="rotate(105)"></path>
+              <path d="M0,0 C-7,-5 -8,-20 0,-26 C8,-20 7,-5 0,0 Z" fill="url(#dPetalSoft)" transform="rotate(165)"></path>
+              <path d="M0,0 C-7,-5 -8,-20 0,-26 C8,-20 7,-5 0,0 Z" fill="url(#dPetal)" transform="rotate(225)"></path>
+              <path d="M0,0 C-7,-5 -8,-20 0,-26 C8,-20 7,-5 0,0 Z" fill="url(#dPetalSoft)" transform="rotate(285)"></path>
+              <circle cx="0" cy="0" r="9" fill="rgba(247,222,158,0.98)"></circle>
+            </g>
           </svg>
         </div>
 
@@ -103,7 +162,7 @@
             <h1 class="hero-title-accent">за пол цены</h1>
           </div>
           <p class="hero-description">
-            Сравнивайте объявления продавцов по дате, цене и городу – и договаривайтесь напрямую.
+            Сравнивайте объявления продавцов по дате, цене и городу — и договаривайтесь напрямую.
           </p>
           <div class="hero-cta-group">
             <button class="hero-btn hero-btn-dark" onclick="scrollToFeed(event)">Смотреть букеты</button>
@@ -223,6 +282,64 @@
       </div>
 
       <main class="listings-grid" id="home-grid"></main>
+
+      <!-- СЕКЦИЯ "ПЕРВАЯ ПУБЛИКАЦИЯ БЕСПЛАТНО" -->
+      <section class="rewards-promo-section">
+        <div class="rewards-panel">
+          <div class="rewards-head">
+            <h2 class="rewards-title">Первая публикация бесплатно</h2>
+            <p class="rewards-sub">И дальше — скидки за активность</p>
+          </div>
+          <div class="rewards-grid">
+            <div class="reward-card active-card">
+              <span class="reward-tag">1-я</span>
+              <span class="reward-val">Бесплатно</span>
+            </div>
+            <div class="reward-card">
+              <span class="reward-tag">3-я</span>
+              <span class="reward-val">-20%</span>
+            </div>
+            <div class="reward-card">
+              <span class="reward-tag">5-я</span>
+              <span class="reward-val">-35%</span>
+            </div>
+            <div class="reward-card active-card">
+              <span class="reward-tag">8-я</span>
+              <span class="reward-val">Бесплатно</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- СЕКЦИЯ "КАК ЭТО РАБОТАЕТ?" -->
+      <section class="how-it-works-section">
+        <span class="section-tag-center">ИНСТРУКЦИЯ</span>
+        <h2 class="section-title-center">Как это работает?</h2>
+        
+        <div class="how-steps-grid">
+          <div class="how-step-card">
+            <div class="step-badge">1 <i class="fa-solid fa-location-dot"></i></div>
+            <div class="step-text">
+              <h4>Выберите город</h4>
+              <p>Откройте город и посмотрите свежие объявления рядом.</p>
+            </div>
+          </div>
+          <div class="how-step-card">
+            <div class="step-badge">2 <i class="fa-regular fa-comment-dots"></i></div>
+            <div class="step-text">
+              <h4>Свяжитесь с продавцом</h4>
+              <p>Откройте карточку и нажмите «Показать контакты».</p>
+            </div>
+          </div>
+          <div class="how-step-card">
+            <div class="step-badge">3 <i class="fa-solid fa-handshake"></i></div>
+            <div class="step-text">
+              <h4>Договоритесь напрямую</h4>
+              <p>Согласуйте встречу, передачу и оплату без посредников.</p>
+            </div>
+          </div>
+        </div>
+      </section>
     </section>
 
     <section id="page-shops" class="page hidden" style="padding-top: 15px; padding-bottom: 80px">
