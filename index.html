@@ -5,22 +5,29 @@
   <meta charset="UTF-8" />
   <meta name="viewport"
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Gifts KG</title>
+  <title>Gifts KG — Ресейл и Подарки</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
   <link rel="stylesheet" href="style.css" />
   <!-- Firebase SDK -->
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-  <!-- ВОТ ЭТУ СТРОЧКУ ДОБАВЬ ОБЯЗАТЕЛЬНО: -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
 </head>
 
 <body>
+  <!-- Ambient Aurora Glints (как в resalebuket.kz) -->
+  <div aria-hidden="true" class="rb-glints">
+    <span class="rb-glint rb-glint-1"></span>
+    <span class="rb-glint rb-glint-2"></span>
+    <span class="rb-glint rb-glint-3"></span>
+  </div>
+
   <div id="splash-screen">
     <div class="splash-content">
-      <!-- Твое желтое сердце (иконка) -->
       <div class="splash-logo">
         <i class="fa-solid fa-heart"></i>
       </div>
@@ -28,9 +35,105 @@
     </div>
   </div>
   <div id="app">
+    <!-- ДЕСКТОПНАЯ ШАПКА (Видна на компьютерах >= 992px) -->
+    <header class="desktop-navbar" id="desktop-header">
+      <div class="dt-navbar-inner">
+        <!-- Логотип -->
+        <div class="dt-brand" onclick="showPage('home')">
+          <span class="dt-brand-serif">Resale</span><span class="dt-brand-main">buket.kg</span>
+        </div>
+
+        <!-- Выбор города и поиск -->
+        <div class="dt-search-city" onclick="toggleCitySelector()">
+          <i class="fa fa-search dt-search-icon"></i>
+          <span id="dt-city-label">Все города</span>
+          <i class="fa-solid fa-chevron-down dt-chevron-icon"></i>
+        </div>
+
+        <!-- Навигационное меню -->
+        <nav class="dt-nav-menu">
+          <a href="#home-grid" class="dt-nav-link" onclick="scrollToFeed(event)">Смотреть букеты</a>
+          <a href="#" class="dt-nav-link" onclick="openFaqModal(event)">Вопросы и ответы</a>
+          <a href="#" class="dt-nav-link" onclick="openSafetyModal(event)">Безопасность</a>
+          <a href="#" class="dt-nav-link" onclick="openTariffsModal(event)">Тарифы</a>
+          <a href="#" class="dt-nav-link" onclick="showPage('favs')">Сохранённые поиски</a>
+          <a href="#" class="dt-nav-link" onclick="openSupportModal(event)">Поддержка</a>
+        </nav>
+
+        <!-- Правая часть: тема, язык, кнопка -->
+        <div class="dt-nav-actions">
+          <button class="dt-icon-btn" id="dt-theme-toggle" onclick="toggleTheme()" title="Сменить тему">
+            <i class="fa-solid fa-moon"></i>
+          </button>
+          <div class="dt-lang-picker">
+            <span class="dt-lang-opt active">RU</span>
+            <span class="dt-lang-opt">KG</span>
+            <span class="dt-lang-opt">EN</span>
+          </div>
+          <button class="dt-sell-btn" onclick="showPage('add')">
+            Продать букет
+          </button>
+        </div>
+      </div>
+    </header>
+
     <!-- ГЛАВНАЯ СТРАНИЦА -->
     <section id="page-home" class="page">
-      <!-- Проверь, чтобы было именно так -->
+
+      <!-- ДЕСКТОПНЫЙ БАННЕР HERO (Виден на экранах >= 992px) -->
+      <section class="desktop-hero-section" id="hero-section">
+        <div class="hero-bg-art">
+          <!-- Изящная растительная ветка (как на resalebuket.kz) -->
+          <svg class="hero-flower-svg" viewBox="0 0 800 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 100 120 Q 250 20 400 120 T 700 120" stroke="rgba(100, 122, 105, 0.22)" stroke-width="2" fill="none" />
+            <path d="M 150 100 Q 280 200 450 80 T 750 140" stroke="rgba(215, 128, 149, 0.25)" stroke-width="2" fill="none" />
+            <!-- Бутоны / Цветы -->
+            <circle cx="180" cy="85" r="14" fill="rgba(215, 128, 149, 0.35)" />
+            <circle cx="180" cy="85" r="8" fill="#d78095" />
+            <circle cx="620" cy="100" r="14" fill="rgba(215, 128, 149, 0.35)" />
+            <circle cx="620" cy="100" r="8" fill="#d78095" />
+            <circle cx="400" cy="120" r="18" fill="rgba(215, 128, 149, 0.35)" />
+            <circle cx="400" cy="120" r="10" fill="#d78095" />
+          </svg>
+        </div>
+
+        <div class="hero-content">
+          <div class="hero-head-wrapper">
+            <span class="hero-title-prefix">Свежие букеты —</span>
+            <h1 class="hero-title-accent">за пол цены</h1>
+          </div>
+          <p class="hero-description">
+            Сравнивайте объявления продавцов по дате, цене и городу – и договаривайтесь напрямую.
+          </p>
+          <div class="hero-cta-group">
+            <button class="hero-btn hero-btn-dark" onclick="scrollToFeed(event)">Смотреть букеты</button>
+            <button class="hero-btn hero-btn-light" onclick="showPage('add')">Продать букет</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ДЕСКТОПНЫЙ БЛОК "ГОРОДА" (Виден на экранах >= 992px) -->
+      <section class="desktop-cities-section" id="cities-section">
+        <div class="cities-section-inner">
+          <span class="section-tag-center">ГОРОДА</span>
+          <h2 class="section-title-center">Где искать букет?</h2>
+          
+          <div class="cities-chips-grid" id="dt-cities-grid">
+            <button class="city-chip-btn active" onclick="selectCityFilter('all', this)">Все города</button>
+            <button class="city-chip-btn" onclick="selectCityFilter('bishkek', this)">Бишкек</button>
+            <button class="city-chip-btn" onclick="selectCityFilter('osh', this)">Ош</button>
+            <button class="city-chip-btn" onclick="selectCityFilter('manas', this)">Манас</button>
+            <button class="city-chip-btn" onclick="selectCityFilter('tokmok', this)">Токмок</button>
+            <button class="city-chip-btn" onclick="selectCityFilter('karakol', this)">Каракол</button>
+            <button class="city-chip-btn" onclick="selectCityFilter('jalalabad', this)">Джалал-Абад</button>
+            <button class="city-chip-btn" onclick="selectCityFilter('naryn', this)">Нарын</button>
+            <button class="city-chip-btn" onclick="selectCityFilter('talas', this)">Талас</button>
+            <button class="city-chip-btn" onclick="selectCityFilter('batken', this)">Баткен</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- МОБИЛЬНАЯ ШАПКА И ПОИСК (Видна на смартфонах и в Telegram App) -->
       <header class="main-header" id="dynamic-header">
         <!-- Строка: Поиск + Кнопка Города -->
         <div class="search-city-row">
@@ -106,6 +209,19 @@
           </div>
         </div>
       </div>
+
+      <!-- ЗАГОЛОВОК СЕКЦИИ "СВЕЖИЕ БУКЕТЫ" (КАК НА RESALEBUKET.KZ) -->
+      <div class="fresh-section-header" id="fresh-section-header">
+        <div class="fresh-title-group">
+          <span class="fresh-tag-label">СЕЙЧАС НА ПЛОЩАДКЕ</span>
+          <h2 class="fresh-main-title">Свежие букеты</h2>
+          <span class="fresh-sub-title">Что уже можно открыть</span>
+        </div>
+        <button class="all-listings-link-btn" onclick="scrollToFeed(event)">
+          Все объявления &rarr;
+        </button>
+      </div>
+
       <main class="listings-grid" id="home-grid"></main>
     </section>
 

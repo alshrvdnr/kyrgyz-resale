@@ -868,12 +868,13 @@ function listenAds() {
     }
   );
 }
-// Если через 5 секунд ничего не произошло - убираем заставку принудительно
+// Если через 3 секунды ничего не произошло - убираем заставку принудительно
 setTimeout(() => {
+  const splash = document.getElementById("splash-screen");
   if (splash && !splash.classList.contains("hidden-splash")) {
     splash.classList.add("hidden-splash");
   }
-}, 5000);
+}, 3000);
 
 function applyHolidayUI() {
   const vBlock = document.getElementById("vip-block");
@@ -1177,41 +1178,66 @@ function createAdCard(ad, isProfile = false) {
     `;
   }
 
-  // 5. СБОРКА ВНУТРЕННЕГО HTML КАРТОЧКИ
+  // 5. СБОРКА ВНУТРЕННЕГО HTML КАРТОЧКИ (С ТИЛЕМ RESALEBUKET.KZ)
+  const timeVal = ad.approvedAt || ad.createdAt;
+  const relDateText = typeof formatRelativeDate === "function" ? formatRelativeDate(timeVal) : "Сегодня";
+  const numPrice = Number(displayPrice) || 0;
+  const formattedPrice = numPrice.toLocaleString("ru-RU");
+
   card.innerHTML = `
-    <!-- Бейджи статусов -->
-    ${isSold ? '<div class="sold-badge">ПРОДАНО</div>' : ""}
-    ${isVip ? '<div class="vip-badge">VIP</div>' : ""}
-    ${ad.isCombo ? '<div class="combo-badge">КОМБО 🔥</div>' : ""}
-
-    <!-- Сердечко (только в общей ленте) -->
-    ${!isProfile
-      ? `
-      <div class="fav-heart-btn ${isFav ? "active" : ""}" 
-           onclick="toggleFav('${ad.id}', event)">
-        <i class="fa-solid fa-heart"></i>
-      </div>`
-      : ""
-    }
-
-    <!-- Изображение товара -->
-    <img src="${ad.img ? ad.img[0] : ""}" loading="lazy">
-    
-    <div style="padding:10px;">
-      <!-- Цена и Дата -->
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-        <div style="color:var(--yellow-main); font-weight:bold; font-size:15px;">${displayPrice} KGS</div>
-        <div style="color:var(--gray); font-size:10px;">${formatRelativeDate(
-      ad.approvedAt || ad.createdAt
-    )}</div>
-      </div>
+    <!-- Изображение и Избранное -->
+    <div class="rb-card-img-box">
+      ${isSold ? '<div class="sold-badge">ПРОДАНО</div>' : ""}
+      ${isVip ? '<div class="vip-badge">VIP</div>' : ""}
+      <img src="${ad.img ? ad.img[0] : ""}" loading="lazy" alt="${ad.title || "Букет"}">
       
-      <!-- Заголовок -->
-      <div style="font-size:12px; color:#ccc; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-        ${ad.title}
+      ${!isProfile
+        ? `
+        <div class="rb-fav-heart-btn ${isFav ? "active" : ""}" 
+             onclick="toggleFav('${ad.id}', event)" title="В избранное">
+          <i class="fa-solid fa-heart"></i>
+        </div>`
+        : ""
+      }
+    </div>
+
+    <!-- Текстовый контент -->
+    <div class="rb-card-content">
+      <!-- Строка Цены и Локации -->
+      <div class="rb-card-price-row">
+        <div class="rb-card-price">${formattedPrice} KGS</div>
+        <div class="rb-card-location">
+          <i class="fa-solid fa-location-dot" style="color: var(--rose-main); font-size: 10px;"></i>
+          <span>${ad.city || "Бишкек"}</span>
+        </div>
       </div>
-      
-      <!-- Сюда вставится блок управления (Админ или Юзер) -->
+
+      <!-- Бейдж свежести -->
+      ${!isSold ? `
+        <div class="rb-status-tag">
+          <span class="${relDateText === 'Сегодня' ? 'rb-status-dot-green' : 'rb-status-dot-yellow'}"></span>
+          Получен ${relDateText.toLowerCase()}
+        </div>
+      ` : ""}
+
+      <!-- Название / Цветы -->
+      <div class="rb-card-specs">
+        ${ad.flowerCount ? ad.flowerCount + ' цветов' : (ad.title || "Свежий букет")}
+      </div>
+
+      <!-- Мета-теги -->
+      <div class="rb-card-tags">
+        <span>Можно забрать сегодня</span>
+        <span>•</span>
+        <span>${ad.cat === 'flowers' ? 'Розы' : 'Подарок'}</span>
+      </div>
+
+      <!-- Кнопка действия -->
+      <button class="rb-card-btn">
+        Смотреть букет <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 11px;"></i>
+      </button>
+
+      <!-- Блок управления (Админ/Юзер) -->
       ${managementHtml}
     </div>
   `;
@@ -2934,3 +2960,65 @@ window.hideQuickPreview = function () {
     document.body.style.overflow = "";
   }, 200);
 };
+
+// --- RESALEBUKET DESKTOP HELPERS ---
+window.scrollToFeed = function (e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const target = document.getElementById("fresh-section-header") || document.getElementById("home-grid");
+  if (target) {
+    target.scrollIntoView({ behavior: "smooth" });
+  }
+};
+
+window.selectCityFilter = function (cityKey, elem) {
+  curCity = cityKey === "all" ? "bishkek" : cityKey;
+  localStorage.setItem("selected_city_v15", curCity);
+  
+  // Обновляем плашки в десктопном блоке городов
+  document.querySelectorAll(".city-chip-btn").forEach(btn => btn.classList.remove("active"));
+  if (elem) {
+    elem.classList.add("active");
+  }
+
+  // Обновляем метки городов в шапках
+  const cityName = CITY_NAMES[curCity] || (cityKey === "all" ? "Все города" : "Бишкек");
+  const dtLabel = document.getElementById("dt-city-label");
+  const mbLabel = document.getElementById("current-city-label");
+  if (dtLabel) dtLabel.innerText = cityKey === "all" ? "Все города" : cityName;
+  if (mbLabel) mbLabel.innerText = cityName;
+
+  renderFeed();
+};
+
+window.toggleTheme = function () {
+  const isDark = document.body.classList.toggle("dark-theme");
+  const icon = document.querySelector("#dt-theme-toggle i");
+  if (icon) {
+    icon.className = isDark ? "fa-solid fa-sun" : "fa-solid fa-moon";
+  }
+};
+
+window.openFaqModal = function (e) {
+  if (e && e.preventDefault) e.preventDefault();
+  alert("Часто задаваемые вопросы:\n\n1. Как купить букет? — Свяжитесь с продавцом напрямую в Telegram или по телефону.\n2. Как продать букет? — Нажмите кнопку 'Продать букет' и заполните форму.\n3. Модерация — Все объявления проверяются перед публикацией.");
+};
+
+window.openSafetyModal = function (e) {
+  if (e && e.preventDefault) e.preventDefault();
+  alert("Безопасность на ResaleBuket:\n\n- Осматривайте букет лично при встрече.\n- Не переводите предоплату незнакомым продавцам.\n- Сообщайте о подозрительных объявлениях модераторам.");
+};
+
+window.openTariffsModal = function (e) {
+  if (e && e.preventDefault) e.preventDefault();
+  alert("Тарифы размещения:\n\n• Стандартный — Бесплатно\n• VIP — Закрепление вверху ленты на 3 дня\n• Магазин — Личная витрина товаров и проверенный бейдж");
+};
+
+window.openSupportModal = function (e) {
+  if (e && e.preventDefault) e.preventDefault();
+  if (window.tg && window.tg.openTelegramLink) {
+    window.tg.openTelegramLink("https://t.me/D1NCHO");
+  } else {
+    window.open("https://t.me/D1NCHO", "_blank");
+  }
+};
+
