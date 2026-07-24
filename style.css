@@ -3358,6 +3358,11 @@ body {
   color: #2b9e3f;
 }
 
+.pill-yellow {
+  background: rgba(255, 149, 0, 0.14) !important;
+  color: #d97706 !important;
+}
+
 .pill-gray {
   background: var(--card) !important;
   border: 1px solid var(--beige-border) !important;

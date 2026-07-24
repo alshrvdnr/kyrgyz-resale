@@ -1269,6 +1269,77 @@ window.adminDeleteAd = async function (adId) {
   }
 };
 
+// Динамические вспомогательные функции для карточки "СОСТОЯНИЕ"
+function getRecencyBadgeHtml(ad) {
+  const timeVal = ad.approvedAt || ad.createdAt || Math.floor(Date.now() / 1000);
+  const nowSec = Math.floor(Date.now() / 1000);
+  const diffDays = Math.floor((nowSec - timeVal) / 86400);
+
+  if (diffDays <= 0) {
+    return `<span class="spec-pill pill-green">● Получен сегодня</span>`;
+  } else if (diffDays === 1) {
+    return `<span class="spec-pill pill-yellow">● Получен вчера</span>`;
+  } else {
+    return `<span class="spec-pill pill-gray">● Получен ${diffDays} дн. назад</span>`;
+  }
+}
+
+function getActiveCountdownBadgeHtml(ad) {
+  const timeVal = ad.approvedAt || ad.createdAt || Math.floor(Date.now() / 1000);
+  const nowSec = Math.floor(Date.now() / 1000);
+  const daysPassed = Math.floor((nowSec - timeVal) / 86400);
+  const totalActiveDays = 7;
+  const daysLeft = Math.max(1, totalActiveDays - daysPassed);
+
+  if (daysLeft === 1) {
+    return `<span class="spec-pill pill-gray">⏱ Активно последний день</span>`;
+  }
+  return `<span class="spec-pill pill-gray">⏱ Активно ещё ${daysLeft} дн.</span>`;
+}
+
+function getFlowerCountBadgeHtml(ad) {
+  let count = ad.flowerCount || ad.count;
+  if (!count) {
+    const match = String(ad.title || "").match(/(\d+)\s*(?:роз|цветов|шт)/i);
+    if (match) count = parseInt(match[1]);
+  }
+
+  if (count) {
+    const num = Number(count);
+    let label = "цветок";
+    const mod10 = num % 10;
+    const mod100 = num % 100;
+    if (mod100 >= 11 && mod100 <= 19) {
+      label = "цветов";
+    } else if (mod10 === 1) {
+      label = "цветок";
+    } else if (mod10 >= 2 && mod10 <= 4) {
+      label = "цветка";
+    } else {
+      label = "цветов";
+    }
+    return `<span class="spec-pill pill-gray">💐 ${num} ${label}</span>`;
+  }
+
+  return `<span class="spec-pill pill-gray">💐 ${ad.cat === 'flowers' ? 'Свежий букет' : 'Подарочный набор'}</span>`;
+}
+
+function getCityBadgeHtml(ad) {
+  const cityNamesMap = {
+    bishkek: "Бишкек",
+    osh: "Ош",
+    manas: "Манас",
+    tokmok: "Токмок",
+    karakol: "Каракол",
+    jalalabad: "Джалал-Абад",
+    naryn: "Нарын",
+    talas: "Талас",
+    batken: "Баткен"
+  };
+  const cityName = cityNamesMap[ad.city] || ad.city || "Бишкек";
+  return `<span class="spec-pill pill-gray">📍 ${cityName}</span>`;
+}
+
 // 6. МОДАЛКА И КОНТАКТЫ
 function openProduct(ad) {
   if (!ad) return;
@@ -1395,10 +1466,10 @@ function openProduct(ad) {
               <div class="dt-spec-card">
                 <span class="dt-spec-tag">СОСТОЯНИЕ</span>
                 <div class="dt-spec-pills">
-                  <span class="spec-pill pill-green">● Получен сегодня</span>
-                  <span class="spec-pill pill-gray">⏱ Активно ещё 3 дн.</span>
-                  <span class="spec-pill pill-gray">💐 ${ad.flowerCount || 31} цветок</span>
-                  <span class="spec-pill pill-gray">📍 ${city}</span>
+                  ${getRecencyBadgeHtml(ad)}
+                  ${getActiveCountdownBadgeHtml(ad)}
+                  ${getFlowerCountBadgeHtml(ad)}
+                  ${getCityBadgeHtml(ad)}
                 </div>
               </div>
 
