@@ -2615,24 +2615,26 @@ body {
 
 .rb-card-btn {
   width: 100%;
-  background: var(--ink);
-  color: #ffffff;
+  background: var(--rose-main) !important;
+  color: #ffffff !important;
   border: none;
-  padding: 12px;
+  padding: 10px 12px;
   border-radius: 14px;
-  font-weight: 700;
-  font-size: 13px;
+  font-weight: 800;
+  font-size: 12.5px;
   cursor: pointer;
   margin-top: auto;
-  transition: background 0.2s ease, transform 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  transition: all 0.2s ease;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   gap: 6px;
+  box-shadow: 0 4px 12px rgba(215, 128, 149, 0.3) !important;
 }
 
 .rb-card-btn:hover {
-  background: #352a32;
+  background: var(--rose-hover) !important;
+  transform: translateY(-1px);
 }
 
 /* --- РЕСПОНСИВНЫЕ ПРАВИЛА (MEDIA QUERIES) --- */
@@ -2652,10 +2654,10 @@ body {
     display: flex !important;
   }
   .main-header {
-    display: none !important; /* Скрываем мобильную шапку */
+    display: none !important;
   }
   .bottom-nav {
-    display: none !important; /* Скрываем мобильное нижнее меню */
+    display: none !important;
   }
   #page-home {
     padding-top: 90px !important;
@@ -2690,34 +2692,59 @@ body {
     display: flex !important;
   }
   #page-home {
-    padding-top: 250px !important;
+    padding-top: 175px !important;
+    padding-bottom: 140px !important;
   }
   .listings-grid {
     grid-template-columns: repeat(2, 1fr) !important;
-    gap: 10px !important;
-    padding: 0 10px 100px 10px !important;
+    gap: 12px !important;
+    padding: 0 12px 140px 12px !important;
+  }
+  .card {
+    border-radius: 20px !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  .rb-card-img-box {
+    height: 150px !important;
+    flex-shrink: 0 !important;
   }
   .rb-card-content {
-    padding: 10px !important;
-    gap: 4px !important;
+    padding: 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex-grow: 1 !important;
+    gap: 6px !important;
+    justify-content: space-between !important;
   }
   .rb-card-price {
-    font-size: 14.5px !important;
+    font-size: 16px !important;
+    font-weight: 800 !important;
+    color: var(--ink) !important;
     white-space: nowrap !important;
   }
   .rb-card-location {
-    font-size: 10px !important;
+    font-size: 10.5px !important;
+    color: var(--ink-muted) !important;
   }
   .rb-card-specs {
-    font-size: 12px !important;
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
+    color: var(--ink) !important;
+    line-height: 1.3 !important;
   }
   .rb-card-tags {
-    font-size: 10px !important;
+    font-size: 10.5px !important;
+    color: var(--ink-muted) !important;
   }
   .rb-card-btn {
-    padding: 8px 10px !important;
-    font-size: 11px !important;
-    border-radius: 10px !important;
+    padding: 9px 10px !important;
+    font-size: 11.5px !important;
+    font-weight: 800 !important;
+    background: var(--rose-main) !important;
+    color: #ffffff !important;
+    border-radius: 12px !important;
+    margin-top: 4px !important;
   }
 }
 
