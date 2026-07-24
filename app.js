@@ -1186,7 +1186,7 @@ function createAdCard(ad, isProfile = false) {
 
   const hasImg = ad.img && ad.img[0] && String(ad.img[0]).trim() !== "";
   const imgMediaHtml = hasImg
-    ? `<img src="${ad.img[0]}" loading="lazy" alt="${ad.title || "Букет"}">`
+    ? `<img src="${ad.img[0]}" loading="lazy" decoding="async" onload="this.classList.add('loaded')" alt="${ad.title || "Букет"}">`
     : `<div class="rb-no-img-placeholder"><i class="fa-solid fa-leaf"></i><span>Свежий букет</span></div>`;
 
   card.innerHTML = `
@@ -1501,23 +1501,66 @@ function openProduct(ad) {
   }
 }
 
-// 7. ПОДАЧА (STORAGE)
+// 7. ПОДАЧА И ОПТИМИЗАЦИЯ ИЗОБРАЖЕНИЙ (CANVAS COMPRESSION)
+async function compressImage(file, maxWidth = 1080, quality = 0.8) {
+  if (!file || !file.type || !file.type.startsWith("image/")) return file;
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) return resolve(file);
+            const compressedFile = new File([blob], file.name || "compressed.jpg", {
+              type: "image/jpeg",
+              lastModified: Date.now(),
+            });
+            console.log(`Оптимизация фото: ${(file.size / 1024 / 1024).toFixed(2)}MB -> ${(compressedFile.size / 1024).toFixed(1)}KB`);
+            resolve(compressedFile);
+          },
+          "image/jpeg",
+          quality
+        );
+      };
+      img.onerror = () => resolve(file);
+    };
+    reader.onerror = () => resolve(file);
+  });
+}
+
 async function uploadFile(file) {
   if (!file) return null;
   try {
-    const fileName = Date.now() + "_" + Math.random().toString(36).substring(7);
+    // 1. Автоматическое сжатие (8MB -> ~150KB) для моментальной загрузки
+    const compressedFile = await compressImage(file);
+    const fileName = Date.now() + "_" + Math.random().toString(36).substring(7) + ".jpg";
     const storageRef = firebase.storage().ref("ads/" + fileName);
 
-    // МЕТАДАННЫЕ: Без них ваши правила Storage могут блокировать загрузку
     const metadata = {
-      contentType: file.type || "image/jpeg",
+      contentType: "image/jpeg",
+      cacheControl: "public,max-age=31536000",
     };
 
-    // Загрузка
-    const snapshot = await storageRef.put(file, metadata);
-    // Ссылка
+    const snapshot = await storageRef.put(compressedFile, metadata);
     const url = await snapshot.ref.getDownloadURL();
-    console.log("Файл загружен:", url);
+    console.log("Файл загружен и оптимизирован:", url);
     return url;
   } catch (e) {
     console.error("Ошибка загрузки в Storage:", e);

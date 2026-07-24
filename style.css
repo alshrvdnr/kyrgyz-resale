@@ -2737,6 +2737,34 @@ body {
 .rb-no-img-placeholder i {
   font-size: 28px;
   opacity: 0.8;
+}
+
+/* --- FAST SKELETON SHIMMER IMAGE ANIMATION --- */
+.rb-card-img-box {
+  background: linear-gradient(90deg, rgba(245, 230, 232, 0.6) 25%, rgba(255, 245, 247, 0.9) 50%, rgba(245, 230, 232, 0.6) 75%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.4s infinite ease-in-out;
+}
+
+@media (prefers-color-scheme: dark) {
+  .rb-card-img-box {
+    background: linear-gradient(90deg, rgba(36, 26, 39, 0.8) 25%, rgba(46, 33, 50, 0.9) 50%, rgba(36, 26, 39, 0.8) 75%);
+    background-size: 200% 100%;
+  }
+}
+
+@keyframes skeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.rb-card-img-box img {
+  opacity: 0;
+  transition: opacity 0.35s ease-in-out;
+}
+
+.rb-card-img-box img.loaded {
+  opacity: 1;
 }/* --- ПЕРВАЯ ПУБЛИКАЦИЯ БЕСПЛАТНО & КАК ЭТО РАБОТАЕТ --- */
 .rewards-promo-section {
   max-width: 1280px;
