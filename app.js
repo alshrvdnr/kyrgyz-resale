@@ -1554,6 +1554,7 @@ async function publishAndSend() {
 
   if (overlay) {
     overlay.classList.remove("hidden");
+    overlay.style.display = "flex";
     lTitle.innerText = "ЗАГРУЗКА...";
     lVisual.classList.remove("error-shake");
     lVisual.classList.add("pulse-heart");
@@ -1724,7 +1725,10 @@ function finishUpload(msg) {
   if (lText) lText.innerText = msg;
 
   setTimeout(() => {
-    if (overlay) overlay.classList.add("hidden");
+    if (overlay) {
+      overlay.classList.add("hidden");
+      overlay.style.display = "none";
+    }
     resetAddForm();
     showPage("home");
   }, 1800);
@@ -1733,7 +1737,10 @@ function finishUpload(msg) {
 // Функция закрытия окна ошибки
 window.closeUploadOverlay = function () {
   const overlay = document.getElementById("upload-overlay");
-  if (overlay) overlay.classList.add("hidden");
+  if (overlay) {
+    overlay.classList.add("hidden");
+    overlay.style.display = "none";
+  }
 };
 
 // 8. ФИЛЬТРЫ И УТИЛИТЫ
