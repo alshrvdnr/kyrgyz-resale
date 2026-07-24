@@ -812,6 +812,58 @@ function listenSettings() {
   });
 }
 
+// --- ДИНАМИЧЕСКИЙ СЧЕТЧИК СПАСЕННЫХ БУКЕТОВ (ПРОДАННЫЕ И УДАЛЕННЫЕ) ---
+function updateSavedCounterUI(count) {
+  const el = document.getElementById("footer-saved-counter");
+  const textEl = document.querySelector(".saved-title");
+
+  const num = Number(count) || 13;
+  let label = "букетов";
+  const mod10 = num % 10;
+  const mod100 = num % 100;
+  if (mod100 >= 11 && mod100 <= 19) {
+    label = "букетов";
+  } else if (mod10 === 1) {
+    label = "букет";
+  } else if (mod10 >= 2 && mod10 <= 4) {
+    label = "букета";
+  } else {
+    label = "букетов";
+  }
+
+  if (textEl) {
+    textEl.innerHTML = `Спасено <span id="footer-saved-counter">${num.toLocaleString("ru-RU")}</span> ${label}`;
+  } else if (el) {
+    el.innerText = num.toLocaleString("ru-RU");
+  }
+}
+
+function initSavedCounter(allAdsArray = []) {
+  let soldOrDeletedCount = 0;
+  if (Array.isArray(allAdsArray)) {
+    soldOrDeletedCount = allAdsArray.filter(
+      (ad) => ad && (ad.status === "sold" || ad.status === "deleted")
+    ).length;
+  }
+
+  db.ref("stats/saved_count").on("value", (snapshot) => {
+    const dbExtra = snapshot.val() || 0;
+    const baseInitialCount = 13;
+    const totalSaved = baseInitialCount + soldOrDeletedCount + Number(dbExtra);
+    updateSavedCounterUI(totalSaved);
+  });
+}
+
+window.incrementSavedCounter = function () {
+  try {
+    db.ref("stats/saved_count").transaction((current) => {
+      return (current || 0) + 1;
+    });
+  } catch (e) {
+    console.error("Ошибка при инкременте счетчика спасенных букетов:", e);
+  }
+};
+
 function listenAds() {
   const splash = document.getElementById("splash-screen");
 
@@ -819,14 +871,13 @@ function listenAds() {
     "value",
     (snap) => {
       const data = snap.val();
-      // Превращаем объект из базы в массив для удобной работы
       ads = data
         ? Object.keys(data).map((key) => ({ id: key, ...data[key] }))
         : [];
 
-      // Отрисовываем ленты
       renderFeed();
       renderProfile();
+      initSavedCounter(ads);
       if (document.getElementById("page-shops") && !document.getElementById("page-shops").classList.contains("hidden")) {
         renderShopsLine();
         renderShopsFeed();
@@ -1261,6 +1312,7 @@ window.adminDeleteAd = async function (adId) {
       processed: false,
       timestamp: Date.now(),
     });
+    if (typeof incrementSavedCounter === "function") incrementSavedCounter();
     alert(
       "Запрос отправлен боту! Пост исчезнет из всех каналов и с сайта в течение 20 секунд."
     );
@@ -1983,7 +2035,6 @@ function reportAd(adId, sellerId) {
 async function confirmAction(type) {
   if (!confirm("Вы уверены?")) return;
 
-  // Вместо прямой записи в ads, мы ТОЛЬКО шлем запрос боту
   try {
     await db.ref("management_requests").push({
       adId: currentManageId,
@@ -1992,6 +2043,10 @@ async function confirmAction(type) {
       processed: false,
       timestamp: Date.now(),
     });
+
+    if (type === 'sold' || type === 'delete') {
+      if (typeof incrementSavedCounter === "function") incrementSavedCounter();
+    }
 
     alert("Запрос отправлен! Бот обновит статус через 10-20 секунд.");
     closeManageModal();
