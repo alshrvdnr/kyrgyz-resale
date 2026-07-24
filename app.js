@@ -812,12 +812,12 @@ function listenSettings() {
   });
 }
 
-// --- ДИНАМИЧЕСКИЙ СЧЕТЧИК СПАСЕННЫХ БУКЕТОВ (ПРОДАННЫЕ И УДАЛЕННЫЕ) ---
+// --- ДИНАМИЧЕСКИЙ СЧЕТЧИК СПАСЕННЫХ БУКЕТОВ (ПРОДАННЫЕ И УДАЛЕННЫЕ ИЗ FIREBASE) ---
 function updateSavedCounterUI(count) {
   const el = document.getElementById("footer-saved-counter");
   const textEl = document.querySelector(".saved-title");
 
-  const num = Number(count) || 13;
+  const num = Number(count) || 0;
   let label = "букетов";
   const mod10 = num % 10;
   const mod100 = num % 100;
@@ -848,8 +848,7 @@ function initSavedCounter(allAdsArray = []) {
 
   db.ref("stats/saved_count").on("value", (snapshot) => {
     const dbExtra = snapshot.val() || 0;
-    const baseInitialCount = 13;
-    const totalSaved = baseInitialCount + soldOrDeletedCount + Number(dbExtra);
+    const totalSaved = soldOrDeletedCount + Number(dbExtra);
     updateSavedCounterUI(totalSaved);
   });
 }
