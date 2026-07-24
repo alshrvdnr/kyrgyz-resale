@@ -66,9 +66,9 @@
             <i class="fa-solid fa-moon"></i>
           </button>
           <div class="dt-lang-picker">
-            <span class="dt-lang-opt active">RU</span>
-            <span class="dt-lang-opt">KG</span>
-            <span class="dt-lang-opt">EN</span>
+            <span class="dt-lang-opt active" onclick="setLanguage('ru')">RU</span>
+            <span class="dt-lang-opt" onclick="setLanguage('kg')">KG</span>
+            <span class="dt-lang-opt" onclick="setLanguage('en')">EN</span>
           </div>
           <button class="dt-sell-btn" onclick="showPage('add')">
             Продать букет
@@ -413,9 +413,9 @@
             <!-- Правая верхняя кнопка поддержки в ТГ -->
             <div class="footer-actions-col">
               <div class="footer-lang-row">
-                <span class="ft-lang">RU</span>
-                <span class="ft-lang">KG</span>
-                <span class="ft-lang">EN</span>
+                <span class="ft-lang active" onclick="setLanguage('ru')">RU</span>
+                <span class="ft-lang" onclick="setLanguage('kg')">KG</span>
+                <span class="ft-lang" onclick="setLanguage('en')">EN</span>
               </div>
               <button class="tg-support-btn" onclick="openTgSupport(event)">
                 <i class="fa-brands fa-telegram"></i> Поддержка в Telegram

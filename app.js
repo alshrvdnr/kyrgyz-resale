@@ -3222,13 +3222,150 @@ window.selectCityFilter = function (cityKey, elem) {
   renderFeed();
 };
 
-window.toggleTheme = function () {
-  const isDark = document.body.classList.toggle("dark-theme");
+// --- СИСТЕМА ТЕМЫ (АВТОМАТИЧЕСКАЯ СИНХРОНИЗАЦИЯ С НАСТРОЙКАМИ ТЕЛЕФОНА/ПК) ---
+function applyTheme(theme) {
+  const isDark = theme === "dark";
+  document.body.classList.toggle("dark-theme", isDark);
+  document.body.setAttribute("data-theme", isDark ? "dark" : "light");
+
   const icon = document.querySelector("#dt-theme-toggle i");
   if (icon) {
     icon.className = isDark ? "fa-solid fa-sun" : "fa-solid fa-moon";
   }
+}
+
+function initThemeSystem() {
+  const savedTheme = localStorage.getItem("app_theme");
+  if (savedTheme) {
+    applyTheme(savedTheme);
+  } else {
+    // Автоматическая подстройка под дневной/ночной режим телефона
+    const systemDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    applyTheme(systemDark ? "dark" : "light");
+  }
+
+  // Динамическая реакция на смену темы в телефоне на лету
+  if (window.matchMedia) {
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+      if (!localStorage.getItem("app_theme")) {
+        applyTheme(e.matches ? "dark" : "light");
+      }
+    });
+  }
+}
+
+window.toggleTheme = function () {
+  const isCurrentlyDark = document.body.classList.contains("dark-theme");
+  const newTheme = isCurrentlyDark ? "light" : "dark";
+  localStorage.setItem("app_theme", newTheme);
+  applyTheme(newTheme);
 };
+
+// --- МНОГОЯЗЫЧНАЯ СИСТЕМА (RU / KG / EN) ---
+const i18nDict = {
+  ru: {
+    heroTitlePrefix: "Свежие букеты —",
+    heroTitleAccent: "за пол цены",
+    heroDescription: "Сравнивайте объявления продавцов по дате, цене и городу — и договаривайтесь напрямую.",
+    browseBouquets: "Смотреть букеты",
+    sellBouquet: "Продать букет",
+    searchPlaceholder: "Поиск подарков...",
+    categoriesAll: "Все",
+    categoriesFlowers: "Цветы",
+    categoriesGifts: "Подарки",
+    categoriesJewelry: "Ювелирка",
+    categoriesCerts: "Сертификаты",
+    freshTitle: "Свежие предложения",
+    becomePartner: "Стать партнером",
+    footerAbout: "Свежие букеты от людей в вашем городе. Контакт, передача и оплата — напрямую между сторонами.",
+    tgSupport: "Поддержка в Telegram"
+  },
+  kg: {
+    heroTitlePrefix: "Жаңы гүлдестелер —",
+    heroTitleAccent: "жарым баада",
+    heroDescription: "Сатуучулардын кулактандырууларын датасы, баасы жана шаары боюнча салыштырып, түз макулдашыңыз.",
+    browseBouquets: "Гүлдөрдү көрүү",
+    sellBouquet: "Гүл сатуу",
+    searchPlaceholder: "Белектерди издөө...",
+    categoriesAll: "Баары",
+    categoriesFlowers: "Гүлдөр",
+    categoriesGifts: "Белектер",
+    categoriesJewelry: "Зер буюмдар",
+    categoriesCerts: "Сертификаттар",
+    freshTitle: "Жаңы сунуштар",
+    becomePartner: "Өнөктөш болуу",
+    footerAbout: "Шаарыңыздагы адамдардан жаңы гүлдестелер. Байланыш, өткөрүү жана төлөө — түз тараптар ортосунда.",
+    tgSupport: "Telegram аркылуу колдоо"
+  },
+  en: {
+    heroTitlePrefix: "Fresh bouquets —",
+    heroTitleAccent: "at half price",
+    heroDescription: "Compare listings by date, price, and city — and agree directly with sellers.",
+    browseBouquets: "Browse bouquets",
+    sellBouquet: "Sell bouquet",
+    searchPlaceholder: "Search gifts...",
+    categoriesAll: "All",
+    categoriesFlowers: "Flowers",
+    categoriesGifts: "Gifts",
+    categoriesJewelry: "Jewelry",
+    categoriesCerts: "Certificates",
+    freshTitle: "Fresh Listings",
+    becomePartner: "Become partner",
+    footerAbout: "Fresh bouquets from people in your city. Direct contact, handoff, and payment between parties.",
+    tgSupport: "Support in Telegram"
+  }
+};
+
+window.setLanguage = function (lang) {
+  if (!i18nDict[lang]) return;
+  localStorage.setItem("app_lang", lang);
+
+  // Обновление активного состояния кнопок выбора языка
+  document.querySelectorAll(".dt-lang-opt, .ft-lang").forEach((btn) => {
+    const btnText = btn.innerText.trim().toLowerCase();
+    btn.classList.toggle("active", btnText === lang);
+  });
+
+  const d = i18nDict[lang];
+
+  // Герой секция
+  const prefixEl = document.querySelector(".hero-title-prefix");
+  const accentEl = document.querySelector(".hero-title-accent");
+  const descEl = document.querySelector(".hero-description");
+  if (prefixEl) prefixEl.innerText = d.heroTitlePrefix;
+  if (accentEl) accentEl.innerText = d.heroTitleAccent;
+  if (descEl) descEl.innerText = d.heroDescription;
+
+  // Плейсхолдеры поиска
+  const searchInputs = document.querySelectorAll("#main-search-trigger, #search-modal-input");
+  searchInputs.forEach((inp) => (inp.placeholder = d.searchPlaceholder));
+
+  // Заголовок свежих предложений
+  const freshTitleEl = document.getElementById("dynamic-feed-title");
+  if (freshTitleEl) freshTitleEl.innerText = d.freshTitle;
+
+  // Кнопки действия в шапке
+  const sellBtns = document.querySelectorAll(".dt-sell-btn, .hero-btn-light");
+  sellBtns.forEach((b) => (b.innerText = d.sellBouquet));
+
+  const browseBtns = document.querySelectorAll(".hero-btn-dark");
+  browseBtns.forEach((b) => (b.innerText = d.browseBouquets));
+
+  // Футер
+  const ftAboutEl = document.querySelector(".footer-about-text");
+  if (ftAboutEl) ftAboutEl.innerText = d.footerAbout;
+
+  const tgSuppBtn = document.querySelector(".tg-support-btn");
+  if (tgSuppBtn) tgSuppBtn.innerHTML = `<i class="fa-brands fa-telegram"></i> ${d.tgSupport}`;
+};
+
+// Автоматический запуск темы и языка при загрузке приложения
+document.addEventListener("DOMContentLoaded", () => {
+  initThemeSystem();
+  const savedLang = localStorage.getItem("app_lang") || "ru";
+  window.setLanguage(savedLang);
+});
+initThemeSystem();
 
 window.openFaqModal = function (e) {
   if (e && e.preventDefault) e.preventDefault();
