@@ -1682,41 +1682,25 @@ async function publishAndSend() {
       return;
     }
 
-    // --- 4. ПОДГОТОВКА ФАЙЛОВ И ДАННЫХ ---
+    // 4. ПОДГОТОВКА ФАЙЛОВ И ДАННЫХ
     const catSelect = document.getElementById("in-cat");
     const citySelect = document.getElementById("in-city");
-
-    // Проверки перед загрузкой для обычных юзеров
-    if (!isPartner) {
-      const cityIn = document.getElementById("in-city");
-      const isBishkek = cityIn ? cityIn.value === "bishkek" : true;
-      const isPaid = isBishkek || selectedTariff === "vip";
-      
-      if (isPaid && !receiptAttached)
-        throw new Error("Необходимо прикрепить чек об оплате!");
-      if (!verifyPhotoFile)
-        throw new Error("Загрузите проверочное фото с кодом!");
-    }
 
     if (selectedFiles.length === 0)
       throw new Error("Добавьте хотя бы одну фотографию товара!");
 
-    // ШАГ А: Загрузка чека (если нужно)
+    // ШАГ А: Загрузка чека (если есть)
     let receiptUrl = "";
-    const cityIn = document.getElementById("in-city");
-    const isBishkek = cityIn ? cityIn.value === "bishkek" : true;
-    const isPaid = isBishkek || selectedTariff === "vip";
-
-    if (!isPartner && isPaid) {
+    const receiptFile = document.getElementById("receipt-input")?.files?.[0];
+    if (receiptFile) {
       lText.innerText = "Загружаем чек об оплате...";
-      const receiptFile = document.getElementById("receipt-input").files[0];
-      if (receiptFile) receiptUrl = await uploadFile(receiptFile);
+      receiptUrl = await uploadFile(receiptFile);
     }
 
-    // ШАГ Б: Загрузка проверочного фото
+    // ШАГ Б: Загрузка проверочного фото (если есть)
     let verifyPhotoUrl = "";
     if (verifyPhotoFile) {
-      lText.innerText = "Загружаем проверочное фото с кодом...";
+      lText.innerText = "Загружаем проверочное фото...";
       verifyPhotoUrl = await uploadFile(verifyPhotoFile);
     }
 
@@ -1733,23 +1717,29 @@ async function publishAndSend() {
       throw new Error("Ошибка при загрузке изображений. Проверьте соединение.");
 
     // --- 5. ФОРМИРОВАНИЕ ОБЪЕКТА ДЛЯ БАЗЫ ДАННЫХ ---
-    lText.innerText = "Финальный этап: Синхронизация с базой...";
+    lText.innerText = "Финальный этап: Публикация...";
+
+    const inAddressEl = document.getElementById("in-address");
+    const inWaEl = document.getElementById("in-wa");
+    const inTgEl = document.getElementById("in-tg");
+    const inDescEl = document.getElementById("in-desc");
+    const inReceiveEl = document.getElementById("in-receive-date");
 
     const newAd = {
       title: cleanTitle,
       price: numericPrice,
 
       // КАТЕГОРИЯ И ГОРОД
-      cat: catSelect.value,
-      city_key: citySelect.value,
-      city: citySelect.options[citySelect.selectedIndex].text,
+      cat: catSelect ? catSelect.value : "flowers",
+      city_key: citySelect ? citySelect.value : "bishkek",
+      city: citySelect && citySelect.options[citySelect.selectedIndex] ? citySelect.options[citySelect.selectedIndex].text : "Бишкек",
 
       // КОНТАКТЫ И ОПИСАНИЕ
-      address: isPartner ? (myShopData?.address || document.getElementById("in-address").value) : document.getElementById("in-address").value,
-      phone: isPartner ? (myShopData?.phone || document.getElementById("in-wa").value) : document.getElementById("in-wa").value,
-      tgNick: isPartner ? (myShopData?.tgNick || document.getElementById("in-tg").value) : document.getElementById("in-tg").value,
-      desc: document.getElementById("in-desc").value,
-      receiveDate: document.getElementById("in-receive-date").value,
+      address: inAddressEl ? inAddressEl.value : "Бишкек",
+      phone: inWaEl ? inWaEl.value : "",
+      tgNick: inTgEl ? inTgEl.value : "",
+      desc: inDescEl ? inDescEl.value : "",
+      receiveDate: inReceiveEl ? inReceiveEl.value : "Сегодня",
 
       // ЛОГИКА КОМБО-НАБОРОВ
       isCombo: (typeof currentAddingType !== "undefined" && currentAddingType === "combo") || (document.getElementById("in-is-combo")?.checked || false),
@@ -1759,16 +1749,16 @@ async function publishAndSend() {
       // МЕДИА-ФАЙЛЫ
       img: validImgs,
       verify_photo: verifyPhotoUrl || "",
-      verify_code: isPartner ? "PARTNER_BYPASS" : currentVerifyCode,
+      verify_code: isPartner ? "PARTNER_BYPASS" : (currentVerifyCode || "0000"),
       receipt_url: receiptUrl,
 
-      // СИСТЕМНЫЕ ПОЛЯ
-      status: isPartner ? "active" : "pending",
-      bot_notified: false, // Чтобы бот на сервере прислал уведомление админу
+      // СИСТЕМНЫЕ ПОЛЯ (АКТИВНО СРАЗУ)
+      status: "active",
+      bot_notified: false,
       isShop: isPartner,
-      shopName: isPartner ? myShopData?.shopName || "Администрация" : "",
+      shopName: isPartner ? (myShopData?.shopName || "Администрация") : "",
       verified: isPartner,
-      tariff: selectedTariff,
+      tariff: selectedTariff || "standard",
       is_holiday: isPartner ? false : holidayMode,
       
       // БИЗНЕС ПОЛЯ
@@ -1779,6 +1769,7 @@ async function publishAndSend() {
       // АВТОР И ВРЕМЯ
       userId: myId,
       createdAt: Math.floor(Date.now() / 1000),
+      approvedAt: Math.floor(Date.now() / 1000),
     };
 
     // 6. ОТПРАВКА В FIREBASE
@@ -2029,28 +2020,101 @@ function resetAddForm() {
 
 // ФУНКЦИЯ ДЛЯ ОБЫЧНЫХ ФОТО ТОВАРА (макс 5 штук)
 window.handleFileSelect = function (input) {
-  // Сохраняем файлы в глобальный массив selectedFiles (не более 5)
   selectedFiles = Array.from(input.files).slice(0, 5);
 
   const preview = document.getElementById("gallery-preview");
-  if (!preview) return;
+  const dtPreview = document.getElementById("dt-gallery-preview");
+  const dtPrevImg = document.getElementById("dt-prev-img");
+  const dtPrevFallback = document.getElementById("dt-prev-img-fallback");
 
-  // Очищаем старые превью
-  preview.innerHTML = "";
+  if (preview) preview.innerHTML = "";
+  if (dtPreview) dtPreview.innerHTML = "";
 
-  selectedFiles.forEach((file) => {
+  selectedFiles.forEach((file, i) => {
     const reader = new FileReader();
     reader.onload = (e) => {
-      const img = document.createElement("img");
-      img.src = e.target.result;
-      img.style =
-        "width:70px;height:70px;object-fit:cover;border-radius:10px;border:1px solid #333;";
-      preview.appendChild(img);
+      const src = e.target.result;
+
+      if (preview) {
+        const img = document.createElement("img");
+        img.src = src;
+        img.style = "width:70px;height:70px;object-fit:cover;border-radius:10px;border:1px solid #333;";
+        preview.appendChild(img);
+      }
+
+      if (dtPreview) {
+        const dtImg = document.createElement("img");
+        dtImg.src = src;
+        dtImg.style = "width:80px;height:80px;object-fit:cover;border-radius:14px;border:2px solid var(--rose-main);";
+        dtPreview.appendChild(dtImg);
+      }
+
+      // Настройка обложки карточки
+      if (i === 0 && dtPrevImg && dtPrevFallback) {
+        dtPrevImg.src = src;
+        dtPrevImg.style.display = "block";
+        dtPrevFallback.style.display = "none";
+      }
     };
     reader.readAsDataURL(file);
   });
 
   console.log("Выбрано основных фото:", selectedFiles.length);
+};
+
+// СИНХРОНИЗАЦИЯ ДЕСКТОПНОЙ И МОБИЛЬНОЙ ФОРМЫ
+window.syncDesktopAddForm = function () {
+  const dtTitle = document.getElementById("dt-in-title");
+  const inTitle = document.getElementById("in-title");
+  if (dtTitle && inTitle) inTitle.value = dtTitle.value;
+
+  const dtPrice = document.getElementById("dt-in-price");
+  const inPrice = document.getElementById("in-price");
+  if (dtPrice && inPrice) inPrice.value = dtPrice.value;
+
+  const dtCity = document.getElementById("dt-in-city");
+  const inCity = document.getElementById("in-city");
+  if (dtCity && inCity) inCity.value = dtCity.value;
+
+  const dtCat = document.getElementById("dt-in-cat");
+  const inCat = document.getElementById("in-cat");
+  if (dtCat && inCat) inCat.value = dtCat.value;
+
+  const dtDesc = document.getElementById("dt-in-desc");
+  const inDesc = document.getElementById("in-desc");
+  if (dtDesc && inDesc) inDesc.value = dtDesc.value;
+
+  const dtWa = document.getElementById("dt-in-wa");
+  const inWa = document.getElementById("in-wa");
+  if (dtWa && inWa) inWa.value = dtWa.value;
+
+  const dtTg = document.getElementById("dt-in-tg");
+  const inTg = document.getElementById("in-tg");
+  if (dtTg && inTg) inTg.value = dtTg.value;
+
+  const dtAddress = document.getElementById("dt-in-address");
+  const inAddress = document.getElementById("in-address");
+  if (dtAddress && inAddress) inAddress.value = dtAddress.value;
+
+  // Обновление интерактивного превью карточки
+  const prevTitle = document.getElementById("dt-prev-title");
+  if (prevTitle) prevTitle.innerText = dtTitle?.value.trim() || "Ваше название букета";
+
+  const prevPrice = document.getElementById("dt-prev-price");
+  if (prevPrice) {
+    const num = Number(dtPrice?.value) || 0;
+    prevPrice.innerText = num > 0 ? num.toLocaleString("ru-RU") + " KGS" : "0 KGS";
+  }
+
+  const prevCity = document.getElementById("dt-prev-city");
+  if (prevCity && dtCity) {
+    prevCity.innerText = dtCity.options[dtCity.selectedIndex]?.text || "Бишкек";
+  }
+
+  const prevCat = document.getElementById("dt-prev-cat");
+  if (prevCat && dtCat) {
+    prevCat.innerText = dtCat.options[dtCat.selectedIndex]?.text || "Розы";
+  }
 };
 
 window.handleVerifyPhotoSelect = function (input) {

@@ -824,6 +824,149 @@
           Опубликовать
         </button>
       </div>
+
+      <!-- ДЕСКТОПНАЯ ФОРМА ПОДАЧИ ОБЪЯВЛЕНИЯ (ТОЛЬКО ДЛЯ ВЕБ-САЙТА >= 992px) -->
+      <div class="desktop-add-container">
+        <div class="dt-add-header">
+          <h2>Новое объявление</h2>
+          <p>Заполните детали вашего букета или подарка — покупатели увидят его сразу на площадке resalebuket.kg.</p>
+        </div>
+
+        <div class="dt-add-grid">
+          <!-- Левая колонка: форма ввода -->
+          <div class="dt-add-form-col">
+            <!-- Блок 1: Основные данные -->
+            <div class="dt-form-card">
+              <span class="dt-card-step">ШАГ 1 ИЗ 3</span>
+              <h3>Основная информация</h3>
+
+              <div class="dt-form-group">
+                <label>Название товара / букета</label>
+                <input type="text" id="dt-in-title" placeholder="Например: 31 алая роза в стильной упаковке" maxlength="40" oninput="syncDesktopAddForm()">
+              </div>
+
+              <div class="dt-form-row">
+                <div class="dt-form-group">
+                  <label>Цена (KGS)</label>
+                  <input type="number" id="dt-in-price" placeholder="12000" oninput="syncDesktopAddForm()">
+                </div>
+                <div class="dt-form-group">
+                  <label>Город</label>
+                  <select id="dt-in-city" onchange="syncDesktopAddForm()">
+                    <option value="bishkek">Бишкек</option>
+                    <option value="osh">Ош</option>
+                    <option value="manas">Манас</option>
+                    <option value="tokmok">Токмок</option>
+                    <option value="karakol">Каракол</option>
+                    <option value="jalalabad">Джалал-Абад</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="dt-form-group">
+                <label>Категория</label>
+                <select id="dt-in-cat" onchange="syncDesktopAddForm()">
+                  <option value="flowers">Цветы и букеты</option>
+                  <option value="gifts">Подарки и сладости</option>
+                  <option value="jewelry">Ювелирные украшения</option>
+                  <option value="certs">Сертификаты</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Блок 2: Фотографии -->
+            <div class="dt-form-card">
+              <span class="dt-card-step">ШАГ 2 ИЗ 3</span>
+              <h3>Фотографии товара (макс. 5 фото)</h3>
+
+              <div class="dt-dropzone" onclick="document.getElementById('file-input').click()">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <div>Нажмите, чтобы <span>выбрать фото с компьютера</span></div>
+                <small>Первое фото станет обложкой карточки</small>
+              </div>
+              <div id="dt-gallery-preview" style="display:flex; gap:10px; margin-top:12px; overflow-x:auto;"></div>
+            </div>
+
+            <!-- Блок 3: Описание и Контакты -->
+            <div class="dt-form-card">
+              <span class="dt-card-step">ШАГ 3 ИЗ 3</span>
+              <h3>Описание и контакты</h3>
+
+              <div class="dt-form-group">
+                <label>Описание букета</label>
+                <textarea id="dt-in-desc" rows="4" placeholder="Расскажите подробнее: цвет, свежесть, упаковку, повод..." oninput="syncDesktopAddForm()"></textarea>
+              </div>
+
+              <div class="dt-form-row">
+                <div class="dt-form-group">
+                  <label>Телефон / WhatsApp</label>
+                  <input type="text" id="dt-in-wa" placeholder="+996 700 123 456" oninput="syncDesktopAddForm()">
+                </div>
+                <div class="dt-form-group">
+                  <label>Ник в Telegram (необязательно)</label>
+                  <input type="text" id="dt-in-tg" placeholder="@username" oninput="syncDesktopAddForm()">
+                </div>
+              </div>
+
+              <div class="dt-form-group">
+                <label>Ориентир / Адрес самовывоза</label>
+                <input type="text" id="dt-in-address" placeholder="например: Алтын Орда / 7 микрорайон" oninput="syncDesktopAddForm()">
+              </div>
+            </div>
+
+            <!-- Кнопка публикации -->
+            <button class="dt-submit-pub-btn" onclick="publishAndSend()">
+              Опубликовать объявление ✨
+            </button>
+          </div>
+
+          <!-- Правая колонка: Live Preview карточки -->
+          <div class="dt-add-preview-col">
+            <div class="dt-preview-sticky-box">
+              <span class="preview-tag-label">ПРЕДОСМОТР КАРТОЧКИ</span>
+
+              <div class="card" style="margin: 0; pointer-events: none;">
+                <div class="rb-card-img-box">
+                  <img id="dt-prev-img" src="" alt="preview" style="display:none;">
+                  <div id="dt-prev-img-fallback" class="rb-no-img-placeholder">
+                    <i class="fa-solid fa-leaf"></i>
+                    <span>Ваше фото появится здесь</span>
+                  </div>
+                </div>
+
+                <div class="rb-card-content">
+                  <div class="rb-card-price-row">
+                    <div class="rb-card-price" id="dt-prev-price">0 KGS</div>
+                    <div class="rb-card-location">
+                      <i class="fa-solid fa-location-dot" style="color: var(--rose-main); font-size: 10px;"></i>
+                      <span id="dt-prev-city">Бишкек</span>
+                    </div>
+                  </div>
+
+                  <div class="rb-status-tag">
+                    <span class="rb-status-dot-green"></span>
+                    Получен сегодня
+                  </div>
+
+                  <div class="rb-card-specs" id="dt-prev-title">
+                    Ваше название букета
+                  </div>
+
+                  <div class="rb-card-tags">
+                    <span>Можно забрать сегодня</span>
+                    <span>•</span>
+                    <span id="dt-prev-cat">Розы</span>
+                  </div>
+
+                  <button class="rb-card-btn">
+                    Смотреть букет <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 11px;"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section id="page-favs" class="page hidden">

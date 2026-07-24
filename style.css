@@ -3516,3 +3516,194 @@ body {
 .dt-pub-cta:hover {
   background: var(--rose-hover) !important;
 }
+
+/* --- DESKTOP POST AD FORM (`#page-add` FOR WEBSITE >= 992px) --- */
+.desktop-add-container {
+  display: none;
+  max-width: 1200px;
+  margin: 30px auto 80px auto;
+  padding: 0 24px;
+}
+
+@media (min-width: 992px) {
+  #page-add .form-scroll {
+    display: none !important;
+  }
+  #page-add header {
+    display: none !important;
+  }
+  .desktop-add-container {
+    display: block !important;
+  }
+}
+
+.dt-add-header h2 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--moss-main) !important;
+  margin: 0 0 6px 0;
+}
+
+.dt-add-header p {
+  color: var(--ink-muted) !important;
+  font-size: 14px;
+  margin: 0 0 28px 0;
+}
+
+.dt-add-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 36px;
+  align-items: start;
+}
+
+.dt-add-form-col {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.dt-form-card {
+  background: var(--card) !important;
+  border: 1px solid var(--beige-border) !important;
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 8px 30px rgba(69, 51, 64, 0.04);
+}
+
+.dt-card-step {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: var(--moss-main) !important;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.dt-form-card h3 {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--ink) !important;
+  margin: 0 0 18px 0;
+}
+
+.dt-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.dt-form-group:last-child {
+  margin-bottom: 0;
+}
+
+.dt-form-group label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-muted) !important;
+}
+
+.dt-form-group input,
+.dt-form-group select,
+.dt-form-group textarea {
+  background: var(--input-bg) !important;
+  border: 1px solid var(--beige-border) !important;
+  color: var(--ink) !important;
+  padding: 12px 16px;
+  border-radius: 14px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.dt-form-group input:focus,
+.dt-form-group select:focus,
+.dt-form-group textarea:focus {
+  border-color: var(--rose-main) !important;
+}
+
+.dt-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.dt-dropzone {
+  border: 2px dashed var(--beige-border);
+  border-radius: 20px;
+  padding: 30px;
+  text-align: center;
+  background: var(--input-bg);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dt-dropzone:hover {
+  border-color: var(--rose-main);
+  background: rgba(215, 128, 149, 0.05);
+}
+
+.dt-dropzone i {
+  font-size: 32px;
+  color: var(--rose-main);
+  margin-bottom: 10px;
+}
+
+.dt-dropzone div {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.dt-dropzone span {
+  color: var(--rose-main);
+  text-decoration: underline;
+}
+
+.dt-dropzone small {
+  font-size: 11px;
+  color: var(--ink-muted);
+  display: block;
+  margin-top: 4px;
+}
+
+.dt-submit-pub-btn {
+  background: var(--rose-main) !important;
+  color: #ffffff !important;
+  border: none;
+  padding: 16px;
+  border-radius: 20px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 10px 25px rgba(215, 128, 149, 0.3);
+}
+
+.dt-submit-pub-btn:hover {
+  background: var(--rose-hover) !important;
+  transform: translateY(-2px);
+}
+
+.dt-preview-sticky-box {
+  position: sticky;
+  top: 100px;
+}
+
+.preview-tag-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: var(--moss-main) !important;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.dt-pub-cta:hover {
+  background: var(--rose-hover) !important;
+}
