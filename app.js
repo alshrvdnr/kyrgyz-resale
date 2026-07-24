@@ -1184,12 +1184,17 @@ function createAdCard(ad, isProfile = false) {
   const numPrice = Number(displayPrice) || 0;
   const formattedPrice = numPrice.toLocaleString("ru-RU");
 
+  const hasImg = ad.img && ad.img[0] && String(ad.img[0]).trim() !== "";
+  const imgMediaHtml = hasImg
+    ? `<img src="${ad.img[0]}" loading="lazy" alt="${ad.title || "Букет"}">`
+    : `<div class="rb-no-img-placeholder"><i class="fa-solid fa-leaf"></i><span>Свежий букет</span></div>`;
+
   card.innerHTML = `
     <!-- Изображение и Избранное -->
     <div class="rb-card-img-box">
       ${isSold ? '<div class="sold-badge">ПРОДАНО</div>' : ""}
       ${isVip ? '<div class="vip-badge">VIP</div>' : ""}
-      <img src="${ad.img ? ad.img[0] : ""}" loading="lazy" alt="${ad.title || "Букет"}">
+      ${imgMediaHtml}
       
       ${!isProfile
         ? `
@@ -2505,15 +2510,24 @@ window.openAddForm = function (type) {
 
 // Функция мониторинга бота (Сердцебиение)
 function monitorBotStatus() {
-  // 1. Проверка прав: если не админ, выходим
-  if (currentUserRole !== "admin") return;
-
   const block = document.getElementById("admin-bot-status");
+  // 1. Проверка прав: если не админ, надежно скрываем и выходим
+  if (currentUserRole !== "admin") {
+    if (block) {
+      block.classList.add("hidden");
+      block.style.display = "none";
+    }
+    return;
+  }
+
   const dot = document.getElementById("status-dot");
   const text = document.getElementById("status-text");
   const timeLabel = document.getElementById("status-time");
 
-  if (block) block.classList.remove("hidden");
+  if (block) {
+    block.classList.remove("hidden");
+    block.style.display = "block";
+  }
 
   // 2. Слушаем метку времени из Firebase
   db.ref("settings/bot_status/last_seen").on("value", (snap) => {

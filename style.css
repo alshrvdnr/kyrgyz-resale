@@ -2100,16 +2100,17 @@ body {
 
 /* --- ДЕСКТОПНАЯ НАВИГАЦИОННАЯ ШАПКА (>= 992px) --- */
 .desktop-navbar {
-  display: none; /* Скрыто по умолчанию на мобилках */
+  display: none;
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   height: 70px;
-  background: rgba(255, 253, 251, 0.92);
+  background: var(--card) !important;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(215, 128, 149, 0.12);
+  border-bottom: 1px solid var(--beige-border);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
   z-index: 1000;
 }
 
@@ -2144,7 +2145,7 @@ body {
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 20px;
   font-weight: 800;
-  color: var(--ink);
+  color: var(--ink) !important;
   margin-left: 2px;
 }
 
@@ -2152,20 +2153,19 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #f7f3f4;
-  border: 1px solid rgba(215, 128, 149, 0.18);
+  background: var(--input-bg) !important;
+  border: 1px solid var(--beige-border) !important;
   border-radius: 30px;
   padding: 8px 16px;
   cursor: pointer;
   font-size: 13px;
   font-weight: 600;
-  color: var(--ink);
+  color: var(--ink) !important;
   transition: all 0.2s ease;
 }
 
 .dt-search-city:hover {
-  background: #f0e7e9;
-  border-color: var(--rose-main);
+  border-color: var(--rose-main) !important;
 }
 
 .dt-search-icon {
@@ -2185,7 +2185,7 @@ body {
 }
 
 .dt-nav-link {
-  color: var(--ink);
+  color: var(--ink) !important;
   text-decoration: none;
   font-size: 13.5px;
   font-weight: 600;
@@ -2194,7 +2194,7 @@ body {
 }
 
 .dt-nav-link:hover {
-  color: var(--rose-main);
+  color: var(--rose-main) !important;
 }
 
 .dt-nav-actions {
@@ -2207,20 +2207,20 @@ body {
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  border: 1px solid rgba(215, 128, 149, 0.18);
+  border: 1px solid var(--beige-border);
   background: var(--card);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--ink);
+  color: var(--ink) !important;
   font-size: 14px;
   transition: all 0.2s ease;
 }
 
 .dt-icon-btn:hover {
   background: var(--rose-light);
-  color: var(--rose-main);
+  color: var(--rose-main) !important;
 }
 
 .dt-lang-picker {
@@ -2240,13 +2240,13 @@ body {
 
 .dt-lang-opt.active,
 .dt-lang-opt:hover {
-  color: var(--ink);
-  border-bottom: 2px solid var(--ink);
+  color: var(--ink) !important;
+  border-bottom: 2px solid var(--rose-main);
 }
 
 .dt-sell-btn {
-  background: var(--ink);
-  color: #ffffff;
+  background: var(--rose-main) !important;
+  color: #ffffff !important;
   border: none;
   padding: 10px 22px;
   border-radius: 24px;
@@ -2258,21 +2258,23 @@ body {
 }
 
 .dt-sell-btn:hover {
-  background: #352a32;
+  background: var(--rose-hover) !important;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(31, 24, 29, 0.2);
+  box-shadow: 0 4px 14px rgba(215, 128, 149, 0.35);
 }
 
 /* --- ДЕСКТОПНЫЙ БАННЕР HERO --- */
 .desktop-hero-section {
-  display: none; /* Скрыто на мобильных */
+  display: none;
   position: relative;
   max-width: 1280px;
   margin: 30px auto 40px auto;
   padding: 70px 40px;
   text-align: center;
-  background: radial-gradient(ellipse at center, rgba(253, 245, 247, 0.9) 0%, rgba(255, 253, 251, 0) 75%);
+  background: var(--card) !important;
+  border: 1px solid var(--beige-border);
   border-radius: 36px;
+  box-shadow: var(--shadow-md);
   overflow: hidden;
 }
 
@@ -2303,7 +2305,7 @@ body {
 .hero-title-prefix {
   font-size: 34px;
   font-weight: 500;
-  color: var(--ink);
+  color: var(--ink) !important;
   display: block;
 }
 
@@ -2312,17 +2314,17 @@ body {
   font-style: italic;
   font-size: 58px;
   font-weight: 800;
-  color: var(--rose-main);
+  color: var(--rose-main) !important;
   margin: -6px 0 0 0;
   letter-spacing: -1px;
 }
 
 .hero-description {
   font-size: 16px;
-  color: var(--ink-muted);
+  color: var(--ink-muted) !important;
   line-height: 1.5;
   margin: 0 auto 30px auto;
-  max-width: 520px;
+  max-width: 540px;
 }
 
 .hero-cta-group {
@@ -2342,25 +2344,25 @@ body {
 }
 
 .hero-btn-dark {
-  background: var(--ink);
-  color: #ffffff;
-  box-shadow: 0 8px 24px rgba(31, 24, 29, 0.18);
+  background: var(--rose-main) !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 24px rgba(215, 128, 149, 0.25);
 }
 
 .hero-btn-dark:hover {
-  background: #352a32;
+  background: var(--rose-hover) !important;
   transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(31, 24, 29, 0.25);
+  box-shadow: 0 12px 28px rgba(215, 128, 149, 0.35);
 }
 
 .hero-btn-light {
-  background: #fff5f7;
-  color: var(--ink);
-  border: 1px solid rgba(215, 128, 149, 0.3);
+  background: var(--input-bg) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--beige-border) !important;
 }
 
 .hero-btn-light:hover {
-  background: #fcebee;
+  border-color: var(--rose-main) !important;
   transform: translateY(-2px);
 }
 
@@ -2386,7 +2388,7 @@ body {
 .section-title-center {
   font-size: 32px;
   font-weight: 800;
-  color: var(--ink);
+  color: var(--ink) !important;
   margin: 0 0 24px 0;
 }
 
@@ -2400,9 +2402,9 @@ body {
 }
 
 .city-chip-btn {
-  background: #f7f3f4;
-  border: 1px solid rgba(215, 128, 149, 0.16);
-  color: var(--ink);
+  background: var(--input-bg) !important;
+  border: 1px solid var(--beige-border) !important;
+  color: var(--ink) !important;
   padding: 9px 20px;
   border-radius: 22px;
   font-size: 13.5px;
@@ -2413,9 +2415,9 @@ body {
 
 .city-chip-btn:hover,
 .city-chip-btn.active {
-  background: var(--ink);
-  color: #ffffff;
-  border-color: var(--ink);
+  background: var(--rose-main) !important;
+  color: #ffffff !important;
+  border-color: var(--rose-main) !important;
 }
 
 /* --- ЗАГОЛОВОК СЕКЦИИ "СВЕЖИЕ БУКЕТЫ" --- */
@@ -2692,10 +2694,50 @@ body {
   }
   .listings-grid {
     grid-template-columns: repeat(2, 1fr) !important;
-    gap: 12px !important;
-    padding: 0 10px 80px 10px !important;
+    gap: 10px !important;
+    padding: 0 10px 100px 10px !important;
   }
-/* --- ПЕРВАЯ ПУБЛИКАЦИЯ БЕСПЛАТНО & КАК ЭТО РАБОТАЕТ --- */
+  .rb-card-content {
+    padding: 10px !important;
+    gap: 4px !important;
+  }
+  .rb-card-price {
+    font-size: 14.5px !important;
+    white-space: nowrap !important;
+  }
+  .rb-card-location {
+    font-size: 10px !important;
+  }
+  .rb-card-specs {
+    font-size: 12px !important;
+  }
+  .rb-card-tags {
+    font-size: 10px !important;
+  }
+  .rb-card-btn {
+    padding: 8px 10px !important;
+    font-size: 11px !important;
+    border-radius: 10px !important;
+  }
+}
+
+.rb-no-img-placeholder {
+  position: absolute;
+  inset: 0;
+  background: var(--input-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--rose-main);
+  font-size: 12px;
+  font-weight: 700;
+}
+.rb-no-img-placeholder i {
+  font-size: 28px;
+  opacity: 0.8;
+}/* --- ПЕРВАЯ ПУБЛИКАЦИЯ БЕСПЛАТНО & КАК ЭТО РАБОТАЕТ --- */
 .rewards-promo-section {
   max-width: 1280px;
   margin: 50px auto;
