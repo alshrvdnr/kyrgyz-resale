@@ -3167,3 +3167,347 @@ body {
     align-items: flex-start;
   }
 }
+
+/* --- AD DETAILS DESKTOP PAGE (RESALEBUKET EXACT REPLICA) --- */
+.desktop-product-details {
+  display: none;
+  max-width: 1280px;
+  margin: 20px auto 60px auto;
+  padding: 0 24px;
+}
+
+@media (min-width: 992px) {
+  .mobile-product-details {
+    display: none !important;
+  }
+  .desktop-product-details {
+    display: block !important;
+  }
+}
+
+.dt-breadcrumbs a {
+  color: var(--ink-muted) !important;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-block;
+  margin-bottom: 20px;
+  transition: color 0.2s ease;
+}
+
+.dt-breadcrumbs a:hover {
+  color: var(--rose-main) !important;
+}
+
+.dt-details-main-grid {
+  display: grid;
+  grid-template-columns: 1fr 500px;
+  gap: 36px;
+  align-items: start;
+}
+
+.dt-gallery-box {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dt-large-img-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 4.2;
+  border-radius: 28px;
+  overflow: hidden;
+  background: var(--input-bg);
+  box-shadow: 0 12px 35px rgba(69, 51, 64, 0.08);
+}
+
+.dt-large-img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dt-watermark {
+  position: absolute;
+  bottom: 14px;
+  right: 18px;
+  font-size: 11px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(0, 0, 0, 0.35);
+  padding: 4px 10px;
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+}
+
+.dt-thumbs-strip {
+  display: flex;
+  gap: 12px;
+}
+
+.dt-thumb {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  opacity: 0.7;
+}
+
+.dt-thumb.active,
+.dt-thumb:hover {
+  border-color: var(--rose-main) !important;
+  opacity: 1;
+}
+
+.dt-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dt-tree-card-frame {
+  background: var(--card) !important;
+  border: 1px solid var(--beige-border) !important;
+  border-radius: 32px;
+  padding: 32px;
+  box-shadow: 0 10px 40px rgba(69, 51, 64, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+}
+
+.dt-details-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dt-head-title {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-size: 42px;
+  font-weight: 800;
+  color: var(--moss-main) !important;
+  margin: 0;
+}
+
+.dt-fav-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--input-bg);
+  border: 1px solid var(--beige-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--ink-muted);
+  font-size: 18px;
+  transition: all 0.2s ease;
+}
+
+.dt-fav-icon.active {
+  color: #ff3b30 !important;
+  background: rgba(255, 59, 48, 0.1) !important;
+  border-color: rgba(255, 59, 48, 0.3) !important;
+}
+
+.dt-spec-card {
+  background: var(--input-bg) !important;
+  border: 1px solid var(--beige-border) !important;
+  border-radius: 20px;
+  padding: 18px 20px;
+}
+
+.dt-spec-tag {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: var(--moss-main) !important;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.dt-spec-price {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--ink) !important;
+}
+
+.dt-spec-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.spec-pill {
+  padding: 6px 12px;
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pill-green {
+  background: rgba(76, 217, 100, 0.12);
+  color: #2b9e3f;
+}
+
+.pill-gray {
+  background: var(--card) !important;
+  border: 1px solid var(--beige-border) !important;
+  color: var(--ink) !important;
+}
+
+.seller-action-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dt-seller-notice {
+  font-size: 12px;
+  color: var(--ink-muted) !important;
+  margin: 0 0 4px 0;
+}
+
+.dt-act-btn {
+  width: 100%;
+  padding: 13px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 13.5px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.dark-btn {
+  background: var(--ink) !important;
+  color: #ffffff !important;
+}
+
+.dark-btn:hover {
+  background: var(--rose-main) !important;
+}
+
+.light-btn {
+  background: var(--card) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--beige-border) !important;
+}
+
+.light-btn:hover {
+  border-color: var(--rose-main) !important;
+}
+
+.muted-btn {
+  background: rgba(0, 0, 0, 0.04) !important;
+  color: var(--ink-muted) !important;
+}
+
+.dt-inactive-link {
+  font-size: 12px;
+  color: var(--ink-muted) !important;
+  text-decoration: underline;
+  text-align: center;
+  display: block;
+  margin-top: 4px;
+}
+
+.dt-flower-tags-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.flower-chip {
+  background: var(--card) !important;
+  border: 1px solid var(--beige-border) !important;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink) !important;
+}
+
+.dt-seller-comment {
+  font-size: 13.5px;
+  color: var(--ink) !important;
+  line-height: 1.5;
+}
+
+.dt-seller-comment strong {
+  display: block;
+  font-size: 11px;
+  color: var(--ink-muted) !important;
+  margin-bottom: 4px;
+}
+
+.dt-transfer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.sub-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--ink-muted) !important;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.sub-val {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink) !important;
+}
+
+.dt-actions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--beige-border);
+}
+
+.dt-actions-bar button {
+  background: var(--card) !important;
+  border: 1px solid var(--beige-border) !important;
+  color: var(--ink) !important;
+  padding: 10px 18px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.dt-actions-bar button:hover {
+  border-color: var(--rose-main) !important;
+  color: var(--rose-main) !important;
+}
+
+.dt-pub-cta {
+  background: var(--rose-main) !important;
+  color: #ffffff !important;
+  margin-left: auto;
+}
+
+.dt-pub-cta:hover {
+  background: var(--rose-hover) !important;
+}

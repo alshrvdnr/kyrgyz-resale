@@ -1155,196 +1155,205 @@ function createAdCard(ad, isProfile = false) {
   // А: БЛОК ДЛЯ АДМИНИСТРАТОРА (Виден тебе на любой карточке в приложении)
   if (currentUserRole === "admin") {
     managementHtml += `
-      <div style="margin-top:10px; padding-top:10px; border-top:1px dashed rgba(255,255,255,0.2);">
-        <div style="font-size:10px; color:#ff3b30; margin-bottom:5px; font-family:monospace; font-weight:bold;">
-          ID ПРОДАВЦА: <code>${ad.userId}</code>
-        </div>
-        <button onclick="event.stopPropagation(); adminDeleteAd('${ad.id}')" 
-                style="width:100%; background:#ff3b30; color:#fff; border:none; padding:8px; border-radius:8px; font-size:10px; font-weight:bold; cursor:pointer; text-transform:uppercase;">
-          УДАЛИТЬ (АДМИН)
-        </button>
-      </div>
-    `;
-  }
+      <div style="margin-top:10px; padding-top:10px; border-top:1px dashed rgba(255,2    const imgList = (ad.img && Array.isArray(ad.img) && ad.img.length > 0) ? ad.img : [];
+    const mainImg = imgList[0] || "";
 
-  // Б: БЛОК ДЛЯ ОБЫЧНОГО ПОЛЬЗОВАТЕЛЯ (Только в его личном профиле)
-  // Показываем желтую кнопку "Управление", только если роль - user и мы в профиле
-  else if (isProfile && currentUserRole === "user" && ad.status === "active") {
-    managementHtml += `
-      <button onclick="event.stopPropagation(); openManageModal('${ad.id}')" 
-              style="width:100%; background:var(--yellow-main); color:#000; border:none; padding:10px; border-radius:10px; font-size:11px; font-weight:900; margin-top:10px; cursor:pointer;">
-        УПРАВЛЕНИЕ
-      </button>
-    `;
-  }
-
-  // 5. СБОРКА ВНУТРЕННЕГО HTML КАРТОЧКИ (С ТИЛЕМ RESALEBUKET.KZ)
-  const timeVal = ad.approvedAt || ad.createdAt;
-  const relDateText = typeof formatRelativeDate === "function" ? formatRelativeDate(timeVal) : "Сегодня";
-  const numPrice = Number(displayPrice) || 0;
-  const formattedPrice = numPrice.toLocaleString("ru-RU");
-
-  const hasImg = ad.img && ad.img[0] && String(ad.img[0]).trim() !== "";
-  const imgMediaHtml = hasImg
-    ? `<img src="${ad.img[0]}" loading="lazy" decoding="async" onload="this.classList.add('loaded')" alt="${ad.title || "Букет"}">`
-    : `<div class="rb-no-img-placeholder"><i class="fa-solid fa-leaf"></i><span>Свежий букет</span></div>`;
-
-  card.innerHTML = `
-    <!-- Изображение и Избранное -->
-    <div class="rb-card-img-box">
-      ${isSold ? '<div class="sold-badge">ПРОДАНО</div>' : ""}
-      ${isVip ? '<div class="vip-badge">VIP</div>' : ""}
-      ${imgMediaHtml}
-      
-      ${!isProfile
-        ? `
-        <div class="rb-fav-heart-btn ${isFav ? "active" : ""}" 
-             onclick="toggleFav('${ad.id}', event)" title="В избранное">
-          <i class="fa-solid fa-heart"></i>
-        </div>`
-        : ""
-      }
-    </div>
-
-    <!-- Текстовый контент -->
-    <div class="rb-card-content">
-      <!-- Строка Цены и Локации -->
-      <div class="rb-card-price-row">
-        <div class="rb-card-price">${formattedPrice} KGS</div>
-        <div class="rb-card-location">
-          <i class="fa-solid fa-location-dot" style="color: var(--rose-main); font-size: 10px;"></i>
-          <span>${ad.city || "Бишкек"}</span>
-        </div>
-      </div>
-
-      <!-- Бейдж свежести -->
-      ${!isSold ? `
-        <div class="rb-status-tag">
-          <span class="${relDateText === 'Сегодня' ? 'rb-status-dot-green' : 'rb-status-dot-yellow'}"></span>
-          Получен ${relDateText.toLowerCase()}
-        </div>
-      ` : ""}
-
-      <!-- Название / Цветы -->
-      <div class="rb-card-specs">
-        ${ad.flowerCount ? ad.flowerCount + ' цветов' : (ad.title || "Свежий букет")}
-      </div>
-
-      <!-- Мета-теги -->
-      <div class="rb-card-tags">
-        <span>Можно забрать сегодня</span>
-        <span>•</span>
-        <span>${ad.cat === 'flowers' ? 'Розы' : 'Подарок'}</span>
-      </div>
-
-      <!-- Кнопка действия -->
-      <button class="rb-card-btn">
-        Смотреть букет <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 11px;"></i>
-      </button>
-
-      <!-- Блок управления (Админ/Юзер) -->
-      ${managementHtml}
-    </div>
-  `;
-
-  return card;
-}
-
-// Вспомогательная функция для админа
-window.adminDeleteAd = async function (adId) {
-  if (
-    !confirm(
-      "Внимание! Вы удаляете чужое объявление. Отправить запрос боту на удаление?"
-    )
-  )
-    return;
-  try {
-    // Пишем запрос в специальную папку, которую бот проверяет
-    await db.ref("management_requests").push({
-      adId: adId,
-      action: "delete",
-      userId: tg.initDataUnsafe?.user?.id || 0,
-      processed: false,
-      timestamp: Date.now(),
-    });
-    alert(
-      "Запрос отправлен боту! Пост исчезнет из всех каналов и с сайта в течение 20 секунд."
-    );
-  } catch (e) {
-    alert("Ошибка отправки запроса: " + e.message);
-  }
-};
-
-// 6. МОДАЛКА И КОНТАКТЫ
-function openProduct(ad) {
-  // 1. ПЕРВИЧНАЯ ПРОВЕРКА
-  // Если данных нет, выходим, чтобы не вызвать ошибку
-  if (!ad) {
-    console.error("Ошибка: Данные объявления не получены");
-    return;
-  }
-
-  const modal = document.getElementById("product-modal");
-  const pvContent = document.getElementById("pv-content");
-
-  if (!modal || !pvContent) return;
-
-  try {
-    // 2. ПОДГОТОВКА ДАННЫХ (с защитой от пустых полей)
-    const isSold = ad.status === "sold";
-    const isFav = favs.includes(ad.id);
-    const isVerified = ad.verified === true;
-
-    // Проверка прав админа (по роли или по ID из конфига)
-    const isAdmin =
-      currentUserRole === "admin" || tg.initDataUnsafe?.user?.id == MY_ADMIN_ID;
-
-    // Безопасные переменные (подставляем заглушки, если данных нет в базе)
-    const price = ad.price || "0";
-    const title = ad.title || "Без названия";
-    const categoryName = catMap[ad.cat] || "Товар";
-    const description = ad.desc || "Описание не указано";
-    const city = ad.city || "Город не указан";
-    const address = ad.address || "—";
-    const phone = ad.phone || ad.whatsapp || "—";
-    const telegramNick = ad.tgNick || "";
-    const receiveDate = ad.receiveDate || "—";
-
-    // Защита от ошибки .toUpperCase() если поля tariff нет
-    const tariff = (ad.tariff || "standard").toUpperCase();
-
-    const displayDate =
-      typeof formatRelativeDate === "function"
-        ? formatRelativeDate(ad.approvedAt || ad.createdAt)
-        : "Недавно";
-
-    // Формируем ссылку для связи
-    let contactLink = telegramNick
-      ? `https://t.me/${telegramNick.replace("@", "")}`
-      : `https://wa.me/${phone.replace(/[^0-9]/g, "")}`;
-
-    // 3. ГЕНЕРАЦИЯ ТОЧЕК КАРУСЕЛИ
-    let dots = "";
-    if (ad.img && Array.isArray(ad.img)) {
-      dots = ad.img
-        .map(
-          (_, i) => `
-        <div class="dot ${i === 0 ? "active" : ""}" id="dot-${ad.id
-            }-${i}"></div>
-      `
-        )
-        .join("");
-    }
-
-    // 4. СБОРКА HTML
+    // 4. СБОРКА HTML (МОБИЛЬНЫЙ + ДЕСКТОПНЫЙ ВАРТИАНТ RESALEBUKET)
     pvContent.innerHTML = `
-      <div class="modal-carousel-container">
-        <!-- Кнопка закрытия -->
-        <i class="fa fa-arrow-left" onclick="closeProduct()" style="position:absolute; top:20px; left:20px; z-index:100; background:rgba(0,0,0,0.5); padding:10px; border-radius:50%; color:#fff; cursor:pointer;"></i>
-        
-        <!-- Кнопка Избранное -->
-        <i class="fa-solid fa-heart" onclick="toggleFav('${ad.id
-      }')" style="position:absolute; top:20px; right:20px; z-index:100; font-size:24px; color:${isFav ? "var(--yellow-main)" : "#fff"
+      <!-- МОБИЛЬНЫЙ ВАРИАНТ (ТОЛЬКО ДЛЯ ТЕЛЕФОНОВ) -->
+      <div class="mobile-product-details">
+        <div class="modal-carousel-container">
+          <!-- Кнопка закрытия -->
+          <i class="fa fa-arrow-left" onclick="closeProduct()" style="position:absolute; top:20px; left:20px; z-index:100; background:rgba(0,0,0,0.5); padding:10px; border-radius:50%; color:#fff; cursor:pointer;"></i>
+          
+          <!-- Кнопка Избранное -->
+          <i class="fa-solid fa-heart" onclick="toggleFav('${ad.id}')" style="position:absolute; top:20px; right:20px; z-index:100; font-size:24px; color:${isFav ? "var(--rose-main)" : "#fff"}; cursor:pointer;"></i>
+
+          <!-- Слайдер картинок -->
+          <div class="product-gallery-slider" id="slider-${ad.id}">
+            ${imgList.length > 0
+              ? imgList.map((src) => `<img src="${src}" alt="product">`).join("")
+              : '<div style="display:flex; align-items:center; justify-content:center; height:100%; color:gray;">Нет фото</div>'
+            }
+          </div>
+          <div class="carousel-dots">${dots}</div>
+        </div>
+
+        <div style="padding:20px;">
+          <!-- БЛОК ЦЕНЫ И ДАТЫ -->
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
+            <div style="font-size:28px; font-weight:800; color:var(--ink);">${price} KGS</div>
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:5px;">
+              <div style="color:var(--ink-muted); font-size:11px;">${displayDate}</div>
+              <div style="font-size:11px; color:#4cd964; font-weight:bold; background:rgba(76,217,100,0.1); padding:4px 8px; border-radius:6px;">
+                 Поступление: ${receiveDate}
+              </div>
+            </div>
+          </div>
+
+          <!-- НАЗВАНИЕ И КАТЕГОРИЯ -->
+          <div style="margin-bottom:20px; font-size:18px; font-weight:700; color:var(--ink);">
+            <b>${categoryName}</b> — ${title} ${isVerified ? "🔵" : ""}
+          </div>
+
+          <!-- БАННЕР БЕЗОПАСНОСТИ -->
+          <div style="background: rgba(255, 59, 48, 0.1); border: 1px solid #ff3b30; border-radius: 15px; padding: 15px; margin-bottom: 25px; display: flex; gap: 12px; align-items: center;">
+            <i class="fa-solid fa-shield-halved" style="color: #ff3b30; font-size: 22px;"></i>
+            <div style="font-size: 13px; color: var(--ink); line-height: 1.4;">
+              <b>БЕЗОПАСНОСТЬ:</b> Никогда не отправляйте предоплату! Старайтесь проверять товар при личной встрече.
+            </div>
+          </div>
+          
+          <!-- КНОПКА СВЯЗИ ИЛИ СТАТУС ПРОДАНО -->
+          ${isSold
+            ? `<div style="background:#333; padding:18px; border-radius:15px; color:#ff3b30; text-align:center; font-weight:800; margin-bottom:20px; text-transform:uppercase;">Продано</div>`
+            : `<a href="${contactLink}" target="_blank" class="dt-act-btn dark-btn" style="text-decoration:none; margin-bottom:20px; display:flex;">Написать продавцу</a>`
+          }
+
+          <!-- ОПИСАНИЕ -->
+          <div style="background:var(--input-bg); padding:15px; border-radius:12px; margin-bottom:25px; white-space: pre-wrap; font-size:15px; color:var(--ink); line-height:1.5; border:1px solid var(--beige-border);">
+            ${description}
+          </div>
+
+          <!-- КОНТАКТНАЯ ИНФОРМАЦИЯ -->
+          <div style="background:var(--card); padding:18px; border-radius:15px; border:1px solid var(--beige-border); display:flex; flex-direction:column; gap:15px;">
+             <div style="display:flex; align-items:center; gap:12px;">
+                <i class="fa-solid fa-location-dot" style="color:var(--rose-main); font-size:18px; width:20px; text-align:center;"></i>
+                <div style="font-size:14px; color:var(--ink);">${city}, ${address}</div>
+             </div>
+             <div style="display:flex; align-items:center; gap:12px;">
+                <i class="fa-solid fa-phone" style="color:var(--rose-main); font-size:16px; width:20px; text-align:center;"></i>
+                <div style="font-size:14px; color:var(--ink);">${phone}</div>
+             </div>
+             ${telegramNick
+               ? `
+                 <div style="display:flex; align-items:center; gap:12px;">
+                    <i class="fa-brands fa-telegram" style="color:#0088cc; font-size:20px; width:20px; text-align:center;"></i>
+                    <div style="font-size:14px; color:var(--ink);">${telegramNick}</div>
+                 </div>
+               `
+               : ""
+             }
+          </div>
+          
+          <!-- КНОПКА ЖАЛОБЫ -->
+          <div onclick="reportAd('${ad.id}', '${ad.userId}')" style="background:rgba(215,128,149,0.1); color:var(--rose-main); border:1px solid rgba(215,128,149,0.3); padding:12px; border-radius:12px; text-align:center; font-size:13px; font-weight:bold; cursor:pointer; margin-top:25px;">
+            Пожаловаться на мошенника
+          </div>
+        </div>
+      </div>
+
+      <!-- ДЕСКТОПНЫЙ ВАРИАНТ (ПОДЛИННЫЙ ВИД RESALEBUKET) -->
+      <div class="desktop-product-details">
+        <div class="dt-breadcrumbs">
+          <a href="#" onclick="closeProduct(); return false;">&larr; Букеты в ${city}</a>
+        </div>
+
+        <div class="dt-details-main-grid">
+          <!-- Левая колонка: Фото с галереей миниатюр -->
+          <div class="dt-gallery-box">
+            <div class="dt-large-img-wrapper">
+              <img id="dt-main-photo-${ad.id}" src="${mainImg}" alt="${title}">
+              <span class="dt-watermark">resalebuket.kg</span>
+            </div>
+
+            ${imgList.length > 1 ? `
+              <div class="dt-thumbs-strip">
+                ${imgList.map((src, i) => `
+                  <div class="dt-thumb ${i === 0 ? 'active' : ''}" onclick="switchDtPhoto('${src}', this, '${ad.id}')">
+                    <img src="${src}" alt="thumb">
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Правая колонка: Карточки товара в рамке дерева -->
+          <div class="dt-details-info-box">
+            <div class="dt-tree-card-frame">
+              <!-- Заголовок и Сердечко -->
+              <div class="dt-details-head">
+                <h1 class="dt-head-title">${title}</h1>
+                <div class="dt-fav-icon ${isFav ? 'active' : ''}" onclick="toggleFav('${ad.id}', event)">
+                  <i class="fa-solid fa-heart"></i>
+                </div>
+              </div>
+
+              <!-- Блок ЦЕНА -->
+              <div class="dt-spec-card">
+                <span class="dt-spec-tag">ЦЕНА</span>
+                <div class="dt-spec-price">${price} KGS</div>
+              </div>
+
+              <!-- Блок СОСТОЯНИЕ -->
+              <div class="dt-spec-card">
+                <span class="dt-spec-tag">СОСТОЯНИЕ</span>
+                <div class="dt-spec-pills">
+                  <span class="spec-pill pill-green">● Получен сегодня</span>
+                  <span class="spec-pill pill-gray">⏱ Активно ещё 3 дн.</span>
+                  <span class="spec-pill pill-gray">💐 ${ad.flowerCount || 31} цветок</span>
+                  <span class="spec-pill pill-gray">📍 ${city}</span>
+                </div>
+              </div>
+
+              <!-- Блок СВЯЗАТЬСЯ С ПРОДАВЦОМ -->
+              <div class="dt-spec-card seller-action-card">
+                <span class="dt-spec-tag">СВЯЗАТЬСЯ С ПРОДАВЦОМ</span>
+                <p class="dt-seller-notice">resalebuket.kg не участвует в оплате и передаче букета.</p>
+
+                <button class="dt-act-btn dark-btn" onclick="showSellerContact('${phone}', '${telegramNick}')">
+                  <i class="fa-solid fa-eye"></i> Показать контакты продавца
+                </button>
+                <button class="dt-act-btn light-btn" onclick="window.open('${contactLink}', '_blank')">
+                  <i class="fa-solid fa-calendar"></i> Забронировать
+                </button>
+                <button class="dt-act-btn muted-btn" onclick="window.open('${contactLink}', '_blank')">
+                  Букет ещё актуален?
+                </button>
+                <a href="#" class="dt-inactive-link" onclick="reportAd('${ad.id}', '${ad.userId}'); return false;">Объявление неактуально?</a>
+              </div>
+
+              <!-- Блок О БУКЕТЕ -->
+              <div class="dt-spec-card">
+                <span class="dt-spec-tag">О БУКЕТЕ</span>
+                <div class="dt-flower-tags-row">
+                  <span class="flower-chip">Розы</span>
+                  <span class="flower-chip">Можно забрать сегодня</span>
+                </div>
+                <div class="dt-seller-comment">
+                  <strong>КОММЕНТАРИЙ ПРОДАВЦА:</strong>
+                  <p>${description}</p>
+                </div>
+              </div>
+
+              <!-- Блок ПЕРЕДАЧА -->
+              <div class="dt-spec-card">
+                <span class="dt-spec-tag">ПЕРЕДАЧА</span>
+                <div class="dt-transfer-grid">
+                  <div>
+                    <span class="sub-label">ОРИЕНТИР</span>
+                    <div class="sub-val">${address}</div>
+                  </div>
+                  <div>
+                    <span class="sub-label">ПЕРЕДАЧА</span>
+                    <div class="sub-val">Можно забрать сегодня</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Нижний ряд кнопок действий -->
+        <div class="dt-actions-bar">
+          <button onclick="copyProductLink()"><i class="fa-solid fa-link"></i> Скопировать ссылку</button>
+          <button onclick="reportAd('${ad.id}', '${ad.userId}')"><i class="fa-solid fa-flag"></i> Пожаловаться</button>
+          <button onclick="openTgSupport()"><i class="fa-brands fa-telegram"></i> Telegram</button>
+          <button onclick="shareProduct('${title}')"><i class="fa-solid fa-share-nodes"></i> Поделиться</button>
+          <button class="dt-pub-cta" onclick="closeProduct(); showPage('add');"><i class="fa-solid fa-traffic-light" style="color:#4cd964"></i> Разместить объявление</button>
+        </div>
+      </div>
+    `;ze:24px; color:${isFav ? "var(--yellow-main)" : "#fff"
       }; cursor:pointer;"></i>
 
         <!-- Слайдер картинок -->
@@ -3102,6 +3111,31 @@ window.scrollToHowItWorks = function (e) {
     sec.scrollIntoView({ behavior: "smooth" });
   } else {
     showPage("home");
+  }
+};
+
+window.switchDtPhoto = function (src, el, adId) {
+  const mainImg = document.getElementById("dt-main-photo-" + adId);
+  if (mainImg) mainImg.src = src;
+  document.querySelectorAll(".dt-thumb").forEach((i) => i.classList.remove("active"));
+  if (el) el.classList.add("active");
+};
+
+window.showSellerContact = function (phone, tgNick) {
+  const text = `Контакты продавца:\n\n📱 Телефон / WhatsApp: ${phone}\n✈️ Telegram: ${tgNick || "не указан"}`;
+  alert(text);
+};
+
+window.copyProductLink = function () {
+  navigator.clipboard.writeText(window.location.href);
+  alert("Ссылка на объявление скопирована!");
+};
+
+window.shareProduct = function (title) {
+  if (navigator.share) {
+    navigator.share({ title: title, url: window.location.href });
+  } else {
+    copyProductLink();
   }
 };
 
