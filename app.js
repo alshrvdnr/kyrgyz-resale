@@ -1666,26 +1666,53 @@ async function compressImage(file, maxWidth = 1080, quality = 0.8) {
   });
 }
 
+function fileToDataURL(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target.result);
+    reader.onerror = () => resolve(null);
+    reader.readAsDataURL(file);
+  });
+}
+
 async function uploadFile(file) {
   if (!file) return null;
+  if (typeof file === "string" && (file.startsWith("data:") || file.startsWith("http"))) {
+    return file;
+  }
+
   try {
-    // 1. Автоматическое сжатие (8MB -> ~150KB) для моментальной загрузки
-    const compressedFile = await compressImage(file);
-    const fileName = Date.now() + "_" + Math.random().toString(36).substring(7) + ".jpg";
-    const storageRef = firebase.storage().ref("ads/" + fileName);
+    // 1. Автоматическое сжатие (1080px, ~100KB)
+    const compressedFile = await compressImage(file, 1080, 0.75);
 
-    const metadata = {
-      contentType: "image/jpeg",
-      cacheControl: "public,max-age=31536000",
-    };
+    // 2. Пробуем загрузить в Firebase Storage
+    try {
+      if (window.firebase && firebase.storage) {
+        const fileName = Date.now() + "_" + Math.random().toString(36).substring(7) + ".jpg";
+        const storageRef = firebase.storage().ref("ads/" + fileName);
+        const metadata = {
+          contentType: "image/jpeg",
+          cacheControl: "public,max-age=31536000",
+        };
 
-    const snapshot = await storageRef.put(compressedFile, metadata);
-    const url = await snapshot.ref.getDownloadURL();
-    console.log("Файл загружен и оптимизирован:", url);
-    return url;
+        const snapshot = await storageRef.put(compressedFile, metadata);
+        const url = await snapshot.ref.getDownloadURL();
+        if (url) {
+          console.log("Файл успешно загружен в Firebase Storage:", url);
+          return url;
+        }
+      }
+    } catch (storageErr) {
+      console.warn("Storage недоступен или выдал ошибку, переключаемся на резервный DataURL:", storageErr);
+    }
+
+    // 3. Резервный надежный вариант: превращаем сжатое фото в DataURL
+    const dataUrl = await fileToDataURL(compressedFile);
+    console.log("Файл сжат и конвертирован в резервный DataURL");
+    return dataUrl;
   } catch (e) {
-    console.error("Ошибка загрузки в Storage:", e);
-    return null;
+    console.error("Ошибка при обработке фото:", e);
+    return await fileToDataURL(file);
   }
 }
 
