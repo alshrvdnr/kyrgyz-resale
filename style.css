@@ -115,6 +115,15 @@ body {
   min-height: 100vh;
 }
 
+@media (min-width: 992px) {
+  #page-add,
+  #page-favs,
+  #page-profile,
+  #page-shops {
+    padding-top: 100px !important;
+  }
+}
+
 /* Glassmorphic Header */
 .main-header {
   position: fixed !important;
