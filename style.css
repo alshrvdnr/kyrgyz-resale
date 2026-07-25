@@ -2124,21 +2124,23 @@ body {
 }
 
 .dt-navbar-inner {
-  max-width: 1280px;
+  max-width: 1400px;
   height: 100%;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 12px;
+  flex-wrap: nowrap;
 }
 
 .dt-brand {
   cursor: pointer;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   user-select: none;
+  flex-shrink: 0;
 }
 
 .dt-brand-serif {
@@ -2166,13 +2168,14 @@ body {
   text-transform: lowercase;
   color: var(--ink-muted) !important;
   opacity: 0.5;
-  margin-left: 10px;
+  margin-left: 8px;
   background: transparent !important;
   border: none !important;
   padding: 0;
   display: inline-block;
   vertical-align: middle;
   user-select: none;
+  flex-shrink: 0;
 }
 
 .since-badge-footer {
@@ -2192,16 +2195,17 @@ body {
 .dt-search-city {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background: var(--input-bg) !important;
   border: 1px solid var(--beige-border) !important;
   border-radius: 30px;
-  padding: 8px 16px;
+  padding: 8px 14px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--ink) !important;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .dt-search-city:hover {
@@ -2210,7 +2214,7 @@ body {
 
 .dt-search-icon {
   color: var(--ink-muted);
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .dt-chevron-icon {
@@ -2221,13 +2225,14 @@ body {
 .dt-nav-menu {
   display: flex;
   align-items: center;
-  gap: 22px;
+  gap: 14px;
+  flex-shrink: 1;
 }
 
 .dt-nav-link {
   color: var(--ink) !important;
   text-decoration: none;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 600;
   transition: color 0.2s ease;
   white-space: nowrap;
@@ -2240,12 +2245,13 @@ body {
 .dt-nav-actions {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 .dt-icon-btn {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   border: 1px solid var(--beige-border);
   background: var(--card);
@@ -2254,8 +2260,9 @@ body {
   align-items: center;
   justify-content: center;
   color: var(--ink) !important;
-  font-size: 14px;
+  font-size: 13px;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .dt-icon-btn:hover {
@@ -2265,11 +2272,12 @@ body {
 
 .dt-lang-picker {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   font-size: 12px;
   font-weight: 700;
   color: var(--ink-muted);
   user-select: none;
+  flex-shrink: 0;
 }
 
 .dt-lang-opt {
@@ -2288,19 +2296,40 @@ body {
   background: var(--rose-main) !important;
   color: #ffffff !important;
   border: none;
-  padding: 10px 22px;
+  padding: 9px 20px;
   border-radius: 24px;
   font-weight: 700;
   font-size: 13px;
   cursor: pointer;
   transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .dt-sell-btn:hover {
   background: var(--rose-hover) !important;
   transform: translateY(-1px);
   box-shadow: 0 4px 14px rgba(215, 128, 149, 0.35);
+}
+
+@media (min-width: 992px) and (max-width: 1240px) {
+  .dt-nav-menu {
+    gap: 8px;
+  }
+  .dt-nav-link {
+    font-size: 12px;
+  }
+  .since-badge {
+    display: none;
+  }
+  .dt-search-city {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  .dt-sell-btn {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
 }
 
 /* --- ДЕСКТОПНЫЙ БАННЕР HERO --- */
