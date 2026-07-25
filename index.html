@@ -311,6 +311,29 @@
             </div>
           </div>
         </div>
+      </section>
+
+      <!-- СЕКЦИЯ "ОТЗЫВЫ ПРОДАВЦОВ" (3D COVERFLOW SLIDER) -->
+      <section class="reviews-3d-section">
+        <h2 class="reviews-title-serif">Отзывы продавцов</h2>
+        
+        <div class="reviews-carousel-wrapper">
+          <button class="reviews-nav-btn prev-btn" onclick="rotateReviews(-1)" aria-label="Предыдущий отзыв">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          
+          <div class="reviews-track-container" id="reviews-track-container">
+            <div class="reviews-track" id="reviews-track">
+              <!-- Карточки отзывов генерируются динамически из 100 отзывов в JS -->
+            </div>
+          </div>
+          
+          <button class="reviews-nav-btn next-btn" onclick="rotateReviews(1)" aria-label="Следующий отзыв">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+      </section>
+
       <!-- СЕКЦИЯ "ЧТО ИМЕННО ВЫ ОПЛАЧИВАЕТЕ" -->
       <section class="payment-info-section">
         <div class="payment-info-container">
