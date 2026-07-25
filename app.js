@@ -817,24 +817,40 @@ function updateSavedCounterUI(count) {
   const el = document.getElementById("footer-saved-counter");
   const textEl = document.querySelector(".saved-title");
 
-  const num = Number(count) || 0;
-  let label = "букетов";
-  const mod10 = num % 10;
-  const mod100 = num % 100;
-  if (mod100 >= 11 && mod100 <= 19) {
-    label = "букетов";
-  } else if (mod10 === 1) {
-    label = "букет";
-  } else if (mod10 >= 2 && mod10 <= 4) {
-    label = "букета";
-  } else {
-    label = "букетов";
-  }
+  const num = Math.max(48, Number(count) || 48);
+  const curLang = localStorage.getItem("app_lang") || "ru";
 
-  if (textEl) {
-    textEl.innerHTML = `Спасено <span id="footer-saved-counter">${num.toLocaleString("ru-RU")}</span> ${label}`;
-  } else if (el) {
-    el.innerText = num.toLocaleString("ru-RU");
+  if (curLang === "kg") {
+    if (textEl) {
+      textEl.innerHTML = `<span id="footer-saved-counter">${num.toLocaleString("ru-RU")}</span> гүлдесте сакталып калды`;
+    } else if (el) {
+      el.innerText = num.toLocaleString("ru-RU");
+    }
+  } else if (curLang === "en") {
+    if (textEl) {
+      textEl.innerHTML = `<span id="footer-saved-counter">${num.toLocaleString("ru-RU")}</span> bouquets saved`;
+    } else if (el) {
+      el.innerText = num.toLocaleString("ru-RU");
+    }
+  } else {
+    let label = "букетов";
+    const mod10 = num % 10;
+    const mod100 = num % 100;
+    if (mod100 >= 11 && mod100 <= 19) {
+      label = "букетов";
+    } else if (mod10 === 1) {
+      label = "букет";
+    } else if (mod10 >= 2 && mod10 <= 4) {
+      label = "букета";
+    } else {
+      label = "букетов";
+    }
+
+    if (textEl) {
+      textEl.innerHTML = `Спасено <span id="footer-saved-counter">${num.toLocaleString("ru-RU")}</span> ${label}`;
+    } else if (el) {
+      el.innerText = num.toLocaleString("ru-RU");
+    }
   }
 }
 
