@@ -607,10 +607,10 @@ window.switchProfileTab = function (t) {
 // Оживляем переключение страниц
 window.showPage = function (p) {
   console.log("Переход на страницу:", p);
+  window.scrollTo({ top: 0, behavior: "smooth" });
 
   // ПРОВЕРКА НА ТЕХНИЧЕСКИЕ РАБОТЫ (KILL SWITCH)
   if (p === "add" && maintenanceMode && currentUserRole !== "admin") {
-    // Админам разрешаем заходить, остальным - показываем заглушку
     const mAlert = document.getElementById("maintenance-alert");
     if (mAlert) mAlert.classList.remove("hidden");
     return;
@@ -847,7 +847,11 @@ function initSavedCounter(allAdsArray = []) {
   }
 
   db.ref("stats/saved_count").on("value", (snapshot) => {
-    const dbExtra = snapshot.val() || 0;
+    let dbExtra = snapshot.val();
+    if (dbExtra === null || dbExtra === undefined) {
+      db.ref("stats/saved_count").set(48);
+      dbExtra = 48;
+    }
     const totalSaved = soldOrDeletedCount + Number(dbExtra);
     updateSavedCounterUI(totalSaved);
   });
