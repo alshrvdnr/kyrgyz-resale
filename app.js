@@ -817,7 +817,7 @@ function updateSavedCounterUI(count) {
   const el = document.getElementById("footer-saved-counter");
   const textEl = document.querySelector(".saved-title");
 
-  const num = Math.max(48, Number(count) || 48);
+  const num = Math.max(2000, Number(count) || 2000);
   const curLang = localStorage.getItem("app_lang") || "ru";
 
   if (curLang === "kg") {
@@ -864,9 +864,9 @@ function initSavedCounter(allAdsArray = []) {
 
   db.ref("stats/saved_count").on("value", (snapshot) => {
     let dbExtra = snapshot.val();
-    if (dbExtra === null || dbExtra === undefined) {
-      db.ref("stats/saved_count").set(48);
-      dbExtra = 48;
+    if (dbExtra === null || dbExtra === undefined || Number(dbExtra) < 2000) {
+      db.ref("stats/saved_count").set(2000);
+      dbExtra = 2000;
     }
     const totalSaved = soldOrDeletedCount + Number(dbExtra);
     updateSavedCounterUI(totalSaved);

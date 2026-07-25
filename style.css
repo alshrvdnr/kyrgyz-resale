@@ -2149,6 +2149,38 @@ body {
   margin-left: 2px;
 }
 
+.since-badge {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  background: rgba(215, 128, 149, 0.12);
+  color: var(--rose-main);
+  padding: 3px 9px;
+  border-radius: 20px;
+  border: 1px solid rgba(215, 128, 149, 0.25);
+  margin-left: 10px;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+
+.since-badge-footer {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 3px 9px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  margin-left: 10px;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+
 .dt-search-city {
   display: flex;
   align-items: center;
