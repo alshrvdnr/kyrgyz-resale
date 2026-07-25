@@ -1243,15 +1243,42 @@ function createAdCard(ad, isProfile = false) {
     `;
   }
 
-  // 5. СБОРКА ВНУТРЕННЕГО HTML КАРТОЧКИ (С ТИЛЕМ RESALEBUKET.KZ)
+  // 5. СБОРКА ВНУТРЕННЕГО HTML КАРТОЧКИ (С СТИЛЕМ RESALEBUKET.KZ)
   const timeVal = ad.approvedAt || ad.createdAt;
   const relDateText = typeof formatRelativeDate === "function" ? formatRelativeDate(timeVal) : "Сегодня";
   const numPrice = Number(displayPrice) || 0;
   const formattedPrice = numPrice.toLocaleString("ru-RU");
 
-  const hasImg = ad.img && ad.img[0] && String(ad.img[0]).trim() !== "";
-  const imgMediaHtml = hasImg
-    ? `<img src="${ad.img[0]}" loading="lazy" decoding="async" onload="this.classList.add('loaded')" alt="${ad.title || "Букет"}">`
+  function getAdImageUrl(adObj) {
+    if (!adObj) return null;
+    let candidates = [];
+    if (Array.isArray(adObj.img)) candidates.push(...adObj.img);
+    else if (typeof adObj.img === "string") candidates.push(adObj.img);
+
+    if (Array.isArray(adObj.images)) candidates.push(...adObj.images);
+    else if (typeof adObj.images === "string") candidates.push(adObj.images);
+
+    if (Array.isArray(adObj.photos)) candidates.push(...adObj.photos);
+    else if (typeof adObj.photos === "string") candidates.push(adObj.photos);
+
+    if (typeof adObj.photo === "string") candidates.push(adObj.photo);
+    if (typeof adObj.imageUrl === "string") candidates.push(adObj.imageUrl);
+    if (typeof adObj.image === "string") candidates.push(adObj.image);
+
+    for (let c of candidates) {
+      if (c && typeof c === "string") {
+        const trimmed = c.trim();
+        if (trimmed !== "" && trimmed !== "null" && trimmed !== "undefined" && trimmed !== "[object Object]") {
+          return trimmed;
+        }
+      }
+    }
+    return null;
+  }
+
+  const imgUrl = getAdImageUrl(ad);
+  const imgMediaHtml = imgUrl
+    ? `<img src="${imgUrl}" alt="${ad.title || "Букет"}" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'rb-no-img-placeholder\\'><i class=\\'fa-solid fa-leaf\\'></i><span>Свежий букет</span></div>';">`
     : `<div class="rb-no-img-placeholder"><i class="fa-solid fa-leaf"></i><span>Свежий букет</span></div>`;
 
   card.innerHTML = `

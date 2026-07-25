@@ -2786,12 +2786,12 @@ body {
 }
 
 .rb-card-img-box img {
-  opacity: 0;
-  transition: opacity 0.35s ease-in-out;
-}
-
-.rb-card-img-box img.loaded {
-  opacity: 1;
+  opacity: 1 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  transition: transform 0.35s ease-in-out;
 }/* --- ПЕРВАЯ ПУБЛИКАЦИЯ БЕСПЛАТНО & КАК ЭТО РАБОТАЕТ --- */
 .rewards-promo-section {
   max-width: 1280px;
