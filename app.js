@@ -3277,6 +3277,14 @@ const i18nDict = {
     categoriesCerts: "Сертификаты",
     freshTitle: "Свежие предложения",
     becomePartner: "Стать партнером",
+    faq: "Вопросы и ответы",
+    safety: "Безопасность",
+    tariffs: "Тарифы",
+    savedSearches: "Сохранённые поиски",
+    support: "Поддержка",
+    howTag: "ИНСТРУКЦИЯ",
+    howTitle: "Как это работает?",
+    payTitle: "Что именно вы оплачиваете",
     footerAbout: "Свежие букеты от людей в вашем городе. Контакт, передача и оплата — напрямую между сторонами.",
     tgSupport: "Поддержка в Telegram"
   },
@@ -3294,6 +3302,14 @@ const i18nDict = {
     categoriesCerts: "Сертификаттар",
     freshTitle: "Жаңы сунуштар",
     becomePartner: "Өнөктөш болуу",
+    faq: "Суроолор жана жооптор",
+    safety: "Коопсуздук",
+    tariffs: "Тарифтер",
+    savedSearches: "Сакталган издөөлөр",
+    support: "Колдоо",
+    howTag: "НУСКАМА",
+    howTitle: "Кантип иштейт?",
+    payTitle: "Эмне үчүн төлөйсүз",
     footerAbout: "Шаарыңыздагы адамдардан жаңы гүлдестелер. Байланыш, өткөрүү жана төлөө — түз тараптар ортосунда.",
     tgSupport: "Telegram аркылуу колдоо"
   },
@@ -3311,6 +3327,14 @@ const i18nDict = {
     categoriesCerts: "Certificates",
     freshTitle: "Fresh Listings",
     becomePartner: "Become partner",
+    faq: "FAQ",
+    safety: "Safety",
+    tariffs: "Tariffs",
+    savedSearches: "Saved searches",
+    support: "Support",
+    howTag: "GUIDE",
+    howTitle: "How it works?",
+    payTitle: "What you are paying for",
     footerAbout: "Fresh bouquets from people in your city. Direct contact, handoff, and payment between parties.",
     tgSupport: "Support in Telegram"
   }
@@ -3327,6 +3351,21 @@ window.setLanguage = function (lang) {
   });
 
   const d = i18nDict[lang];
+
+  // Навигационные ссылки
+  const navBouquets = document.getElementById("nav-link-bouquets");
+  const navFaq = document.getElementById("nav-link-faq");
+  const navSafety = document.getElementById("nav-link-safety");
+  const navTariffs = document.getElementById("nav-link-tariffs");
+  const navSaved = document.getElementById("nav-link-saved");
+  const navSupport = document.getElementById("nav-link-support");
+
+  if (navBouquets) navBouquets.innerText = d.browseBouquets;
+  if (navFaq) navFaq.innerText = d.faq;
+  if (navSafety) navSafety.innerText = d.safety;
+  if (navTariffs) navTariffs.innerText = d.tariffs;
+  if (navSaved) navSaved.innerText = d.savedSearches;
+  if (navSupport) navSupport.innerText = d.support;
 
   // Герой секция
   const prefixEl = document.querySelector(".hero-title-prefix");
@@ -3351,6 +3390,15 @@ window.setLanguage = function (lang) {
   const browseBtns = document.querySelectorAll(".hero-btn-dark");
   browseBtns.forEach((b) => (b.innerText = d.browseBouquets));
 
+  // Секции
+  const howTag = document.querySelector(".how-it-works-section .section-tag-center");
+  const howTitle = document.querySelector(".how-it-works-section .section-title-center");
+  if (howTag) howTag.innerText = d.howTag;
+  if (howTitle) howTitle.innerText = d.howTitle;
+
+  const payTitle = document.querySelector(".payment-info-title");
+  if (payTitle) payTitle.innerText = d.payTitle;
+
   // Футер
   const ftAboutEl = document.querySelector(".footer-about-text");
   if (ftAboutEl) ftAboutEl.innerText = d.footerAbout;
@@ -3367,19 +3415,84 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 initThemeSystem();
 
+// --- СТИЛЬНЫЕ МОДАЛЬНЫЕ ОКНА ИНФОРМАЦИИ ---
+window.openInfoModal = function (title, contentText) {
+  const modal = document.getElementById("info-modal");
+  const titleEl = document.getElementById("info-modal-title");
+  const bodyEl = document.getElementById("info-modal-body");
+
+  if (titleEl) titleEl.innerText = title;
+  if (bodyEl) bodyEl.innerText = contentText;
+  if (modal) modal.classList.remove("hidden");
+};
+
+window.closeInfoModal = function (e) {
+  if (e && e.stopPropagation) e.stopPropagation();
+  const modal = document.getElementById("info-modal");
+  if (modal) modal.classList.add("hidden");
+};
+
 window.openFaqModal = function (e) {
   if (e && e.preventDefault) e.preventDefault();
-  alert("Часто задаваемые вопросы:\n\n1. Как купить букет? — Свяжитесь с продавцом напрямую в Telegram или по телефону.\n2. Как продать букет? — Нажмите кнопку 'Продать букет' и заполните форму.\n3. Модерация — Все объявления проверяются перед публикацией.");
+  const currentLang = localStorage.getItem("app_lang") || "ru";
+  if (currentLang === "kg") {
+    openInfoModal(
+      "Көп берилүүчү суроолор (FAQ)",
+      "1. Гүлдестени кантип сатып алса болот?\nСатуучу менен түздөн-түз Telegram же телефон аркылуу байланышыңыз.\n\n2. Гүлдестени кантип сатса болот?\n'Гүл сатуу' баскычын басып, форманы толтуруңуз.\n\n3. Төлөм жана өткөрүп берүү\nСаткандар менен сатып алуучулар түз сүйлөшүшөт."
+    );
+  } else if (currentLang === "en") {
+    openInfoModal(
+      "Frequently Asked Questions (FAQ)",
+      "1. How to buy a bouquet?\nContact the seller directly via Telegram or phone.\n\n2. How to sell a bouquet?\nClick the 'Sell bouquet' button and submit your listing.\n\n3. Payment & Handoff\nArranged directly between buyer and seller without extra fees."
+    );
+  } else {
+    openInfoModal(
+      "Часто задаваемые вопросы (FAQ)",
+      "1. Как купить букет?\nСвяжитесь с продавцом напрямую в Telegram или по телефону.\n\n2. Как продать букет?\nНажмите кнопку 'Продать букет' и заполните простую форму.\n\n3. Оплата и передача\nВсе условия согласуются напрямую между покупателем и продавцом."
+    );
+  }
 };
 
 window.openSafetyModal = function (e) {
   if (e && e.preventDefault) e.preventDefault();
-  alert("Безопасность на ResaleBuket:\n\n- Осматривайте букет лично при встрече.\n- Не переводите предоплату незнакомым продавцам.\n- Сообщайте о подозрительных объявлениях модераторам.");
+  const currentLang = localStorage.getItem("app_lang") || "ru";
+  if (currentLang === "kg") {
+    openInfoModal(
+      "Коопсуздук эрежелери",
+      "• Гүлдестени кездешүүдө өзүңүз текшериңиз.\n• Бейтааныш сатуучуларга алдын ала төлөм которбоңуз.\n• Күмөндүү кулактандыруулар тууралуу модераторлорго кабарлаңыз."
+    );
+  } else if (currentLang === "en") {
+    openInfoModal(
+      "Safety Rules",
+      "• Inspect the bouquet in person during handoff.\n• Never send upfront prepayment to unknown sellers.\n• Report any suspicious listings directly to moderators."
+    );
+  } else {
+    openInfoModal(
+      "Безопасность на ResaleBuket",
+      "• Осматривайте букет лично при встрече.\n• Не переводите предоплату незнакомым продавцам.\n• Сообщайте о подозрительных объявлениях модераторам."
+    );
+  }
 };
 
 window.openTariffsModal = function (e) {
   if (e && e.preventDefault) e.preventDefault();
-  alert("Тарифы размещения:\n\n• Стандартный — Бесплатно\n• VIP — Закрепление вверху ленты на 3 дня\n• Магазин — Личная витрина товаров и проверенный бейдж");
+  const currentLang = localStorage.getItem("app_lang") || "ru";
+  if (currentLang === "kg") {
+    openInfoModal(
+      "Жайгаштыруу тарифтери",
+      "• Стандарттык — Акысыз\n• VIP — Лентанын башында 3 күн турат\n• Дүкөн — Өздүк витрина жана бекитилген бейдж"
+    );
+  } else if (currentLang === "en") {
+    openInfoModal(
+      "Listing Tariffs",
+      "• Standard — Free listing\n• VIP — Featured at top of feed for 3 days\n• Store — Personal store showcase & verified badge"
+    );
+  } else {
+    openInfoModal(
+      "Тарифы размещения",
+      "• Стандартный — Бесплатно\n• VIP — Закрепление вверху ленты на 3 дня\n• Магазин — Личная витрина товаров и проверенный бейдж"
+    );
+  }
 };
 
 window.openSupportModal = function (e) {

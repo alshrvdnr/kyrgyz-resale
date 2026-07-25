@@ -52,12 +52,12 @@
 
         <!-- Навигационное меню -->
         <nav class="dt-nav-menu">
-          <a href="#home-grid" class="dt-nav-link" onclick="scrollToFeed(event)">Смотреть букеты</a>
-          <a href="#" class="dt-nav-link" onclick="openFaqModal(event)">Вопросы и ответы</a>
-          <a href="#" class="dt-nav-link" onclick="openSafetyModal(event)">Безопасность</a>
-          <a href="#" class="dt-nav-link" onclick="openTariffsModal(event)">Тарифы</a>
-          <a href="#" class="dt-nav-link" onclick="showPage('favs')">Сохранённые поиски</a>
-          <a href="#" class="dt-nav-link" onclick="openSupportModal(event)">Поддержка</a>
+          <a href="#home-grid" id="nav-link-bouquets" class="dt-nav-link" onclick="scrollToFeed(event)">Смотреть букеты</a>
+          <a href="#" id="nav-link-faq" class="dt-nav-link" onclick="openFaqModal(event)">Вопросы и ответы</a>
+          <a href="#" id="nav-link-safety" class="dt-nav-link" onclick="openSafetyModal(event)">Безопасность</a>
+          <a href="#" id="nav-link-tariffs" class="dt-nav-link" onclick="openTariffsModal(event)">Тарифы</a>
+          <a href="#" id="nav-link-saved" class="dt-nav-link" onclick="showPage('favs')">Сохранённые поиски</a>
+          <a href="#" id="nav-link-support" class="dt-nav-link" onclick="openSupportModal(event)">Поддержка</a>
         </nav>
 
         <!-- Правая часть: тема, язык, кнопка -->
@@ -1481,6 +1481,14 @@
       <button class="btn-premium-unity" onclick="document.getElementById('maintenance-alert').classList.add('hidden')" style="width: 100%;">
         Понятно
       </button>
+    </div>
+  <!-- INFO MODAL (FAQ / Safety / Tariffs Styled Popup) -->
+  <div id="info-modal" class="hidden modal-overlay frosted-overlay" onclick="closeInfoModal(event)">
+    <div class="modal-box premium-modal-box" onclick="event.stopPropagation()" style="max-width: 520px; padding: 32px; border-radius: 28px; position: relative;">
+      <i class="fa fa-times" onclick="closeInfoModal()" style="position: absolute; top: 22px; right: 22px; font-size: 20px; color: var(--ink-muted); cursor: pointer;"></i>
+      <h3 id="info-modal-title" style="margin: 0 0 16px 0; font-size: 24px; font-weight: 800; color: var(--ink);">Информация</h3>
+      <div id="info-modal-body" style="font-size: 14.5px; color: var(--ink); line-height: 1.6; white-space: pre-wrap;"></div>
+      <button class="dt-submit-pub-btn" onclick="closeInfoModal()" style="width: 100%; margin-top: 24px;">Понятно</button>
     </div>
   </div>
 </body>

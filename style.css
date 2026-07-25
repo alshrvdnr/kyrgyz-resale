@@ -2923,17 +2923,24 @@ body {
 
 /* --- СЕКЦИЯ "ЧТО ИМЕННО ВЫ ОПЛАЧИВАЕТЕ" --- */
 .payment-info-section {
-  max-width: 1280px;
-  margin: 60px auto 80px auto;
-  padding: 0 24px;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 80px 0 0 0 !important;
+  padding: 80px 0 !important;
+  background: var(--input-bg) !important;
+  border-top: 1px solid var(--beige-border) !important;
+  border-bottom: 1px solid var(--beige-border) !important;
+  box-sizing: border-box !important;
 }
 
 .payment-info-container {
-  background: var(--input-bg);
-  border: 1px solid var(--beige-border);
-  border-radius: 36px;
-  padding: 48px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  max-width: 1280px !important;
+  margin: 0 auto !important;
+  padding: 0 24px !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }
 
 .payment-info-title {
@@ -3013,13 +3020,16 @@ body {
   transform: translateY(-2px);
 }
 
-/* --- ПОДВАЛ САЙТА (DARK FOOTER) --- */
+/* --- ПОДВАЛ САЙТА (DARK FOOTER - FULL WIDTH EDGE TO EDGE) --- */
 .site-footer {
+  width: 100% !important;
+  max-width: 100% !important;
   background: #18111b !important;
   color: #ffffff !important;
-  padding: 70px 0 30px 0;
-  margin-top: 80px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 70px 0 30px 0 !important;
+  margin-top: 0 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-sizing: border-box !important;
 }
 
 .footer-inner {
