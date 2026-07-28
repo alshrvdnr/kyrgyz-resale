@@ -2765,7 +2765,7 @@ body {
     display: flex !important;
   }
   #page-home {
-    padding-top: 175px !important;
+    padding-top: 145px !important;
     padding-bottom: 140px !important;
   }
   .listings-grid {
@@ -2782,9 +2782,13 @@ body {
     flex-direction: column !important;
     justify-content: space-between !important;
     overflow: hidden !important;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease !important;
+  }
+  .card:active {
+    transform: scale(0.975) !important;
   }
   .rb-card-img-box {
-    height: 135px !important;
+    height: 130px !important;
     flex-shrink: 0 !important;
   }
   .rb-card-content {

@@ -208,28 +208,14 @@
           </div>
         </div>
 
-        <div class="stories-wrapper">
-          <div class="stories-container" id="shop-stories">
-            <!-- Кнопка "Стать партнером" -->
-            <div class="story-item partner-invite" onclick="tg.openTelegramLink('https://t.me/D1NCHO')">
-              <div class="story-circle-add">
-                <span style="
-                      font-size: 30px;
-                      font-weight: 200;
-                      color: var(--yellow-main);
-                    ">+</span>
-              </div>
-              <span>Стать партнером</span>
-            </div>
-
-          </div>
-        </div>
-
         <!-- Категории (остаются под поиском) -->
         <div class="categories-wrapper">
           <div class="categories-container" id="cat-container">
             <div class="cat-card active" onclick="filterByCat('Все', this)">
               <i class="fa-solid fa-list"></i><span>Все</span>
+            </div>
+            <div class="cat-card partner-chip" onclick="tg.openTelegramLink('https://t.me/D1NCHO')">
+              <i class="fa-solid fa-plus" style="color: var(--yellow-main); font-weight: 900;"></i><span>Стать партнером</span>
             </div>
             <div class="cat-card" onclick="filterByCat('flowers', this)">
               <i class="fa-solid fa-leaf"></i><span>Цветы</span>

@@ -1926,8 +1926,26 @@ async function publishAndSend() {
       approvedAt: Math.floor(Date.now() / 1000),
     };
 
-    // 6. ОТПРАВКА В FIREBASE
-    await db.ref("ads").push(newAd);
+    // 6. ОТПРАВКА В FIREBASE (Объявления + Мгновенное оповещение боту)
+    const newAdRef = await db.ref("ads").push(newAd);
+    const generatedAdId = newAdRef.key;
+
+    // Дублируем оповещение в узел bot_notifications для мгновенной доставки в Telegram
+    try {
+      await db.ref("bot_notifications").push({
+        adId: generatedAdId,
+        title: cleanTitle,
+        price: numericPrice,
+        city: newAd.city,
+        phone: newAd.phone,
+        tgNick: newAd.tgNick,
+        img: validImgs,
+        createdAt: Math.floor(Date.now() / 1000),
+        status: "new_website_ad"
+      });
+    } catch (botErr) {
+      console.warn("Ошибка отсылки оповещения боту:", botErr);
+    }
 
     // Запоминаем время последнего поста (для анти-спама)
     localStorage.setItem("last_post_time", Date.now());
