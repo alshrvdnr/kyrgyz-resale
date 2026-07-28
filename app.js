@@ -1249,15 +1249,6 @@ function createAdCard(ad, isProfile = false) {
   const numPrice = Number(displayPrice) || 0;
   const formattedPrice = numPrice.toLocaleString("ru-RU");
 
-  const FALLBACK_BOUQUET_IMAGES = [
-    "https://images.unsplash.com/photo-1561181286-d3fee7d55364?q=80&w=600&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1526047932273-341f2a7631f9?q=80&w=600&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?q=80&w=600&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1563241527-3004b7be0ffd?q=80&w=600&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1591886960571-74d43a9d4166?q=80&w=600&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1527061011665-3652c757a4d4?q=80&w=600&auto=format&fit=crop"
-  ];
-
   function getAdImageUrl(adObj) {
     if (!adObj) return null;
     let candidates = [];
@@ -1286,15 +1277,16 @@ function createAdCard(ad, isProfile = false) {
   }
 
   const rawImgUrl = getAdImageUrl(ad);
-  const hashStr = String(ad.id || ad.title || "1");
-  let charSum = 0;
-  for (let i = 0; i < hashStr.length; i++) {
-    charSum += hashStr.charCodeAt(i);
-  }
-  const fallbackImg = FALLBACK_BOUQUET_IMAGES[charSum % FALLBACK_BOUQUET_IMAGES.length];
-  const finalImgUrl = rawImgUrl || fallbackImg;
+  const curLang = localStorage.getItem("app_lang") || "ru";
+  const placeholderLabel = curLang === "kg" 
+    ? "Сүрөттү сатуучудан сураңыз" 
+    : (curLang === "en" ? "Ask seller for photos" : "Фото уточняйте у продавца");
 
-  const imgMediaHtml = `<img src="${finalImgUrl}" alt="${ad.title || "Букет"}" onerror="if (this.src !== '${fallbackImg}') { this.src = '${fallbackImg}'; }">`;
+  const placeholderHtml = `<div class="rb-no-img-placeholder"><div class="rb-placeholder-art"><i class="fa-solid fa-spa"></i><div class="rb-placeholder-brand">resale<span>buket.kg</span></div></div><span class="rb-placeholder-label">${placeholderLabel}</span></div>`;
+
+  const imgMediaHtml = rawImgUrl
+    ? `<img src="${rawImgUrl}" alt="${ad.title || "Букет"}" onerror="this.onerror=null; this.outerHTML='${placeholderHtml.replace(/'/g, "\\'")}';">`
+    : placeholderHtml;
 
   card.innerHTML = `
     <!-- Изображение и Избранное -->
