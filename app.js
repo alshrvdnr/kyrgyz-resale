@@ -862,14 +862,18 @@ function initSavedCounter(allAdsArray = []) {
     ).length;
   }
 
-  db.ref("stats/saved_count").on("value", (snapshot) => {
-    let dbExtra = snapshot.val();
-    if (dbExtra === null || dbExtra === undefined || Number(dbExtra) < 2000) {
-      db.ref("stats/saved_count").set(2000);
-      dbExtra = 2000;
-    }
-    const totalSaved = soldOrDeletedCount + Number(dbExtra);
-    updateSavedCounterUI(totalSaved);
+  db.ref("management_requests").on("value", (reqSnap) => {
+    const reqData = reqSnap.val() || {};
+    const reqCount = Object.values(reqData).filter(
+      (r) => r && (r.action === "sold" || r.action === "delete")
+    ).length;
+
+    db.ref("stats/saved_count").on("value", (snapshot) => {
+      let dbExtra = Number(snapshot.val()) || 0;
+      const BASE_COUNT = 2000;
+      const totalSaved = BASE_COUNT + soldOrDeletedCount + reqCount + dbExtra;
+      updateSavedCounterUI(totalSaved);
+    });
   });
 }
 
