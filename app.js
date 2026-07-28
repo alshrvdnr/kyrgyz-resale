@@ -1280,17 +1280,35 @@ function createAdCard(ad, isProfile = false) {
     return null;
   }
 
+window.handleImgError = function(imgEl) {
+  if (!imgEl || imgEl.dataset.errored) return;
+  imgEl.dataset.errored = "true";
+  const curLang = localStorage.getItem("app_lang") || "ru";
+  const placeholderLabel = curLang === "kg" 
+    ? "Сүрөттү сатуучудан сураңыз" 
+    : (curLang === "en" ? "Ask seller for photos" : "Фото уточняйте у продавца");
+
+  const placeholderDiv = document.createElement("div");
+  placeholderDiv.className = "rb-no-img-placeholder";
+  placeholderDiv.innerHTML = `
+    <div class="rb-placeholder-art">
+      <div class="rb-placeholder-flower-icon">🌸</div>
+      <div class="rb-placeholder-brand">resale<span>buket.kg</span></div>
+    </div>
+    <span class="rb-placeholder-label">${placeholderLabel}</span>
+  `;
+  imgEl.replaceWith(placeholderDiv);
+};
+
   const rawImgUrl = getAdImageUrl(ad);
   const curLang = localStorage.getItem("app_lang") || "ru";
   const placeholderLabel = curLang === "kg" 
     ? "Сүрөттү сатуучудан сураңыз" 
     : (curLang === "en" ? "Ask seller for photos" : "Фото уточняйте у продавца");
 
-  const placeholderHtml = `<div class="rb-no-img-placeholder"><div class="rb-placeholder-art"><i class="fa-solid fa-spa"></i><div class="rb-placeholder-brand">resale<span>buket.kg</span></div></div><span class="rb-placeholder-label">${placeholderLabel}</span></div>`;
-
   const imgMediaHtml = rawImgUrl
-    ? `<img src="${rawImgUrl}" alt="${ad.title || "Букет"}" onerror="this.onerror=null; this.outerHTML='${placeholderHtml.replace(/'/g, "\\'")}';">`
-    : placeholderHtml;
+    ? `<img src="${rawImgUrl}" alt="${ad.title || "Букет"}" onerror="handleImgError(this)">`
+    : `<div class="rb-no-img-placeholder"><div class="rb-placeholder-art"><div class="rb-placeholder-flower-icon">🌸</div><div class="rb-placeholder-brand">resale<span>buket.kg</span></div></div><span class="rb-placeholder-label">${placeholderLabel}</span></div>`;
 
   card.innerHTML = `
     <!-- Изображение и Избранное -->

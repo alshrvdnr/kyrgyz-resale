@@ -2846,11 +2846,37 @@ body:not(.dark-theme) .rb-no-img-placeholder {
   margin-bottom: 10px;
 }
 
-.rb-placeholder-art i {
-  font-size: 32px;
-  color: var(--rose-main) !important;
-  opacity: 0.9;
-  filter: drop-shadow(0 4px 10px rgba(215, 128, 149, 0.3));
+.rb-placeholder-flower-icon {
+  font-size: 26px;
+  line-height: 1;
+}
+
+@media (max-width: 991px) {
+  .rb-no-img-placeholder {
+    padding: 8px !important;
+  }
+  .rb-placeholder-art {
+    gap: 2px !important;
+    margin-bottom: 6px !important;
+  }
+  .rb-placeholder-flower-icon {
+    font-size: 20px !important;
+  }
+  .rb-placeholder-brand {
+    font-size: 11px !important;
+  }
+  .rb-placeholder-label {
+    font-size: 8.5px !important;
+    padding: 3px 8px !important;
+    letter-spacing: 0.2px !important;
+    max-width: 95% !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  .rb-card-img-box {
+    height: 135px !important;
+  }
 }
 
 .rb-placeholder-brand {
